@@ -4,6 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
+		<maven.compiler.target>11</maven.compiler.target>
+		<maven.compiler.source>11</maven.compiler.source>
+
 		<lwjgl.version>3.2.3</lwjgl.version>
 		<lwjgl.natives>natives-windows</lwjgl.natives>
 	</properties>
