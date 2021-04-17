@@ -9,7 +9,7 @@ import java.nio.*;
 
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
@@ -32,7 +32,8 @@ public class Main {
 		glfwTerminate();
 		glfwSetErrorCallback(null).free();
 	}
-
+	
+	
 	private void init() {
 		// Setup an error callback. The default implementation
 		// will print the error message in System.err.
@@ -51,6 +52,7 @@ public class Main {
 		window = glfwCreateWindow(300, 300, "Hello World!", NULL, NULL);
 		if ( window == NULL )
 			throw new RuntimeException("Failed to create the GLFW window");
+		
 
 		// Setup a key callback. It will be called every time a key is pressed, repeated or released.
 		glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
@@ -79,21 +81,37 @@ public class Main {
 
 		// Make the OpenGL context current
 		glfwMakeContextCurrent(window);
+		GL.createCapabilities();
+		
 		// Enable v-sync
 		glfwSwapInterval(1);
-
+		
 		// Make the window visible
 		glfwShowWindow(window);
+		
+		// Geometry in current context
+		FloatBuffer buffer = memAllocFloat(3 * 2);
+		buffer.put(-0.5f).put(-0.5f);
+        buffer.put(+0.5f).put(-0.5f);
+        buffer.put(+0.0f).put(+0.5f);
+        buffer.flip();
+		
+		int vbo = glGenBuffers();
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
+
+
+		memFree(buffer);
+		
+		// define vertex format
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2, GL_FLOAT, 0, 0L);
+
+
+
 	}
 
 	private void loop() {
-		// This line is critical for LWJGL's interoperation with GLFW's
-		// OpenGL context, or any context that is managed externally.
-		// LWJGL detects the context that is current in the current thread,
-		// creates the GLCapabilities instance and makes the OpenGL
-		// bindings available for use.
-		GL.createCapabilities();
-
 		// Set the clear color
 		glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
 
@@ -102,12 +120,19 @@ public class Main {
 		while ( !glfwWindowShouldClose(window) ) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 
+			render();
+			
 			glfwSwapBuffers(window); // swap the color buffers
 
 			// Poll for window events. The key callback above will only be
 			// invoked during this call.
 			glfwPollEvents();
 		}
+	}
+
+	private void render() {
+		// TODO Auto-generated method stub
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 
 	public static void main(String[] args) {
