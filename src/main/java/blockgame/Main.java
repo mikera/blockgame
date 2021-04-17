@@ -10,6 +10,7 @@ import java.nio.*;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL15.*;
+import org.joml.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
@@ -130,7 +131,19 @@ public class Main {
 		}
 	}
 
+	private static final long START=System.currentTimeMillis();
+	FloatBuffer matbuffer = BufferUtils.createFloatBuffer(16);
+	
 	private void render() {
+		float t=(System.currentTimeMillis()-START)*0.001f;
+		
+		glMatrixMode(GL_MODELVIEW);
+		Matrix4f mv=new Matrix4f().rotateY(t);
+		mv.get(matbuffer);
+		
+		glMatrixMode(GL11.GL_MODELVIEW);
+		glLoadMatrixf(matbuffer);
+		
 		// TODO Auto-generated method stub
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
