@@ -54,6 +54,7 @@ public class Renderer {
 		// transformUniform = glGetUniformLocation(program, "transform");
 		// glUseProgram(0);
 		return program;
+		// TODO: do we need to dispose the program somehow?
 	}
 
 
