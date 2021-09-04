@@ -18,15 +18,7 @@ import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20.glAttachShader;
-import static org.lwjgl.opengl.GL20.glCreateProgram;
-import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20.glGetProgrami;
-import static org.lwjgl.opengl.GL20.glLinkProgram;
-import static org.lwjgl.opengl.GL20.glUseProgram;
+import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.system.MemoryUtil.memAllocFloat;
 import static org.lwjgl.system.MemoryUtil.memFree;
 
@@ -38,6 +30,8 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
 public class Renderer {
+	
+	int program;
 	
 	public FloatBuffer matbuffer = BufferUtils.createFloatBuffer(16);
 	
@@ -65,7 +59,7 @@ public class Renderer {
 
 	public void init() {
 		try {
-			int program=createProgram();
+			program=createProgram();
 		} catch (IOException e) {
 			throw new Error(e);
 		}
@@ -97,6 +91,11 @@ public class Renderer {
 		
 	}
 
+	Matrix4f m=new Matrix4f();
+
+	protected int width;
+	protected int height;
+	
 	public void render(float t) {
 		// clear the framebuffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
@@ -104,11 +103,16 @@ public class Renderer {
 		glMatrixMode(GL_MODELVIEW);
 		Matrix4f mv = new Matrix4f().rotateY(t);
 		mv.get(matbuffer);
-	
-		glMatrixMode(GL11.GL_MODELVIEW);
-		glLoadMatrixf(matbuffer);
+		
+		glUniformMatrix4fv(0, false,  matbuffer);
 	
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+
+
+	public void setSize(int width, int height) {
+		this.width=width;
+		this.height=height;
 	}
 
 }

@@ -12,10 +12,11 @@ layout (location = COLOUR) in vec4 vertex_colour;
 varying vec2 tex_coord;
 smooth out vec4 theColour;
 
+uniform mat4 MVP;
+
 void main()
 {
-    gl_Position = position;
-    gl_Position.z = (1000.0-position.z)/2000.0;
+    gl_Position = MVP*position;
     theColour = vertex_colour;
     tex_coord = texCoord_buffer;
 }
