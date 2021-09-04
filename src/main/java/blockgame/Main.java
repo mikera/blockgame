@@ -39,6 +39,7 @@ public class Main {
 		// Setup an error callback. The default implementation
 		// will print the error message in System.err.
 		GLFWErrorCallback.createPrint(System.err).set();
+		
 
 		// Initialize GLFW. Most GLFW functions will not work before doing this.
 		if ( !glfwInit() )
@@ -54,11 +55,18 @@ public class Main {
 		if ( window == NULL )
 			throw new RuntimeException("Failed to create the GLFW window");
 		
-
 		// Setup a key callback. It will be called every time a key is pressed, repeated or released.
 		glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
 			if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
 				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+		});
+		
+		// Setup mouse cursor callback
+		glfwSetCursorPosCallback(window, (window,xpos,ypos)->{
+			System.out.println(xpos+","+ypos);
+		});
+		glfwSetMouseButtonCallback(window, (window,button,action,mods)-> {
+			System.out.println("Mouse button: "+button+", "+action+", "+mods);
 		});
 
 		// Get the thread stack and push a new frame
