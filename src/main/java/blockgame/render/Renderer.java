@@ -1,22 +1,75 @@
 package blockgame.render;
 
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
+import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_VERTEX_ARRAY;
+import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glDrawArrays;
 import static org.lwjgl.opengl.GL11.glEnableClientState;
+import static org.lwjgl.opengl.GL11.glLoadMatrixf;
+import static org.lwjgl.opengl.GL11.glMatrixMode;
 import static org.lwjgl.opengl.GL11.glVertexPointer;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
+import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
+import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
+import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
+import static org.lwjgl.opengl.GL20.glAttachShader;
+import static org.lwjgl.opengl.GL20.glCreateProgram;
+import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
+import static org.lwjgl.opengl.GL20.glGetProgrami;
+import static org.lwjgl.opengl.GL20.glLinkProgram;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.system.MemoryUtil.memAllocFloat;
 import static org.lwjgl.system.MemoryUtil.memFree;
 
+import java.io.IOException;
 import java.nio.FloatBuffer;
 
+import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
+
 public class Renderer {
+	
+	public FloatBuffer matbuffer = BufferUtils.createFloatBuffer(16);
+	
+	int createProgram() throws IOException {
+		int program = glCreateProgram();
+		int vshader = Utils.createShader("shaders/vertex-shader.vert", GL_VERTEX_SHADER);
+		int fshader = Utils.createShader("shaders/fragment-shader.frag", GL_FRAGMENT_SHADER);
+		glAttachShader(program, vshader);
+		glAttachShader(program, fshader);
+		glLinkProgram(program);
+		int linked = glGetProgrami(program, GL_LINK_STATUS);
+		String programLog = glGetProgramInfoLog(program);
+		if (programLog.trim().length() > 0) {
+			System.err.println(programLog);
+		}
+		if (linked == 0) {
+			throw new AssertionError("Could not link program");
+		}
+		glUseProgram(program);
+		// transformUniform = glGetUniformLocation(program, "transform");
+		// glUseProgram(0);
+		return program;
+	}
+
 
 	public void init() {
+		try {
+			int program=createProgram();
+		} catch (IOException e) {
+			throw new Error(e);
+		}
+		
 		// Geometry in current context
 		FloatBuffer buffer = memAllocFloat(3 * 2);
 		buffer.put(-0.5f).put(-0.5f);
@@ -34,12 +87,28 @@ public class Renderer {
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(2, GL_FLOAT, 0, 0L);
 
-		
+		// Set the clear color
+		glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+
 	}
 
 	public void close() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	public void render(float t) {
+		// clear the framebuffer
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+
+		glMatrixMode(GL_MODELVIEW);
+		Matrix4f mv = new Matrix4f().rotateY(t);
+		mv.get(matbuffer);
+	
+		glMatrixMode(GL11.GL_MODELVIEW);
+		glLoadMatrixf(matbuffer);
+	
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 
 }
