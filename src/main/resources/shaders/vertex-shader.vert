@@ -9,7 +9,7 @@ layout (location = POSITION) in vec4 position;
 layout (location = TEXTURE) in vec2 texCoord_buffer;
 layout (location = COLOUR) in vec4 vertex_colour;
 
-varying vec2 tex_coord;
+out vec2 tex_coord;
 smooth out vec4 theColour;
 
 uniform mat4 MVP;

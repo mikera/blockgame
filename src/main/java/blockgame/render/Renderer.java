@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.FloatBuffer;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 
@@ -92,7 +93,10 @@ public class Renderer {
 		
 	}
 
-	Matrix4f m=new Matrix4f();
+	Matrix4f mvp=new Matrix4f();
+	Vector3f loc=new Vector3f(0,-6,2);
+	Vector3f tpos=new Vector3f(0,0,0);
+	Vector3f up=new Vector3f(0,0,1);
 
 	protected int width;
 	protected int height;
@@ -102,8 +106,13 @@ public class Renderer {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
 		glMatrixMode(GL_MODELVIEW);
-		Matrix4f mv = new Matrix4f().rotateY(t);
-		mv.get(matbuffer);
+		mvp.identity();
+		
+		mvp.perspective(45.0f, width/height, 0.1f, 100f); // Perspective
+		mvp.lookAt(loc, tpos, up); // View
+		mvp.translate(tpos).rotateZ(t); // Model
+		
+		mvp.get(0, matbuffer);
 		
 		glUniformMatrix4fv(0, false,  matbuffer);
 	

@@ -7,7 +7,7 @@ layout (location = FRAG_COLOUR) out vec4 outputColour;
 
 smooth in vec4 theColour;
 uniform sampler2D tex;
-varying vec2 tex_coord;
+in vec2 tex_coord;
 
 void main()
 {
