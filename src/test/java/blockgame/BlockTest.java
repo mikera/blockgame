@@ -15,7 +15,7 @@ public class BlockTest {
 	@Test
 	
 	public void testAssets() {
-		assertEquals(2048,Assets.spriteImage.getWidth());
-		assertEquals(2048,Assets.spriteImage.getHeight());
+		assertEquals(2048,Assets.textureImage.getWidth());
+		assertEquals(2048,Assets.textureImage.getHeight());
 	}
 }

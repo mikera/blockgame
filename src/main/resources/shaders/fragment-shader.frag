@@ -11,7 +11,6 @@ in vec2 tex_coord;
 
 void main()
 {
-    outputColour = theColour * texture2D(tex, tex_coord);
-    if ((outputColour.a)<=0.0) discard;
-    // outputColour = theColour * vec4(1.0f, 1.0f, 1.0f, gl_FragCoord.x/500)*texture2D(tex, tex_coord);
+    outputColour = texture2D(tex, tex_coord);
+    // if ((outputColour.a)<=0.0) discard;
 }

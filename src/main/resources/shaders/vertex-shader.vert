@@ -6,7 +6,7 @@
 #define COLOUR      2
 
 layout (location = POSITION) in vec4 position;
-layout (location = TEXTURE) in vec2 texCoord_buffer;
+layout (location = TEXTURE) in vec2 texture;
 layout (location = COLOUR) in vec4 vertex_colour;
 
 out vec2 tex_coord;
@@ -18,5 +18,5 @@ void main()
 {
     gl_Position = MVP*position;
     theColour = vertex_colour;
-    tex_coord = texCoord_buffer;
+    tex_coord = texture;
 }

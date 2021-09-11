@@ -7,14 +7,14 @@ import javax.imageio.ImageIO;
 
 public class Assets {
 
-	public static BufferedImage spriteImage;
+	public static BufferedImage textureImage;
 
 	static {
 		//ClassLoader classLoader = ClassLoader.getSystemClassLoader();
 		ClassLoader classLoader =Assets.class.getClassLoader();
 
 		try {
-			Assets.spriteImage = ImageIO.read(classLoader.getResource("images/textures.png"));
+			Assets.textureImage = ImageIO.read(classLoader.getResource("images/textures.png"));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

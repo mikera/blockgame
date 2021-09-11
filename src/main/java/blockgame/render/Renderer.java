@@ -5,14 +5,12 @@ import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.GL_VERTEX_ARRAY;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
-import static org.lwjgl.opengl.GL11.glEnableClientState;
 import static org.lwjgl.opengl.GL11.glMatrixMode;
-import static org.lwjgl.opengl.GL11.glVertexPointer;
 import static org.lwjgl.opengl.GL11C.GL_LINEAR;
+import static org.lwjgl.opengl.GL11C.GL_NEAREST;
 import static org.lwjgl.opengl.GL11C.GL_RGBA;
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11C.GL_TEXTURE_MAG_FILTER;
@@ -37,6 +35,9 @@ import static org.lwjgl.opengl.GL20.glGetProgrami;
 import static org.lwjgl.opengl.GL20.glLinkProgram;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20.glUseProgram;
+import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
+import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
+import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
 import static org.lwjgl.system.MemoryUtil.memAllocFloat;
 import static org.lwjgl.system.MemoryUtil.memFree;
 
@@ -82,11 +83,18 @@ public class Renderer {
 	
     int createTexture() throws IOException {
 
-        BufferedImage bi=Assets.spriteImage;
+        BufferedImage bi=Assets.textureImage;
         IntBuffer data=BufferUtils.createIntBuffer(2048*2048);
          
         int[] argb=new int [2048*2048];
         bi.getRGB(0, 0, 2048, 2048, argb, 0, 2048);
+        for (int i=0; i<argb.length; i++) {
+        	int col=argb[i];
+        	col=Integer.rotateLeft(col, 16); // rotate to RGBA
+        	// col|=0xFF; // Max alpha
+        	argb[i]=col;
+        }
+        
         data.put(argb);
         data.flip();
     
@@ -95,7 +103,7 @@ public class Renderer {
                 
         glBindTexture(GL_TEXTURE_2D, id);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2048,2048, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         return id;
     }
@@ -111,22 +119,28 @@ public class Renderer {
 		}
 		
 		// Geometry in current context
-		FloatBuffer buffer = memAllocFloat(3 * 2);
-		buffer.put(-0.5f).put(-0.5f);
-		buffer.put(+0.5f).put(-0.5f);
-		buffer.put(+0.0f).put(+0.5f);
-		buffer.flip();
+		FloatBuffer vertexBuffer = memAllocFloat(3 * (2+2));
+		vertexBuffer.put(-0.5f).put(-0.5f).put(0.0f).put(0.0f);
+		vertexBuffer.put(+0.5f).put(-0.5f).put(0.0f).put(0.006f);
+		vertexBuffer.put(+0.0f).put(+0.5f).put(0.006f).put(0.0f);
+		vertexBuffer.flip();
 
 		int vbo = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
 
-		memFree(buffer);
+		memFree(vertexBuffer);
 
 		// define vertex format
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(2, GL_FLOAT, 0, 0L);
-
+		int inputPosition = glGetAttribLocation(program, "position");
+		glVertexAttribPointer(inputPosition,2,GL_FLOAT,false,(2+2)*4,0L); // Note: stride in bytes
+        glEnableVertexAttribArray(inputPosition);
+        
+		int texturePosition = glGetAttribLocation(program, "texture");
+		glVertexAttribPointer(texturePosition,2,GL_FLOAT,false,(2+2)*4,8L); // Note: stride in bytes
+        glEnableVertexAttribArray(texturePosition);
+ 
+        
 		// Set the clear color
 		glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
 
@@ -138,7 +152,7 @@ public class Renderer {
 	}
 
 	Matrix4f mvp=new Matrix4f();
-	Vector3f loc=new Vector3f(0,-6,2);
+	Vector3f loc=new Vector3f(0,-3,2);
 	Vector3f tpos=new Vector3f(0,0,0);
 	Vector3f up=new Vector3f(0,0,1);
 
