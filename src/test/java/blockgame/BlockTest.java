@@ -9,7 +9,7 @@ import blockgame.assets.Assets;
 public class BlockTest {
 
 	@Test public void test1() {
-		new Main().init();
+		new BlockGame().init();
 	}
 	
 	@Test

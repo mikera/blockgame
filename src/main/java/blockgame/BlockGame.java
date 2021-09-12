@@ -16,7 +16,7 @@ import org.lwjgl.system.MemoryStack;
 
 import blockgame.render.Renderer;
 
-public class Main {
+public class BlockGame {
 
 	// The window handle
 	private long window;
@@ -179,7 +179,7 @@ public class Main {
 
 
 	public static void main(String[] args) {
-		new Main().run();
+		new BlockGame().run();
 	}
 
 }

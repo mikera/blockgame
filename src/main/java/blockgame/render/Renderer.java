@@ -3,12 +3,10 @@ package blockgame.render;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
-import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
-import static org.lwjgl.opengl.GL11.glMatrixMode;
 import static org.lwjgl.opengl.GL11C.GL_LINEAR;
 import static org.lwjgl.opengl.GL11C.GL_NEAREST;
 import static org.lwjgl.opengl.GL11C.GL_RGBA;
@@ -21,25 +19,14 @@ import static org.lwjgl.opengl.GL11C.glGenTextures;
 import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL11C.glTexParameteri;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL15.glGenBuffers;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20.glAttachShader;
-import static org.lwjgl.opengl.GL20.glCreateProgram;
-import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20.glGetProgrami;
-import static org.lwjgl.opengl.GL20.glLinkProgram;
-import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
-import static org.lwjgl.opengl.GL20.glUseProgram;
+import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
 import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
-import static org.lwjgl.system.MemoryUtil.memAllocFloat;
-import static org.lwjgl.system.MemoryUtil.memFree;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -47,7 +34,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.joml.Matrix4f;
-import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
@@ -57,6 +43,9 @@ public class Renderer {
 	
 	int program;
 	int texture;
+	int vs_inputPosition;
+	int vs_texturePosition;
+
 	
 	public FloatBuffer matbuffer = BufferUtils.createFloatBuffer(16);
 	
@@ -78,6 +67,11 @@ public class Renderer {
 		glUseProgram(program);
 		// transformUniform = glGetUniformLocation(program, "transform");
 		// glUseProgram(0);
+		
+		// set up positions for input attributes
+		vs_inputPosition = glGetAttribLocation(program, "position");
+		vs_texturePosition = glGetAttribLocation(program, "texture");
+		
 		return program;
 		// TODO: do we need to dispose the program somehow?
 	}
@@ -110,6 +104,7 @@ public class Renderer {
     }
 
     int vbo;
+	private Chunk chunk;
 
 	public void init() {
 		try {
@@ -124,34 +119,23 @@ public class Renderer {
         
 		// Set the clear color
 		glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+		
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
 
 	}
+	
+
 
 	private void createModel() {
-		// Geometry in current context
-		FloatBuffer vertexBuffer = memAllocFloat(6 * (2+2));
-		vertexBuffer.put(0.0f).put(0.0f).put(0.0f).put(0.0f);
-		vertexBuffer.put(0.0f).put(1.0f).put(0.0f).put(1.0f/128);
-		vertexBuffer.put(1.0f).put(0.0f).put(1.0f/128).put(0.0f);
-		vertexBuffer.put(0.0f).put(1.0f).put(0.0f).put(1.0f/128);
-		vertexBuffer.put(1.0f).put(1.0f).put(1.0f/128).put(1.0f/128);
-		vertexBuffer.put(1.0f).put(0.0f).put(1.0f/128).put(0.0f);
-		vertexBuffer.flip();
-
-		vbo = glGenBuffers();
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
-
-		memFree(vertexBuffer);
-
+		chunk = Chunk.create();
+		
 		// define vertex format
-		int inputPosition = glGetAttribLocation(program, "position");
-		glVertexAttribPointer(inputPosition,2,GL_FLOAT,false,(2+2)*4,0L); // Note: stride in bytes
-        glEnableVertexAttribArray(inputPosition);
+		glVertexAttribPointer(vs_inputPosition,3,GL_FLOAT,false,(3+2)*4,0L); // Note: stride in bytes
+        glEnableVertexAttribArray(vs_inputPosition);
         
-		int texturePosition = glGetAttribLocation(program, "texture");
-		glVertexAttribPointer(texturePosition,2,GL_FLOAT,false,(2+2)*4,8L); // Note: stride in bytes
-        glEnableVertexAttribArray(texturePosition);
+		glVertexAttribPointer(vs_texturePosition,2,GL_FLOAT,false,(3+2)*4,12L); // Note: stride in bytes
+        glEnableVertexAttribArray(vs_texturePosition);
 	}
 
 	public void close() {
@@ -211,7 +195,7 @@ public class Renderer {
 		
 		glUniformMatrix4fv(0, false,  matbuffer);
 	
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		chunk.draw();
 	}
 
 
