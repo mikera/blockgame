@@ -90,8 +90,9 @@ public class Renderer {
         bi.getRGB(0, 0, 2048, 2048, argb, 0, 2048);
         for (int i=0; i<argb.length; i++) {
         	int col=argb[i];
-        	// col=Integer.rotateLeft(col, 24); // rotate to RGBA
+        	col=Integer.rotateLeft(col, 8); // rotate to RGBA
         	// col|=0xFF; // Max alpha
+        	col=Integer.reverseBytes(col);
         	argb[i]=col;
         }
         
@@ -123,7 +124,7 @@ public class Renderer {
  
         
 		// Set the clear color
-		glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+		glClearColor(0.2f, 0.7f, 0.85f, 0.0f);
 		
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
@@ -191,7 +192,7 @@ public class Renderer {
 		model.rotateZ(t*0.003f);
 		model.translate(tpos);
 		
-		projection.setPerspective((float) (Math.PI/4), width/height, 0.1f, 100f);
+		projection.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
 		
 		mvp.identity();	
 		mvp.mul(projection);

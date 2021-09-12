@@ -52,16 +52,24 @@ public class Chunk {
 	}
 	
 	private FloatBuffer buildAll() {
-		FloatBuffer vertexBuffer = FloatBuffer.allocate(10000);
-		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,0,0);
-		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,1,0);
-		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,2,0);
-		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,3,0);
-		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,4,0);
-		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,5,0);
-		vertexBuffer.flip();
+		FloatBuffer vb = FloatBuffer.allocate(10000);
+		vb=addBlock(vb,0,0,0,1);
+		vb=addBlock(vb,2,0,-1,1);
+		vb=addBlock(vb,1,0,-1,1);
 		
-		return vertexBuffer;
+		vb.flip();
+		return vb;
+	}
+	
+	private FloatBuffer addBlock(FloatBuffer vb, int x, int y, int z, int type) {
+		vb=addFace(vb,x, y, z,0,0x102);
+		vb=addFace(vb,x, y, z,1,0x101);
+		vb=addFace(vb,x, y, z,2,0x101);
+		vb=addFace(vb,x, y, z,3,0x101);
+		vb=addFace(vb,x, y, z,4,0x101);
+		vb=addFace(vb,x, y, z,5,0x100);
+		
+		return vb;
 	}
 	
 	// North = +y East = +x
