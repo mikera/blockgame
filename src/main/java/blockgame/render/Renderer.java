@@ -47,6 +47,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
@@ -90,7 +91,7 @@ public class Renderer {
         bi.getRGB(0, 0, 2048, 2048, argb, 0, 2048);
         for (int i=0; i<argb.length; i++) {
         	int col=argb[i];
-        	col=Integer.rotateLeft(col, 16); // rotate to RGBA
+        	// col=Integer.rotateLeft(col, 24); // rotate to RGBA
         	// col|=0xFF; // Max alpha
         	argb[i]=col;
         }
@@ -108,7 +109,7 @@ public class Renderer {
         return id;
     }
 
-
+    int vbo;
 
 	public void init() {
 		try {
@@ -118,14 +119,26 @@ public class Renderer {
 			throw new Error(e);
 		}
 		
+		createModel();
+ 
+        
+		// Set the clear color
+		glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+
+	}
+
+	private void createModel() {
 		// Geometry in current context
-		FloatBuffer vertexBuffer = memAllocFloat(3 * (2+2));
-		vertexBuffer.put(-0.5f).put(-0.5f).put(0.0f).put(0.0f);
-		vertexBuffer.put(+0.5f).put(-0.5f).put(0.0f).put(0.006f);
-		vertexBuffer.put(+0.0f).put(+0.5f).put(0.006f).put(0.0f);
+		FloatBuffer vertexBuffer = memAllocFloat(6 * (2+2));
+		vertexBuffer.put(0.0f).put(0.0f).put(0.0f).put(0.0f);
+		vertexBuffer.put(0.0f).put(1.0f).put(0.0f).put(1.0f/128);
+		vertexBuffer.put(1.0f).put(0.0f).put(1.0f/128).put(0.0f);
+		vertexBuffer.put(0.0f).put(1.0f).put(0.0f).put(1.0f/128);
+		vertexBuffer.put(1.0f).put(1.0f).put(1.0f/128).put(1.0f/128);
+		vertexBuffer.put(1.0f).put(0.0f).put(1.0f/128).put(0.0f);
 		vertexBuffer.flip();
 
-		int vbo = glGenBuffers();
+		vbo = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
 
@@ -139,11 +152,6 @@ public class Renderer {
 		int texturePosition = glGetAttribLocation(program, "texture");
 		glVertexAttribPointer(texturePosition,2,GL_FLOAT,false,(2+2)*4,8L); // Note: stride in bytes
         glEnableVertexAttribArray(texturePosition);
- 
-        
-		// Set the clear color
-		glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
-
 	}
 
 	public void close() {
@@ -152,9 +160,17 @@ public class Renderer {
 	}
 
 	Matrix4f mvp=new Matrix4f();
-	Vector3f loc=new Vector3f(0,-3,2);
+	Matrix4f view=new Matrix4f();
+	Matrix4f model=new Matrix4f();
+	Matrix4f projection=new Matrix4f();
+	Vector3f playerDir=new Vector3f(0,0,0);
+	Vector3f playerPos=new Vector3f(0,-3,2);
+	Vector3f playerVelocity=new Vector3f(0,0,0);
+
 	Vector3f tpos=new Vector3f(0,0,0);
 	Vector3f up=new Vector3f(0,0,1);
+	
+	float QUARTER_TURN=(float) (Math.PI/2);
 
 	protected int width;
 	protected int height;
@@ -163,24 +179,77 @@ public class Renderer {
 		// clear the framebuffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-		glMatrixMode(GL_MODELVIEW);
-		mvp.identity();
+		//view.lookAt(0, -1, 0, 0, 0, 0, 0, 0, 1);
+		//view.rotateX(pitch).rotateZ(heading);
+		//view.setLookAt(0,0,0,0,1,0,0,0,1);
+		//view.rotateX(pitch).rotateY(heading);
 		
-		mvp.perspective(45.0f, width/height, 0.1f, 100f); // Perspective
-		mvp.lookAt(loc, tpos, up); // View
-		mvp.translate(tpos).rotateZ(t); // Model
+		//view.identity();
+		//view.setLookAt(0,1,0,0,0,0,0,0,1);
+		//view.rotationXYZ(-pitch, 0, -heading);
+		//view.translate(0,-4,-1);
+		//view.translate(playerPos);
+		// view.invert(); // View = inv(T.R)
+		view.identity();
+		view.translate(playerPos);
+		view.rotateZ(-heading);
+		view.rotateX(QUARTER_TURN+pitch);
+		view.invert();
+		
+		model.identity();
+		model.rotateZ(t*0.003f);
+		model.translate(tpos);
+		
+		projection.setPerspective((float) (Math.PI/4), width/height, 0.1f, 100f);
+		
+		mvp.identity();	
+		mvp.mul(projection);
+		mvp.mul(view);
+		mvp.mul(model);
 		
 		mvp.get(0, matbuffer);
 		
 		glUniformMatrix4fv(0, false,  matbuffer);
 	
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 
 	public void setSize(int width, int height) {
 		this.width=width;
 		this.height=height;
+	}
+	
+	float heading=0;
+	float pitch=0;
+
+	public void onMouseMove(double dx, double dy) {
+		// Called whenever the mouse moves
+		heading=heading+(float)(dx*0.001);
+		pitch=pitch-(float)(dy*0.002);
+		
+		if (pitch>QUARTER_TURN) pitch =QUARTER_TURN;
+		if (pitch<-QUARTER_TURN) pitch =-QUARTER_TURN;
+		
+		System.out.println("Heading = "+heading+"    pitch = "+pitch + "   pos = "+playerPos);
+	}
+
+	public void applyMove(float backForward, float leftRight, float dt) {
+		if (dt<0) throw new Error("Time going backwards! "+dt);
+		
+		playerDir.set(0,1,0);
+		playerDir.rotateZ(-heading);
+		playerDir.mul(backForward*dt*20f);
+		playerVelocity.add(playerDir);
+		
+		playerDir.set(1,0,0);
+		playerDir.rotateZ(-heading);
+		playerDir.mul(leftRight*dt*20f);
+		playerVelocity.add(playerDir);
+		
+		playerPos.fma(dt, playerVelocity);
+		playerVelocity.mul((float)Math.exp(-dt*5));
+
 	}
 
 }

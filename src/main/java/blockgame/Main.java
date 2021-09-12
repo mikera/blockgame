@@ -5,6 +5,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
+import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.Version;
@@ -21,6 +22,8 @@ public class Main {
 	private long window;
 	
 	private Renderer renderer=new Renderer();
+	
+    private final boolean[] keysPressed = new boolean[GLFW_KEY_LAST + 1];
 
 	public void run() {
 		System.out.println("Hello LWJGL " + Version.getVersion() + "!");
@@ -41,6 +44,9 @@ public class Main {
 		glfwTerminate();
 		glfwSetErrorCallback(null).free();
 	}
+	
+	double mouseX;
+	double mouseY;
 
 	void init() {
 		// Setup an error callback. The default implementation
@@ -56,8 +62,8 @@ public class Main {
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
 
-		int width=800;
-		int height=600;
+		int width=2048;
+		int height=1536;
 		// Create the window
 		window = glfwCreateWindow(width, height, "Hello World!", NULL, NULL);
 		if (window == NULL)
@@ -69,16 +75,35 @@ public class Main {
 		glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
 			if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
 				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+			
+			keysPressed[key]=(action == GLFW_PRESS) || (action == GLFW_REPEAT);
 		});
-
+		
+		// Grab mouse cursor
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		
+		try(MemoryStack stack=stackPush()){
+			DoubleBuffer xp=stack.mallocDouble(1);
+			DoubleBuffer yp=stack.mallocDouble(2);
+			glfwGetCursorPos(window, xp, yp);
+			mouseX=xp.get(0);
+			mouseY=yp.get(0);
+		}
+		
 		// Setup mouse cursor callback
 		glfwSetCursorPosCallback(window, (window, xpos, ypos) -> {
-			System.out.println(xpos + "," + ypos);
+			double dx=xpos-mouseX;
+			double dy=ypos-mouseY;
+			renderer.onMouseMove(dx,dy);
+			mouseX=xpos;
+			mouseY=ypos;
 		});
 		glfwSetMouseButtonCallback(window, (window, button, action, mods) -> {
 			System.out.println("Mouse button: " + button + ", " + action + ", " + mods);
 		});
 		
+		
+		// For screen resize etc.
 	    glfwSetFramebufferSizeCallback(window, (window,w, h) -> {
 	    	renderer.setSize(w,h);
 	    });
@@ -116,14 +141,19 @@ public class Main {
 	}
 	
 	public static final long START = System.currentTimeMillis();
-
+	public static long lastTime = 0;
 
 	private void loop() {
 
 		// Run the rendering loop until the user has attempted to close
 		// the window or has pressed the ESCAPE key.
 		while (!glfwWindowShouldClose(window)) {
-			float t = (System.currentTimeMillis() - START) * 0.001f;
+			long time = (System.currentTimeMillis() - START);
+			float t=time*0.001f;
+			float dt=(time-lastTime)*0.001f;
+			lastTime=time;
+			
+			updateGame(dt);
 
 			renderer.render(t);
 
@@ -133,6 +163,18 @@ public class Main {
 			// invoked during this call.
 			glfwPollEvents();
 		}
+	}
+	
+	public void updateGame(float dt) {
+		float backForward=0.0f;
+		if (keysPressed[GLFW_KEY_W]) backForward+=2;
+		if (keysPressed[GLFW_KEY_S]) backForward-=2;
+		
+		float leftRight=0.0f;
+		if (keysPressed[GLFW_KEY_A]) leftRight-=1;
+		if (keysPressed[GLFW_KEY_D]) leftRight+=1;
+		
+		renderer.applyMove(backForward, leftRight,dt);
 	}
 
 
