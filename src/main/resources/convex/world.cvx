@@ -1,0 +1,6 @@
+
+(defn ^:callable? get-chunk [cpos]
+  (chunks cpos))
+
+(defn set-block [x y z block] 
+  (let []))
