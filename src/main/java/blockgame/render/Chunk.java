@@ -28,23 +28,37 @@ public class Chunk {
 		return c;
 	}
 	
-	public void createVBO() {
+	public static final int FLOATS_PER_VERTEX=3+2; // position + texture
+	public static final int VERTICES_PER_FACE=6; // 2 triangles, 3 vertices each
+	
+	private void createVBO() {
 		// Geometry in current context
-		FloatBuffer vertexBuffer = buildAll();
+		FloatBuffer built = buildAll();
+		
+		int n=built.remaining();
+		triangleCount=n/(3*FLOATS_PER_VERTEX);
+		
+		FloatBuffer vertexBuffer = memAllocFloat(n);
+		vertexBuffer.put(built);
+		vertexBuffer.flip();
 
 		vbo = glGenBuffers();
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
-
-		triangleCount=4;
 		
 		memFree(vertexBuffer);
+		
+		System.out.println("VBO built!");
 	}
 	
-	public FloatBuffer buildAll() {
-		FloatBuffer vertexBuffer = memAllocFloat(2* (6 * (3+2)));
+	private FloatBuffer buildAll() {
+		FloatBuffer vertexBuffer = FloatBuffer.allocate(10000);
 		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,0,0);
+		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,1,0);
+		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,2,0);
 		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,3,0);
+		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,4,0);
+		vertexBuffer=addFace(vertexBuffer,0.0f, 0.0f, 0.0f,5,0);
 		vertexBuffer.flip();
 		
 		return vertexBuffer;

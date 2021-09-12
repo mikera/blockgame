@@ -1,12 +1,13 @@
 package blockgame.render;
 
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
-import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glDrawArrays;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11C.GL_LINEAR;
 import static org.lwjgl.opengl.GL11C.GL_NEAREST;
 import static org.lwjgl.opengl.GL11C.GL_RGBA;
@@ -18,12 +19,16 @@ import static org.lwjgl.opengl.GL11C.glBindTexture;
 import static org.lwjgl.opengl.GL11C.glGenTextures;
 import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL11C.glTexParameteri;
-import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
-import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL20.glAttachShader;
+import static org.lwjgl.opengl.GL20.glCreateProgram;
+import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
+import static org.lwjgl.opengl.GL20.glGetProgrami;
+import static org.lwjgl.opengl.GL20.glLinkProgram;
+import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
 import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
@@ -130,11 +135,13 @@ public class Renderer {
 	private void createModel() {
 		chunk = Chunk.create();
 		
+		int stride=Chunk.FLOATS_PER_VERTEX*4;
+		
 		// define vertex format
-		glVertexAttribPointer(vs_inputPosition,3,GL_FLOAT,false,(3+2)*4,0L); // Note: stride in bytes
+		glVertexAttribPointer(vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
         glEnableVertexAttribArray(vs_inputPosition);
         
-		glVertexAttribPointer(vs_texturePosition,2,GL_FLOAT,false,(3+2)*4,12L); // Note: stride in bytes
+		glVertexAttribPointer(vs_texturePosition,2,GL_FLOAT,false,stride,12L); // Note: stride in bytes
         glEnableVertexAttribArray(vs_texturePosition);
 	}
 
