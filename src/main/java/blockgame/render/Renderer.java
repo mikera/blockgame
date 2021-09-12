@@ -37,7 +37,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.concurrent.TimeoutException;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
