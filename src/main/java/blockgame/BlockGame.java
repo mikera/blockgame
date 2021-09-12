@@ -14,6 +14,7 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 
+import blockgame.engine.Engine;
 import blockgame.render.Renderer;
 
 public class BlockGame {
@@ -22,6 +23,7 @@ public class BlockGame {
 	private long window;
 	
 	private Renderer renderer=new Renderer();
+	
 	
     private final boolean[] keysPressed = new boolean[GLFW_KEY_LAST + 1];
 
@@ -65,7 +67,7 @@ public class BlockGame {
 		int width=2048;
 		int height=1536;
 		// Create the window
-		window = glfwCreateWindow(width, height, "Hello World!", NULL, NULL);
+		window = glfwCreateWindow(width, height, "Convex On-Chain Gaming Demo", NULL, NULL);
 		if (window == NULL)
 			throw new RuntimeException("Failed to create the GLFW window");
 		renderer.setSize(width, height);

@@ -1,6 +1,35 @@
 
+(def chunks {})
+
 (defn ^:callable? get-chunk [cpos]
-  (chunks cpos))
+  (get chunks cpos))
+
+(def blank-chunk 
+  (loop [acc [] i 512]
+    (when (> i 0)
+      (recur (conj acc nil nil nil nil nil nil nil nil) (dec i)))
+    acc))
+
+;; Accumulator for building blank chunk
+;;(def blank-chunk 
+;;  (loop [acc blank-chunk i 1024]
+;;    (when (> i 0)
+;;      (recur (conj acc nil) (dec i)))
+;;    acc))
+
+(defn pos-to-chunk [x y z]
+  (let [ox (mod x 16)
+        oy (mod y 16)
+        oz (mod z 16)]
+    [[(- x ox) (- y oy) (- z oz)] (+ (* oz 256) (* oy 16) ox)]))
 
 (defn set-block [x y z block] 
-  (let []))
+  (let [[cpos off] (pos-to-chunk x y z)
+        chunk (or (get chunks cpos) blank-chunk)
+        chunk (assoc chunk off block)]
+    (def chunks (assoc chunks cpos chunk))))
+
+(defn get-block [x y z] 
+  (let [[cpos off] (pos-to-chunk x y z)
+        chunk (or (get chunks cpos) blank-chunk)]
+    (nth chunk off)))

@@ -12,22 +12,31 @@ import static org.lwjgl.system.MemoryUtil.memFree;
 
 import java.nio.FloatBuffer;
 
+import convex.core.data.ACell;
+import convex.core.data.AVector;
+
 public class Chunk {
 	int vbo;
 	int triangleCount=0;
 	
 	int[] vals=new int[4096];
+	private AVector<ACell> chunkData;
 	
 	private Chunk() {
 		vals[0]=1;
 	}
 	
-	public static Chunk create() {
+	public static Chunk create(AVector<ACell> chunkData) {
 		Chunk c= new Chunk();
+		c.setData(chunkData);
 		c.createVBO();
 		return c;
 	}
 	
+	private void setData(AVector<ACell> chunkData) {
+		this.chunkData=chunkData;
+	}
+
 	public static final int FLOATS_PER_VERTEX=3+2; // position + texture
 	public static final int VERTICES_PER_FACE=6; // 2 triangles, 3 vertices each
 	
@@ -53,9 +62,16 @@ public class Chunk {
 	
 	private FloatBuffer buildAll() {
 		FloatBuffer vb = FloatBuffer.allocate(10000);
-		vb=addBlock(vb,0,0,0,1);
-		vb=addBlock(vb,2,0,-1,1);
-		vb=addBlock(vb,1,0,-1,1);
+		for (int k=0; k<16; k++) {
+			for (int j=0; j<16; j++) {
+				for (int i=0; i<16; i++) {
+					long ix=i+j*16+k*256;
+					if (chunkData.get(ix)!=null) {
+						vb=addBlock(vb,i,j,k,1);
+					}
+				}
+			}
+		}
 		
 		vb.flip();
 		return vb;

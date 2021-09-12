@@ -37,12 +37,16 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.concurrent.TimeoutException;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
 import blockgame.assets.Assets;
+import blockgame.engine.Engine;
+import convex.core.data.ACell;
+import convex.core.data.AVector;
 
 public class Renderer {
 	
@@ -51,8 +55,10 @@ public class Renderer {
 	int vs_inputPosition;
 	int vs_texturePosition;
 
-	
 	public FloatBuffer matbuffer = BufferUtils.createFloatBuffer(16);
+	
+	private Engine engine=Engine.create();
+
 	
 	int createProgram() throws IOException {
 		int program = glCreateProgram();
@@ -134,7 +140,9 @@ public class Renderer {
 
 
 	private void createModel() {
-		chunk = Chunk.create();
+		AVector<ACell> chunkData;
+		chunkData = engine.loadChunk(0,0,0);
+		chunk = Chunk.create(chunkData);
 		
 		int stride=Chunk.FLOATS_PER_VERTEX*4;
 		

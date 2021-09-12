@@ -6,6 +6,7 @@ import java.util.concurrent.TimeoutException;
 import convex.api.Convex;
 import convex.core.Result;
 import convex.core.data.ACell;
+import convex.core.data.AVector;
 import convex.core.data.Address;
 import convex.core.lang.Reader;
 import convex.core.util.Utils;
@@ -26,10 +27,21 @@ public class Engine {
 		}
 	}
 	
+	public static Engine create() {
+		return new Engine();
+	}
 	
-	public ACell loadChunk(long x, long y, long z) throws TimeoutException, IOException {
-		Result r=convex.querySync(Reader.read("(call #4411 (get-chunk nil))"));
-		if (r.isError()) throw new Error("BAd result: "+r);
+	public AVector<ACell> loadChunk(long x, long y, long z) {
+		x=x&~0xFL;
+		y=y&~0xFL;
+		z=z&~0xFL;
+		Result r;
+		try {
+			r = convex.querySync(Reader.read("(call #4411 (get-chunk ["+x+" "+y+" "+z+"]))"));
+		} catch (TimeoutException | IOException e) {
+			throw Utils.sneakyThrow(e);
+		}
+		if (r.isError()) throw new Error("Bad result: "+r);
 		return r.getValue();
 	}
 	
@@ -38,4 +50,5 @@ public class Engine {
 		Engine e=new Engine();
 		System.out.println(e.loadChunk(0,0,0));
 	}
+
 }
