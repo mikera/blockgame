@@ -12,8 +12,13 @@ import static org.lwjgl.system.MemoryUtil.memFree;
 
 import java.nio.FloatBuffer;
 
+import blockgame.assets.Assets;
+import convex.core.data.ABlob;
 import convex.core.data.ACell;
+import convex.core.data.AHashMap;
 import convex.core.data.AVector;
+import convex.core.data.Keyword;
+import convex.core.data.prim.CVMLong;
 
 public class Chunk {
 	int vbo;
@@ -66,8 +71,9 @@ public class Chunk {
 			for (int j=0; j<16; j++) {
 				for (int i=0; i<16; i++) {
 					long ix=i+j*16+k*256;
-					if (chunkData.get(ix)!=null) {
-						vb=addBlock(vb,i,j,k,1);
+					ACell block=chunkData.get(ix);
+					if (block!=null) {
+						vb=addBlock(vb,i,j,k,block);
 					}
 				}
 			}
@@ -77,13 +83,15 @@ public class Chunk {
 		return vb;
 	}
 	
-	private FloatBuffer addBlock(FloatBuffer vb, int x, int y, int z, int type) {
-		vb=addFace(vb,x, y, z,0,0x102);
-		vb=addFace(vb,x, y, z,1,0x101);
-		vb=addFace(vb,x, y, z,2,0x101);
-		vb=addFace(vb,x, y, z,3,0x101);
-		vb=addFace(vb,x, y, z,4,0x101);
-		vb=addFace(vb,x, y, z,5,0x100);
+	@SuppressWarnings("unchecked")
+	private FloatBuffer addBlock(FloatBuffer vb, int x, int y, int z, ACell type) {
+		AHashMap<Keyword,ACell> meta=(AHashMap<Keyword, ACell>) Assets.blockData.get(type);
+		if (meta==null) meta=(AHashMap<Keyword, ACell>) Assets.blockData.get(CVMLong.ONE);
+		AVector<ABlob> tex=(AVector<ABlob>) meta.get(Assets.TEX_KEY);
+		
+		for (int i=0; i<6; i++) {
+			vb=addFace(vb, x, y, z,i,tex.get(i).toLong());
+		}
 		
 		return vb;
 	}
@@ -97,7 +105,7 @@ public class Chunk {
 	// texture tile size
 	float TD=1.0f/128;
 	
-	public FloatBuffer addFace(FloatBuffer fb, float bx, float by, float bz,int face, int texRef) {
+	public FloatBuffer addFace(FloatBuffer fb, float bx, float by, float bz,int face, long texRef) {
 		int[] FACE=FACES[face];
 		// VErtices of face specified clockwise
 		float[] v0=VERTS[FACE[0]]; // top left
