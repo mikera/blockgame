@@ -3,6 +3,9 @@ package blockgame.engine;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
+import org.joml.Vector3f;
+
+import blockgame.engine.Engine.HitResult;
 import convex.api.Convex;
 import convex.core.Result;
 import convex.core.data.ACell;
@@ -15,6 +18,19 @@ import convex.core.util.Utils;
  * Main off-chain game engine
  */
 public class Engine {
+
+	public static class HitResult {
+		public int x;
+		public int y;
+		public int z;
+		public int face;
+		public float distance;
+		public Object hit;
+	}
+	
+	public interface HitFunction {
+		public Object test(int x, int y, int z);
+	}
 
 	private Convex convex=null;
 	
@@ -43,6 +59,93 @@ public class Engine {
 		}
 		if (r.isError()) throw new Error("Bad result: "+r);
 		return r.getValue();
+	}
+	
+	public static void intersect(Vector3f pos, Vector3f dir, HitFunction test, HitResult hr) {
+		dir.normalize();
+		// initial block
+		int x=(int) Math.floor(pos.x);
+		int y=(int) Math.floor(pos.y);
+		int z=(int) Math.floor(pos.z);
+		
+		// partial position within block
+		float px=pos.x-x;
+		float py=pos.y-y;
+		float pz=pos.z-z;
+		
+		// distance between intersections (always positive, may be infinite)
+		float stepX=1.0f/Math.abs(dir.x);
+		float stepY=1.0f/Math.abs(dir.y);
+		float stepZ=1.0f/Math.abs(dir.z);
+		
+		// distances to next intersections
+		float distX=stepX*((dir.x>0)?(1-px):(px));
+		float distY=stepY*((dir.y>0)?(1-py):(py));
+		float distZ=stepZ*((dir.z>0)?(1-pz):(pz));
+		
+		float dist=0.0f;
+		float MAX_DIST=20f;
+		hr.hit=null;
+		int face=0;
+		
+		while (dist<MAX_DIST) {
+			int axis=0;
+			
+			// get axis for next shift
+			if (distX<distY) {
+				if (distX<distZ) {
+					axis=0;
+				} else {
+					axis=2;
+				}
+			} else {
+				if (distY<distZ) {
+					axis=1;
+				} else {
+					axis=2;
+				}
+			}
+			
+			switch (axis) {
+				case 0: {
+					int move=(dir.x>0)?1:-1;
+					face=(move==1)?4:2; // West, East
+					x+=move;
+					dist=distX;
+					distX+=stepX;
+					break;
+				}
+				case 1: {
+					int move=(dir.y>0)?1:-1;
+					face=(move==1)?3:1; // South, North
+					y+=move;
+					dist=distY;
+					distY+=stepY;
+					break;
+				}
+				case 2: {
+					int move=(dir.z>0)?1:-1;
+					face=(move==1)?5:0; // Down, Up
+					z+=move;
+					dist=distZ;
+					distZ+=stepZ;
+					break;
+				}
+			}
+			
+			Object hit=test.test(x, y, z);
+			if (hit!=null) {
+				hr.hit=hit;
+				break;
+			}
+		}
+		
+		hr.distance=dist;
+		hr.x=x;
+		hr.y=y;
+		hr.z=z;
+		hr.face=face;
+		return;
 	}
 	
 	
