@@ -140,7 +140,7 @@ public class Renderer {
 
 	private void createModel() {
 		AVector<ACell> chunkData;
-		chunkData = engine.loadChunk(0,0,0);
+		chunkData = engine.getChunk(0,0,0);
 		chunk = Chunk.create(chunkData);
 		
 		int stride=Chunk.FLOATS_PER_VERTEX*4;
@@ -165,6 +165,8 @@ public class Renderer {
 	Vector3f playerDir=new Vector3f(0,0,0);
 	Vector3f playerPos=new Vector3f(0,-3,2);
 	Vector3f playerVelocity=new Vector3f(0,0,0);
+	
+	Engine.HitResult hitResult=new Engine.HitResult();
 
 	Vector3f tpos=new Vector3f(0,0,0);
 	Vector3f up=new Vector3f(0,0,1);
@@ -211,6 +213,8 @@ public class Renderer {
 		glUniformMatrix4fv(0, false,  matbuffer);
 	
 		chunk.draw();
+		
+		Engine.intersect(playerPos, playerDir, (x,y,z)->engine.getBlock(x,y,z), hitResult);
 	}
 
 

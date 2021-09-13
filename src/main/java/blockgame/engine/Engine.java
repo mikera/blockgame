@@ -1,16 +1,18 @@
 package blockgame.engine;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
 
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 
-import blockgame.engine.Engine.HitResult;
 import convex.api.Convex;
 import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.data.AVector;
 import convex.core.data.Address;
+import convex.core.data.Vectors;
 import convex.core.lang.Reader;
 import convex.core.util.Utils;
 
@@ -32,6 +34,12 @@ public class Engine {
 		public Object test(int x, int y, int z);
 	}
 
+	private static final AVector<ACell> EMPTY_CHUNK;
+	
+	static {
+		EMPTY_CHUNK=Vectors.repeat(null, 4096);
+	}
+
 	private Convex convex=null;
 	
 	private Engine() {
@@ -47,18 +55,51 @@ public class Engine {
 		return new Engine();
 	}
 	
-	public AVector<ACell> loadChunk(long x, long y, long z) {
-		x=x&~0xFL;
-		y=y&~0xFL;
-		z=z&~0xFL;
+	public AVector<ACell> loadChunk(int x, int y, int z) {
+		int bx=x&~0xf;
+		int by=y&~0xf;
+		int bz=z&~0xf;
 		Result r;
 		try {
-			r = convex.querySync(Reader.read("(call #4411 (get-chunk ["+x+" "+y+" "+z+"]))"));
+			r = convex.querySync(Reader.read("(call #4411 (get-chunk ["+bx+" "+by+" "+bz+"]))"));
 		} catch (TimeoutException | IOException e) {
 			throw Utils.sneakyThrow(e);
 		}
 		if (r.isError()) throw new Error("Bad result: "+r);
-		return r.getValue();
+		AVector<ACell> chunk=r.getValue();
+
+		return chunk;
+	}
+	
+	public HashMap<Vector3i,AVector<ACell>> chunks=new HashMap<>();
+	
+	public AVector<ACell> getChunk(int x, int y, int z) {
+		int bx=x&~0xf;
+		int by=y&~0xf;
+		int bz=z&~0xf;
+		
+		Vector3i cpos=new Vector3i(bx,by,bz);
+		AVector<ACell> chunk=chunks.get(cpos);
+		if (chunk==null) {
+			chunk=loadChunk(bx,by,bz);
+			if (chunk==null) chunk=EMPTY_CHUNK;
+			chunks.put(cpos,chunk);
+		}
+		
+		return chunk;
+	}
+	
+	private int chunkIndex(int x, int y, int z) {
+		x&=0xf;
+		y&=0xf;
+		z&=0xf;
+		return z*256+y*16+x;
+	}
+
+	public ACell getBlock(int x, int y, int z) {
+		AVector<ACell> chunk=getChunk(x,y,z);
+		if (chunk==null) return null;
+		return chunk.get(chunkIndex(x,y,z));
 	}
 	
 	public static void intersect(Vector3f pos, Vector3f dir, HitFunction test, HitResult hr) {
@@ -153,5 +194,7 @@ public class Engine {
 		Engine e=new Engine();
 		System.out.println(e.loadChunk(0,0,0));
 	}
+
+
 
 }
