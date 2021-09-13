@@ -233,7 +233,7 @@ public class Renderer {
 		System.out.println("Heading = "+heading+"    pitch = "+pitch + "   pos = "+playerPos);
 	}
 
-	public void applyMove(float backForward, float leftRight, float dt) {
+	public void applyMove(float backForward, float leftRight, float upDown, float dt) {
 		if (dt<0) throw new Error("Time going backwards! "+dt);
 		
 		playerDir.set(0,1,0);
@@ -244,6 +244,10 @@ public class Renderer {
 		playerDir.set(1,0,0);
 		playerDir.rotateZ(-heading);
 		playerDir.mul(leftRight*dt*20f);
+		playerVelocity.add(playerDir);
+		
+		playerDir.set(0,0,1);
+		playerDir.mul(upDown*dt*20f);
 		playerVelocity.add(playerDir);
 		
 		playerPos.fma(dt, playerVelocity);
