@@ -2,6 +2,8 @@
 
 A Block Game, inspired by Boulder Dash, Minecraft, Roguelikes and similiar.
 
+![Blockgame Screenshot](https://github.com/mikera/blockgame/blob/master/src/main/resources/images/screenshot.png?raw=true)
+
 Quite possibly the first 3D virtual world run entirely on a public decentralised network?
 
 ## Features
