@@ -49,6 +49,7 @@ public class BlockGame {
 	
 	
     private final boolean[] keysPressed = new boolean[GLFW_KEY_LAST + 1];
+    private final boolean[] mousePressed = new boolean[GLFW_MOUSE_BUTTON_LAST + 1];
 
 	public void run() {
 		System.out.println("Hello LWJGL " + Version.getVersion() + "!");
@@ -123,8 +124,13 @@ public class BlockGame {
 			mouseX=xpos;
 			mouseY=ypos;
 		});
+		
 		glfwSetMouseButtonCallback(window, (window, button, action, mods) -> {
-			System.out.println("Mouse button: " + button + ", " + action + ", " + mods);
+			if (action==GLFW_PRESS   ) {
+				mousePressed[button]=true;
+			} else {
+				mousePressed[button]=false;
+			}
 		});
 		
 		
@@ -202,6 +208,16 @@ public class BlockGame {
 		float upDown=0.0f;
 		if (keysPressed[GLFW_KEY_LEFT_SHIFT]) upDown-=1;
 		if (keysPressed[GLFW_KEY_SPACE]) upDown+=1;
+
+		if (mousePressed[GLFW_MOUSE_BUTTON_RIGHT]==true) {
+			renderer.applyRightClick();
+			mousePressed[GLFW_MOUSE_BUTTON_RIGHT]=false;
+		}
+		
+		if (mousePressed[GLFW_MOUSE_BUTTON_LEFT]==true) {
+			renderer.applyLeftClick();
+			mousePressed[GLFW_MOUSE_BUTTON_LEFT]=false;
+		}
 
 		
 		renderer.applyMove(backForward, leftRight, upDown,dt);

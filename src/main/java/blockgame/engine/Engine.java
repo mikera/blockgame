@@ -91,7 +91,19 @@ public class Engine {
 		return chunk;
 	}
 	
-	private int chunkIndex(int x, int y, int z) {
+	public AVector<ACell> getChunk(Vector3i target) {
+		return getChunk(target.x,target.y,target.z);
+	}
+	
+	public Vector3i chunkPos(int x, int y, int z) {
+		int bx=x&~0xf;
+		int by=y&~0xf;
+		int bz=z&~0xf;
+		Vector3i cpos=new Vector3i(bx,by,bz);
+		return cpos;
+	}
+ 	
+	public static int chunkIndex(int x, int y, int z) {
 		x&=0xf;
 		y&=0xf;
 		z&=0xf;
@@ -103,6 +115,25 @@ public class Engine {
 		if (chunk==null) return null;
 		return chunk.get(chunkIndex(x,y,z));
 	}
+	
+	public void setBlock(int x, int y, int z, ACell block) {
+		AVector<ACell> chunk=getChunk(x,y,z);
+		if (chunk==null) {
+			if (block==null) return;
+			chunk=EMPTY_CHUNK;
+		}
+		chunk=chunk.assoc(chunkIndex(x,y,z), block);
+		Vector3i cpos=chunkPos(x,y,z);
+		chunks.put(cpos, chunk);
+	}
+	
+	public void setBlock(Vector3i target, ACell block) {
+		int x=target.x;
+		int y=target.y;
+		int z=target.z;
+		setBlock(x,y,z,block);
+	}
+
 	
 	public static void intersect(Vector3f pos, Vector3f dir, HitFunction test, HitResult hr) {
 		dir.normalize();
@@ -152,7 +183,7 @@ public class Engine {
 			switch (axis) {
 				case 0: {
 					int move=(dir.x>0)?1:-1;
-					face=(move==1)?4:2; // West, East
+					face=(move==1)?Face.W:Face.E; // West, East
 					x+=move;
 					dist=distX;
 					distX+=stepX;
@@ -160,7 +191,7 @@ public class Engine {
 				}
 				case 1: {
 					int move=(dir.y>0)?1:-1;
-					face=(move==1)?3:1; // South, North
+					face=(move==1)?Face.S:Face.N; // South, North
 					y+=move;
 					dist=distY;
 					distY+=stepY;
@@ -168,7 +199,7 @@ public class Engine {
 				}
 				case 2: {
 					int move=(dir.z>0)?1:-1;
-					face=(move==1)?5:0; // Down, Up
+					face=(move==1)?Face.D:Face.U; // Down, Up
 					z+=move;
 					dist=distZ;
 					distZ+=stepZ;
@@ -196,6 +227,8 @@ public class Engine {
 		Engine e=new Engine();
 		System.out.println(e.loadChunk(0,0,0));
 	}
+
+
 
 
 

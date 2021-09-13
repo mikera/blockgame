@@ -19,6 +19,8 @@ import static org.lwjgl.opengl.GL11C.glBindTexture;
 import static org.lwjgl.opengl.GL11C.glGenTextures;
 import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL11C.glTexParameteri;
+import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
 import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
 import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
@@ -40,19 +42,22 @@ import java.nio.IntBuffer;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 import org.lwjgl.BufferUtils;
 
 import blockgame.assets.Assets;
 import blockgame.engine.Engine;
+import blockgame.engine.Face;
 import convex.core.data.ACell;
 import convex.core.data.AVector;
+import convex.core.data.prim.CVMLong;
 
 public class Renderer {
 	
 	int program;
 	int texture;
-	int vs_inputPosition;
-	int vs_texturePosition;
+	static int vs_inputPosition;
+	static int vs_texturePosition;
 
 	public FloatBuffer matbuffer = BufferUtils.createFloatBuffer(16);
 	
@@ -114,7 +119,6 @@ public class Renderer {
         return id;
     }
 
-    int vbo;
 	private Chunk chunk;
 
 	public void init() {
@@ -143,14 +147,6 @@ public class Renderer {
 		chunkData = engine.getChunk(0,0,0);
 		chunk = Chunk.create(chunkData);
 		
-		int stride=Chunk.FLOATS_PER_VERTEX*4;
-		
-		// define vertex format
-		glVertexAttribPointer(vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
-        glEnableVertexAttribArray(vs_inputPosition);
-        
-		glVertexAttribPointer(vs_texturePosition,2,GL_FLOAT,false,stride,12L); // Note: stride in bytes
-        glEnableVertexAttribArray(vs_texturePosition);
 	}
 
 	public void close() {
@@ -214,7 +210,8 @@ public class Renderer {
 	
 		chunk.draw();
 		
-		Engine.intersect(playerPos, playerDir, (x,y,z)->engine.getBlock(x,y,z), hitResult);
+		// Clear Buffer
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 
@@ -234,7 +231,7 @@ public class Renderer {
 		if (pitch>QUARTER_TURN) pitch =QUARTER_TURN;
 		if (pitch<-QUARTER_TURN) pitch =-QUARTER_TURN;
 		
-		System.out.println("Heading = "+heading+"    pitch = "+pitch + "   pos = "+playerPos);
+		// System.out.println("Heading = "+heading+"    pitch = "+pitch + "   pos = "+playerPos);
 	}
 
 	public void applyMove(float backForward, float leftRight, float upDown, float dt) {
@@ -257,6 +254,47 @@ public class Renderer {
 		playerPos.fma(dt, playerVelocity);
 		playerVelocity.mul((float)Math.exp(-dt*5));
 
+	}
+
+	public void applyRightClick() {
+		playerDir.set(0,0,-1);
+		playerDir.rotateX((QUARTER_TURN+pitch));
+		playerDir.rotateZ(-heading);
+		Engine.intersect(playerPos, playerDir, (x,y,z)->engine.getBlock(x,y,z), hitResult);
+		
+		if (hitResult.hit==null) {
+			System.out.println("Mouse RIGHT clicked in empty space pos=" +playerPos+ " dir="+playerDir);
+		} else {
+			AVector<ACell> chunkData = engine.getChunk(0,0,0);
+			Vector3i target=new Vector3i(hitResult.x,hitResult.y, hitResult.z);
+			target.add(Face.DIR[hitResult.face]); // block on face
+			
+			ACell block=CVMLong.create(1);
+			
+			engine.setBlock(target,block);
+			chunkData=engine.getChunk(target);
+			System.out.println("Block placed at "+target);
+			chunk.refresh(chunkData);
+		}
+	}
+
+	public void applyLeftClick() {
+		playerDir.set(0,0,-1);
+		playerDir.rotateX((QUARTER_TURN+pitch));
+		playerDir.rotateZ(-heading);
+		Engine.intersect(playerPos, playerDir, (x,y,z)->engine.getBlock(x,y,z), hitResult);
+		
+		if (hitResult.hit==null) {
+			System.out.println("Mouse LEFT clicked in empty space pos=" +playerPos+ " dir="+playerDir);
+		} else {
+			AVector<ACell> chunkData = engine.getChunk(0,0,0);
+			Vector3i target=new Vector3i(hitResult.x,hitResult.y, hitResult.z);
+			
+			engine.setBlock(target,null);
+			chunkData=engine.getChunk(target);
+			System.out.println("Block deleted at "+target);
+			chunk.refresh(chunkData);
+		}
 	}
 
 }

@@ -1,12 +1,13 @@
 package blockgame.render;
 
+import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
-import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL15.glBufferData;
-import static org.lwjgl.opengl.GL15.glGenBuffers;
+import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
+import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
+import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.system.MemoryUtil.memAllocFloat;
 import static org.lwjgl.system.MemoryUtil.memFree;
 
@@ -41,11 +42,19 @@ public class Chunk {
 	private void setData(AVector<ACell> chunkData) {
 		this.chunkData=chunkData;
 	}
+	
+	public void refresh(AVector<ACell> newChunkData) {
+		if (chunkData!=newChunkData) {
+			setData(newChunkData);
+			glDeleteBuffers(vbo);
+			vbo=createVBO();
+		};
+	}
 
 	public static final int FLOATS_PER_VERTEX=3+2; // position + texture
 	public static final int VERTICES_PER_FACE=6; // 2 triangles, 3 vertices each
 	
-	private void createVBO() {
+	private int createVBO() {
 		// Geometry in current context
 		FloatBuffer built = buildAll();
 		
@@ -62,11 +71,12 @@ public class Chunk {
 		
 		memFree(vertexBuffer);
 		
-		System.out.println("VBO built!");
+		// System.out.println("VBO built! "+vbo);
+		return vbo;
 	}
 	
 	private FloatBuffer buildAll() {
-		FloatBuffer vb = FloatBuffer.allocate(10000);
+		FloatBuffer vb = FloatBuffer.allocate(30000);
 		for (int k=0; k<16; k++) {
 			for (int j=0; j<16; j++) {
 				for (int i=0; i<16; i++) {
@@ -137,7 +147,23 @@ public class Chunk {
 	}
 
 	public void draw() {
-		glBindBuffer(GL_ARRAY_BUFFER, getVBO());
-		glDrawArrays(GL_TRIANGLES, 0, getTriangleCount()*3);
+		if (vbo!=0) {
+			// Bind buffer
+			glBindBuffer(GL_ARRAY_BUFFER, getVBO());
+			
+			int stride=Chunk.FLOATS_PER_VERTEX*4;
+			
+			// define vertex format, should be after glBindBuffer
+			glVertexAttribPointer(Renderer.vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
+	        glEnableVertexAttribArray(Renderer.vs_inputPosition);
+	        
+			glVertexAttribPointer(Renderer.vs_texturePosition,2,GL_FLOAT,false,stride,12L); // Note: stride in bytes
+	        glEnableVertexAttribArray(Renderer.vs_texturePosition);
+
+			
+			glDrawArrays(GL_TRIANGLES, 0, getTriangleCount()*3);
+		}
 	}
+
+
 }
