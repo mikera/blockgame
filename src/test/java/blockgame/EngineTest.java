@@ -32,5 +32,13 @@ public class EngineTest {
 		assertEquals(2,hr.face);
 		assertEquals(0,hr.y);
 		assertEquals(0,hr.z);
+		
+		Engine.intersect(new Vector3f(0.5f,0.5f,0.5f), new Vector3f(0,0,-1), (x,y,z)-> (z<=-3)?z:null, hr);
+		assertEquals(-3,hr.hit);
+		assertEquals(2.5,hr.distance);
+		assertEquals(0,hr.face);
+		assertEquals(0,hr.x);
+		assertEquals(0,hr.y);
+		assertEquals(-3,hr.z);
 	}
 }
