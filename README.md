@@ -16,6 +16,6 @@ Features and ideas under development:
 
 ## License
 
-Convex parts are under the Convex public License
+Convex parts and library components are under the Convex Public License
 
 Everything else Apache License, Version 2.0
