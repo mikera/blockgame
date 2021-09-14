@@ -20,16 +20,7 @@ import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL11C.glTexParameteri;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20.glAttachShader;
-import static org.lwjgl.opengl.GL20.glCreateProgram;
-import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20.glGetProgrami;
-import static org.lwjgl.opengl.GL20.glLinkProgram;
-import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
-import static org.lwjgl.opengl.GL20.glUseProgram;
+import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
 
 import java.awt.image.BufferedImage;
@@ -132,8 +123,6 @@ public class Renderer {
 		// Set the clear color
 		glClearColor(0.2f, 0.7f, 0.85f, 0.0f);
 		
-		glEnable(GL_CULL_FACE);
-		glEnable(GL_DEPTH_TEST);
 
 	}
 	
@@ -171,10 +160,11 @@ public class Renderer {
 	
 	public void render(float t) {
 		// clear the framebuffer
+		glDepthMask(true);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
 		drawChunks();
-		
+		drawHUD();
 	}
 	
 	private void drawChunks() {
@@ -198,11 +188,20 @@ public class Renderer {
 		
 		glUniformMatrix4fv(0, false,  matbuffer);
 		
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+		
 		chunk.draw();
 		
 		// Clear Buffer
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+	}
+	
+	private void drawHUD() {
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(false);
+		
 	}
 
 	public void setSize(int width, int height) {
