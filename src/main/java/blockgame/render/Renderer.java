@@ -48,7 +48,9 @@ public class Renderer {
 	static int vs_texturePosition;
 	static int vs_normalPosition;
 
-	public FloatBuffer matbuffer = BufferUtils.createFloatBuffer(16);
+	static int vs_PPosition;
+	static int vs_MVPosition;
+
 	
 	private Engine engine=Engine.create();
 
@@ -76,6 +78,9 @@ public class Renderer {
 		vs_inputPosition = glGetAttribLocation(program, "position");
 		vs_texturePosition = glGetAttribLocation(program, "texture");
 		vs_normalPosition = glGetAttribLocation(program, "normal");
+		
+		vs_PPosition = glGetUniformLocation(program, "P");
+		vs_MVPosition = glGetUniformLocation(program, "MV");
 		
 		return program;
 		// TODO: do we need to dispose the program somehow?
@@ -142,7 +147,7 @@ public class Renderer {
 		
 	}
 
-	Matrix4f mvp=new Matrix4f();
+	Matrix4f mv=new Matrix4f();
 	Matrix4f view=new Matrix4f();
 	Matrix4f model=new Matrix4f();
 	Matrix4f projection=new Matrix4f();
@@ -169,7 +174,16 @@ public class Renderer {
 		drawHUD();
 	}
 	
-	private void drawChunks() {
+	private final FloatBuffer matbufferP = BufferUtils.createFloatBuffer(16);
+	private final FloatBuffer matbufferMV = BufferUtils.createFloatBuffer(16);
+	
+	private void drawChunks() {		
+		projection.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
+		
+		// Projection Matrix
+		projection.get(0, matbufferP);		
+		glUniformMatrix4fv(Renderer.vs_PPosition, false,  matbufferP);
+		
 		view.identity();
 		view.translate(playerPos);
 		view.rotateZ(-heading);
@@ -178,17 +192,14 @@ public class Renderer {
 		
 		model.identity();
 		model.translate(tpos);
-		
-		projection.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
-		
-		mvp.identity();	
-		mvp.mul(projection);
-		mvp.mul(view);
-		mvp.mul(model);
-		
-		mvp.get(0, matbuffer);
-		
-		glUniformMatrix4fv(0, false,  matbuffer);
+	
+		// ModelView Matrix
+		mv.identity();	
+		mv.mul(view);
+		mv.mul(model);
+
+		mv.get(0, matbufferMV);		
+		glUniformMatrix4fv(Renderer.vs_MVPosition, false,  matbufferMV);
 		
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
