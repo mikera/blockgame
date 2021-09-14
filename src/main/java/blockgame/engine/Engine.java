@@ -13,6 +13,7 @@ import convex.core.data.ACell;
 import convex.core.data.AVector;
 import convex.core.data.Address;
 import convex.core.data.Vectors;
+import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
 import convex.core.util.Utils;
 
@@ -227,8 +228,26 @@ public class Engine {
 		Engine e=new Engine();
 		System.out.println(e.loadChunk(0,0,0));
 	}
+	
+	private int tool=1;
 
+	public void setTool(int i) {
+		tool=i;
+	}
 
+	public int getTool() {
+		return tool;
+	}
+	
+	private int[] toolBar= {0,1,2,3,10,11,12,1,2,3};
+
+	/**
+	 * Gets the currently selected placable block value
+	 * @return
+	 */
+	public ACell getPlaceableBlock() {
+		return CVMLong.create(toolBar[tool]);
+	}
 
 
 

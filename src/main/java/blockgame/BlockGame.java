@@ -198,6 +198,12 @@ public class BlockGame {
 	
 	public void updateGame(float dt) {
 		float backForward=0.0f;
+		
+		for (int i=1; i<=9; i++) {
+			if (keysPressed[GLFW_KEY_0+i]) renderer.applyTool(i);
+		}	
+
+		
 		if (keysPressed[GLFW_KEY_W]) backForward+=2;
 		if (keysPressed[GLFW_KEY_S]) backForward-=2;
 		

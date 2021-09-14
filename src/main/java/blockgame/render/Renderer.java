@@ -287,8 +287,8 @@ public class Renderer {
 			Vector3i target=new Vector3i(hitResult.x,hitResult.y, hitResult.z);
 			target.add(Face.DIR[hitResult.face]); // block on face
 			
-			ACell block=CVMLong.create(1);
-			
+			ACell block=engine.getPlaceableBlock();
+			if (block==null) return;
 			engine.setBlock(target,block);
 			AVector<ACell> chunkData=engine.getChunk(target);
 			System.out.println("Block placed at "+target);
@@ -312,6 +312,11 @@ public class Renderer {
 			System.out.println("Block deleted at "+target);
 			chunk.refresh(chunkData);
 		}
+	}
+
+	public void applyTool(int i) {
+		// TODO Auto-generated method stub
+		engine.setTool(i);
 	}
 
 }
