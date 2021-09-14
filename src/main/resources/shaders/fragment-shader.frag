@@ -6,11 +6,20 @@
 layout (location = FRAG_COLOUR) out vec4 outputColour;
 
 smooth in vec4 theColour;
+smooth in vec3 mvVertexNormal;
+
 uniform sampler2D tex;
 in vec2 tex_coord;
 
+uniform vec3 vLightDir;
+
 void main()
 {
-    outputColour = texture2D(tex, tex_coord);
+    // Diffuse Light
+    float diffuseFactor = max(dot(mvVertexNormal, vLightDir ), 0.0);
+
+	float light = diffuseFactor*0.7+0.3;
+
+    outputColour = texture2D(tex, tex_coord)*light;
     // if ((outputColour.a)<=0.0) discard;
 }

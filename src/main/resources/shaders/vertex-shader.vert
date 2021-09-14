@@ -14,6 +14,8 @@ layout (location = COLOUR) in vec4 vertex_colour;
 
 out vec2 tex_coord;
 smooth out vec4 theColour;
+out vec3 mvVertexNormal;
+out vec3 mvVertexPos;
 
 uniform mat4 P;
 uniform mat4 MV;
@@ -25,4 +27,6 @@ void main()
     gl_Position = P * mvPos;
     theColour = vertex_colour;
     tex_coord = texture;
+    mvVertexNormal = normalize(MV * vec4(normal, 0.0)).xyz;
+    mvVertexPos = mvPos.xyz;
 }

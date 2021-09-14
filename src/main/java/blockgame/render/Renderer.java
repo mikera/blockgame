@@ -31,6 +31,7 @@ import java.nio.IntBuffer;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
+import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 
 import blockgame.assets.Assets;
@@ -50,6 +51,9 @@ public class Renderer {
 
 	static int vs_PPosition;
 	static int vs_MVPosition;
+	
+	static int fs_LightDirPosition;
+
 
 	
 	private Engine engine=Engine.create();
@@ -81,7 +85,9 @@ public class Renderer {
 		
 		vs_PPosition = glGetUniformLocation(program, "P");
 		vs_MVPosition = glGetUniformLocation(program, "MV");
-		
+
+		fs_LightDirPosition = glGetUniformLocation(program, "vLightDir");
+
 		return program;
 		// TODO: do we need to dispose the program somehow?
 	}
@@ -147,10 +153,6 @@ public class Renderer {
 		
 	}
 
-	Matrix4f mv=new Matrix4f();
-	Matrix4f view=new Matrix4f();
-	Matrix4f model=new Matrix4f();
-	Matrix4f projection=new Matrix4f();
 	Vector3f tempDir=new Vector3f(0,0,0);
 	Vector3f playerPos=new Vector3f(0,-3,2);
 	Vector3f playerVelocity=new Vector3f(0,0,0);
@@ -174,8 +176,16 @@ public class Renderer {
 		drawHUD();
 	}
 	
+	Matrix4f mv=new Matrix4f();
+	Matrix4f view=new Matrix4f();
+	Matrix4f model=new Matrix4f();
+	Matrix4f projection=new Matrix4f();
+	Vector4f vLightDir=new Vector4f(); // light dir in MV space
+
+	
 	private final FloatBuffer matbufferP = BufferUtils.createFloatBuffer(16);
 	private final FloatBuffer matbufferMV = BufferUtils.createFloatBuffer(16);
+	private final FloatBuffer matbufferVLightDir = BufferUtils.createFloatBuffer(4);
 	
 	private void drawChunks() {		
 		projection.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
@@ -200,6 +210,13 @@ public class Renderer {
 
 		mv.get(0, matbufferMV);		
 		glUniformMatrix4fv(Renderer.vs_MVPosition, false,  matbufferMV);
+		
+		// Light direction
+		vLightDir.set(-2,-1,4,0);
+		vLightDir.mul(view);
+		vLightDir.normalize();
+		vLightDir.get(0, matbufferVLightDir);		
+		glUniform3fv(Renderer.fs_LightDirPosition, matbufferVLightDir);
 		
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
