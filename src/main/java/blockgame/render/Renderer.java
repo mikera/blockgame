@@ -46,6 +46,7 @@ public class Renderer {
 	int texture;
 	static int vs_inputPosition;
 	static int vs_texturePosition;
+	static int vs_normalPosition;
 
 	public FloatBuffer matbuffer = BufferUtils.createFloatBuffer(16);
 	
@@ -74,6 +75,7 @@ public class Renderer {
 		// set up positions for input attributes
 		vs_inputPosition = glGetAttribLocation(program, "position");
 		vs_texturePosition = glGetAttribLocation(program, "texture");
+		vs_normalPosition = glGetAttribLocation(program, "normal");
 		
 		return program;
 		// TODO: do we need to dispose the program somehow?

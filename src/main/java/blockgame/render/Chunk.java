@@ -14,6 +14,7 @@ import static org.lwjgl.system.MemoryUtil.memFree;
 import java.nio.FloatBuffer;
 
 import blockgame.assets.Assets;
+import blockgame.engine.Face;
 import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AHashMap;
@@ -51,7 +52,7 @@ public class Chunk {
 		};
 	}
 
-	public static final int FLOATS_PER_VERTEX=3+2; // position + texture
+	public static final int FLOATS_PER_VERTEX=3+3+2; // position + texture + normal
 	public static final int VERTICES_PER_FACE=6; // 2 triangles, 3 vertices each
 	
 	private int createVBO() {
@@ -126,14 +127,16 @@ public class Chunk {
 		float tx=(texRef&0xFF)*TD;
 		float ty=((texRef&0xFF00)>>8)*TD;
 		
+		float[] normal=Face.NORMAL[face];
+		
 		// 0,1,3
-		fb.put(v0[0]+bx).put(v0[1]+by).put(v0[2]+bz).put(tx).put(ty);
-		fb.put(v1[0]+bx).put(v1[1]+by).put(v1[2]+bz).put(tx+TD).put(ty);
-		fb.put(v3[0]+bx).put(v3[1]+by).put(v3[2]+bz).put(tx).put(ty+TD);
+		fb.put(v0[0]+bx).put(v0[1]+by).put(v0[2]+bz).put(normal).put(tx).put(ty);
+		fb.put(v1[0]+bx).put(v1[1]+by).put(v1[2]+bz).put(normal).put(tx+TD).put(ty);
+		fb.put(v3[0]+bx).put(v3[1]+by).put(v3[2]+bz).put(normal).put(tx).put(ty+TD);
 		// 3,1,2
-		fb.put(v3[0]+bx).put(v3[1]+by).put(v3[2]+bz).put(tx).put(ty+TD);
-		fb.put(v1[0]+bx).put(v1[1]+by).put(v1[2]+bz).put(tx+TD).put(ty);
-		fb.put(v2[0]+bx).put(v2[1]+by).put(v2[2]+bz).put(tx+TD).put(ty+TD);
+		fb.put(v3[0]+bx).put(v3[1]+by).put(v3[2]+bz).put(normal).put(tx).put(ty+TD);
+		fb.put(v1[0]+bx).put(v1[1]+by).put(v1[2]+bz).put(normal).put(tx+TD).put(ty);
+		fb.put(v2[0]+bx).put(v2[1]+by).put(v2[2]+bz).put(normal).put(tx+TD).put(ty+TD);
 		
 		return fb;
 	}
@@ -157,7 +160,10 @@ public class Chunk {
 			glVertexAttribPointer(Renderer.vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
 	        glEnableVertexAttribArray(Renderer.vs_inputPosition);
 	        
-			glVertexAttribPointer(Renderer.vs_texturePosition,2,GL_FLOAT,false,stride,12L); // Note: stride in bytes
+			glVertexAttribPointer(Renderer.vs_normalPosition,3,GL_FLOAT,false,stride,12L); // Note: stride in bytes
+	        glEnableVertexAttribArray(Renderer.vs_normalPosition);
+
+	        glVertexAttribPointer(Renderer.vs_texturePosition,2,GL_FLOAT,false,stride,24L); // Note: stride in bytes
 	        glEnableVertexAttribArray(Renderer.vs_texturePosition);
 
 			

@@ -2,11 +2,14 @@
 
 // Attribute
 #define POSITION    0
-#define TEXTURE     1
-#define COLOUR      2
+#define NORMAL      1
+#define TEXTURE     2
+#define COLOUR      3
+
 
 layout (location = POSITION) in vec4 position;
 layout (location = TEXTURE) in vec2 texture;
+layout (location = NORMAL) in vec3 normal;
 layout (location = COLOUR) in vec4 vertex_colour;
 
 out vec2 tex_coord;

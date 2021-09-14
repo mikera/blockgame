@@ -18,4 +18,13 @@ public class Face {
 			new Vector3i(-1,0,0),
 			new Vector3i(0,0,-1)
 	};
+	
+	public static final float[][] NORMAL= {
+			{0,0,1},
+			{0,1,0},
+			{1,0,0},
+			{0,-1,0},
+			{-1,0,0},
+			{0,0,-1}
+	};
 }
