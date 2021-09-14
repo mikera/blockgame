@@ -4,7 +4,6 @@ import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glEnable;
@@ -31,9 +30,7 @@ import static org.lwjgl.opengl.GL20.glGetProgrami;
 import static org.lwjgl.opengl.GL20.glLinkProgram;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20.glUseProgram;
-import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
-import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -158,7 +155,7 @@ public class Renderer {
 	Matrix4f view=new Matrix4f();
 	Matrix4f model=new Matrix4f();
 	Matrix4f projection=new Matrix4f();
-	Vector3f playerDir=new Vector3f(0,0,0);
+	Vector3f tempDir=new Vector3f(0,0,0);
 	Vector3f playerPos=new Vector3f(0,-3,2);
 	Vector3f playerVelocity=new Vector3f(0,0,0);
 	
@@ -176,17 +173,11 @@ public class Renderer {
 		// clear the framebuffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-		//view.lookAt(0, -1, 0, 0, 0, 0, 0, 0, 1);
-		//view.rotateX(pitch).rotateZ(heading);
-		//view.setLookAt(0,0,0,0,1,0,0,0,1);
-		//view.rotateX(pitch).rotateY(heading);
+		drawChunks();
 		
-		//view.identity();
-		//view.setLookAt(0,1,0,0,0,0,0,0,1);
-		//view.rotationXYZ(-pitch, 0, -heading);
-		//view.translate(0,-4,-1);
-		//view.translate(playerPos);
-		// view.invert(); // View = inv(T.R)
+	}
+	
+	private void drawChunks() {
 		view.identity();
 		view.translate(playerPos);
 		view.rotateZ(-heading);
@@ -194,7 +185,6 @@ public class Renderer {
 		view.invert();
 		
 		model.identity();
-		model.rotateZ(t*0.003f);
 		model.translate(tpos);
 		
 		projection.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
@@ -207,13 +197,13 @@ public class Renderer {
 		mvp.get(0, matbuffer);
 		
 		glUniformMatrix4fv(0, false,  matbuffer);
-	
+		
 		chunk.draw();
 		
 		// Clear Buffer
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
 
+	}
 
 	public void setSize(int width, int height) {
 		this.width=width;
@@ -237,19 +227,19 @@ public class Renderer {
 	public void applyMove(float backForward, float leftRight, float upDown, float dt) {
 		if (dt<0) throw new Error("Time going backwards! "+dt);
 		
-		playerDir.set(0,1,0);
-		playerDir.rotateZ(-heading);
-		playerDir.mul(backForward*dt*20f);
-		playerVelocity.add(playerDir);
+		tempDir.set(0,1,0);
+		tempDir.rotateZ(-heading);
+		tempDir.mul(backForward*dt*20f);
+		playerVelocity.add(tempDir);
 		
-		playerDir.set(1,0,0);
-		playerDir.rotateZ(-heading);
-		playerDir.mul(leftRight*dt*20f);
-		playerVelocity.add(playerDir);
+		tempDir.set(1,0,0);
+		tempDir.rotateZ(-heading);
+		tempDir.mul(leftRight*dt*20f);
+		playerVelocity.add(tempDir);
 		
-		playerDir.set(0,0,1);
-		playerDir.mul(upDown*dt*20f);
-		playerVelocity.add(playerDir);
+		tempDir.set(0,0,1);
+		tempDir.mul(upDown*dt*20f);
+		playerVelocity.add(tempDir);
 		
 		playerPos.fma(dt, playerVelocity);
 		playerVelocity.mul((float)Math.exp(-dt*5));
@@ -257,41 +247,39 @@ public class Renderer {
 	}
 
 	public void applyRightClick() {
-		playerDir.set(0,0,-1);
-		playerDir.rotateX((QUARTER_TURN+pitch));
-		playerDir.rotateZ(-heading);
-		Engine.intersect(playerPos, playerDir, (x,y,z)->engine.getBlock(x,y,z), hitResult);
+		tempDir.set(0,0,-1);
+		tempDir.rotateX((QUARTER_TURN+pitch));
+		tempDir.rotateZ(-heading);
+		Engine.intersect(playerPos, tempDir, (x,y,z)->engine.getBlock(x,y,z), hitResult);
 		
 		if (hitResult.hit==null) {
-			System.out.println("Mouse RIGHT clicked in empty space pos=" +playerPos+ " dir="+playerDir);
+			System.out.println("Mouse RIGHT clicked in empty space pos=" +playerPos+ " dir="+tempDir);
 		} else {
-			AVector<ACell> chunkData = engine.getChunk(0,0,0);
 			Vector3i target=new Vector3i(hitResult.x,hitResult.y, hitResult.z);
 			target.add(Face.DIR[hitResult.face]); // block on face
 			
 			ACell block=CVMLong.create(1);
 			
 			engine.setBlock(target,block);
-			chunkData=engine.getChunk(target);
+			AVector<ACell> chunkData=engine.getChunk(target);
 			System.out.println("Block placed at "+target);
 			chunk.refresh(chunkData);
 		}
 	}
 
 	public void applyLeftClick() {
-		playerDir.set(0,0,-1);
-		playerDir.rotateX((QUARTER_TURN+pitch));
-		playerDir.rotateZ(-heading);
-		Engine.intersect(playerPos, playerDir, (x,y,z)->engine.getBlock(x,y,z), hitResult);
+		tempDir.set(0,0,-1);
+		tempDir.rotateX((QUARTER_TURN+pitch));
+		tempDir.rotateZ(-heading);
+		Engine.intersect(playerPos, tempDir, (x,y,z)->engine.getBlock(x,y,z), hitResult);
 		
 		if (hitResult.hit==null) {
-			System.out.println("Mouse LEFT clicked in empty space pos=" +playerPos+ " dir="+playerDir);
+			System.out.println("Mouse LEFT clicked in empty space pos=" +playerPos+ " dir="+tempDir);
 		} else {
-			AVector<ACell> chunkData = engine.getChunk(0,0,0);
 			Vector3i target=new Vector3i(hitResult.x,hitResult.y, hitResult.z);
 			
 			engine.setBlock(target,null);
-			chunkData=engine.getChunk(target);
+			AVector<ACell> chunkData=engine.getChunk(target);
 			System.out.println("Block deleted at "+target);
 			chunk.refresh(chunkData);
 		}
