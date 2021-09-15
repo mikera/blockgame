@@ -157,14 +157,14 @@ public class Chunk {
 			int stride=Chunk.FLOATS_PER_VERTEX*4;
 			
 			// define vertex format, should be after glBindBuffer
-			glVertexAttribPointer(Renderer.vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
-	        glEnableVertexAttribArray(Renderer.vs_inputPosition);
+			glVertexAttribPointer(Renderer.c_vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
+	        glEnableVertexAttribArray(Renderer.c_vs_inputPosition);
 	        
-			glVertexAttribPointer(Renderer.vs_normalPosition,3,GL_FLOAT,false,stride,12L); // Note: stride in bytes
-	        glEnableVertexAttribArray(Renderer.vs_normalPosition);
+			glVertexAttribPointer(Renderer.c_vs_normalPosition,3,GL_FLOAT,false,stride,12L); // Note: stride in bytes
+	        glEnableVertexAttribArray(Renderer.c_vs_normalPosition);
 
-	        glVertexAttribPointer(Renderer.vs_texturePosition,2,GL_FLOAT,false,stride,24L); // Note: stride in bytes
-	        glEnableVertexAttribArray(Renderer.vs_texturePosition);
+	        glVertexAttribPointer(Renderer.c_vs_texturePosition,2,GL_FLOAT,false,stride,24L); // Note: stride in bytes
+	        glEnableVertexAttribArray(Renderer.c_vs_texturePosition);
 
 			
 			glDrawArrays(GL_TRIANGLES, 0, getTriangleCount()*3);

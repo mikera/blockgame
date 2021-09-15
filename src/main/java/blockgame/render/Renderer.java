@@ -22,18 +22,7 @@ import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL11C.glTexParameteri;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20.glAttachShader;
-import static org.lwjgl.opengl.GL20.glCreateProgram;
-import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20.glGetProgrami;
-import static org.lwjgl.opengl.GL20.glGetUniformLocation;
-import static org.lwjgl.opengl.GL20.glLinkProgram;
-import static org.lwjgl.opengl.GL20.glUniform3fv;
-import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
-import static org.lwjgl.opengl.GL20.glUseProgram;
+import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
 
 import java.awt.image.BufferedImage;
@@ -59,14 +48,19 @@ public class Renderer {
 	int hudProgram;
 	
 	int texture;
-	static int vs_inputPosition;
-	static int vs_texturePosition;
-	static int vs_normalPosition;
+	static int c_vs_inputPosition;
+	static int c_vs_texturePosition;
+	static int c_vs_normalPosition;
 
-	static int vs_PPosition;
-	static int vs_MVPosition;
+	static int c_vs_PPosition;
+	static int c_vs_MVPosition;
 	
-	static int fs_LightDirPosition;
+	static int c_fs_LightDirPosition;
+
+	static int h_vs_inputPosition;
+	static int h_vs_texturePosition;
+	static int h_vs_MVPPosition;
+	static int h_vs_ColourPosition;
 
 
 	
@@ -94,14 +88,14 @@ public class Renderer {
 		// glUseProgram(0);
 		
 		// set up positions for input attributes
-		vs_inputPosition = glGetAttribLocation(program, "position");
-		vs_texturePosition = glGetAttribLocation(program, "texture");
-		vs_normalPosition = glGetAttribLocation(program, "normal");
+		c_vs_inputPosition = glGetAttribLocation(program, "position");
+		c_vs_texturePosition = glGetAttribLocation(program, "texture");
+		c_vs_normalPosition = glGetAttribLocation(program, "normal");
 		
-		vs_PPosition = glGetUniformLocation(program, "P");
-		vs_MVPosition = glGetUniformLocation(program, "MV");
+		c_vs_PPosition = glGetUniformLocation(program, "P");
+		c_vs_MVPosition = glGetUniformLocation(program, "MV");
 
-		fs_LightDirPosition = glGetUniformLocation(program, "vLightDir");
+		c_fs_LightDirPosition = glGetUniformLocation(program, "vLightDir");
 
 		return program;
 		// TODO: do we need to dispose the program somehow?
@@ -127,14 +121,13 @@ public class Renderer {
 		// glUseProgram(0);
 		
 		// set up positions for input attributes
-		vs_inputPosition = glGetAttribLocation(program, "position");
-		vs_texturePosition = glGetAttribLocation(program, "texture");
-		vs_normalPosition = glGetAttribLocation(program, "normal");
+		h_vs_inputPosition = glGetAttribLocation(program, "position");
+		h_vs_texturePosition = glGetAttribLocation(program, "texture");
 		
-		vs_PPosition = glGetUniformLocation(program, "P");
-		vs_MVPosition = glGetUniformLocation(program, "MV");
+		h_vs_MVPPosition = glGetUniformLocation(program, "MVP");
+		h_vs_ColourPosition = glGetUniformLocation(program, "colour");
 
-		fs_LightDirPosition = glGetUniformLocation(program, "vLightDir");
+		
 
 		return program;
 		// TODO: do we need to dispose the program somehow?
@@ -179,6 +172,7 @@ public class Renderer {
 			throw new Error(e);
 		}
 		
+		hud.init();
 		createModel();
  
         
@@ -243,7 +237,7 @@ public class Renderer {
 		
 		// Projection Matrix
 		projection.get(0, matbufferP);		
-		glUniformMatrix4fv(Renderer.vs_PPosition, false,  matbufferP);
+		glUniformMatrix4fv(Renderer.c_vs_PPosition, false,  matbufferP);
 		
 		view.identity();
 		view.translate(playerPos);
@@ -260,17 +254,20 @@ public class Renderer {
 		mv.mul(model);
 
 		mv.get(0, matbufferMV);		
-		glUniformMatrix4fv(Renderer.vs_MVPosition, false,  matbufferMV);
+		glUniformMatrix4fv(Renderer.c_vs_MVPosition, false,  matbufferMV);
 		
 		// Light direction
 		vLightDir.set(-2,-1,4,0);
 		vLightDir.mul(view);
 		vLightDir.normalize();
 		vLightDir.get(0, matbufferVLightDir);		
-		glUniform3fv(Renderer.fs_LightDirPosition, matbufferVLightDir);
+		glUniform3fv(Renderer.c_fs_LightDirPosition, matbufferVLightDir);
 		
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
+		
+		glDisable(GL_BLEND);
+
 		
 		chunk.draw();
 		
@@ -288,6 +285,14 @@ public class Renderer {
 		glDepthMask(false);
 		
 		transformation.setOrtho2D(-width/2, width/2, -height/2, height/2);
+		transformation.get(0, matbufferMV);		
+		
+		glUniformMatrix4fv(Renderer.h_vs_MVPPosition, false,  matbufferMV);
+		
+		vLightDir.set(1,1,1,1);
+		vLightDir.get(0, matbufferVLightDir);		
+		glUniform4fv(Renderer.h_vs_ColourPosition, matbufferVLightDir);
+
 			
 		hud.draw();
 		
