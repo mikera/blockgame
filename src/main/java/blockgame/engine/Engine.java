@@ -64,7 +64,10 @@ public class Engine {
 		int bz=z&~0xf;
 		Result r;
 		try {
-			r = convex.querySync(Reader.read("(call #4411 (get-chunk ["+bx+" "+by+" "+bz+"]))"));
+			// String chunkString="["+bx+" "+by+" "+bz+"]"; // Old format
+			long chunkPos= bx+ by * 1048576 + bz*1099511627776l;
+			String chunkString=Long.toString(chunkPos);
+			r = convex.querySync(Reader.read("(call #4439 (get-chunk "+chunkString+"))"));
 		} catch (TimeoutException | IOException e) {
 			throw Utils.sneakyThrow(e);
 		}

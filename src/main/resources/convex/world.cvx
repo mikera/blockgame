@@ -1,8 +1,16 @@
 
+
+;; TODO: convert to blob-map?
 (def chunks {})
 
 (defn ^:callable? get-chunk [cpos]
   (get chunks cpos))
+
+(defn ^:callable? break-block [x y z]
+  (set-block x y z nil))
+
+(defn ^:callable? place-block [x y z block] 
+  (set-block x y z block))
 
 (def blank-chunk 
   (loop [acc [] i 512]
@@ -17,11 +25,15 @@
 ;;      (recur (conj acc nil) (dec i)))
 ;;    acc))
 
+;; We index chunks with a long 0x0ZZZZ0YYYY0XXXX0
+;; Return decomposition [0x0ZZZZ0YYYY0XXXX0 index]
 (defn pos-to-chunk [x y z]
   (let [ox (mod x 16)
         oy (mod y 16)
-        oz (mod z 16)]
-    [[(- x ox) (- y oy) (- z oz)] (+ (* oz 256) (* oy 16) ox)]))
+        oz (mod z 16)
+        chunk-addr (+ (- x ox) (* (- y oy) 1048576) (* (- z oz) 1099511627776))
+        index (+ ox (* oy 16) (* oz 256))]
+    [chunk-addr index]))
 
 (defn set-block [x y z block] 
   (let [[cpos off] (pos-to-chunk x y z)
@@ -31,5 +43,18 @@
 
 (defn get-block [x y z] 
   (let [[cpos off] (pos-to-chunk x y z)
-        chunk (or (get chunks cpos) blank-chunk)]
-    (nth chunk off)))
+        chunk (get chunks cpos)]
+    (cond chunk (nth chunk off))))
+
+(defn fill [x1 y1 z1 x2 y2 z2 block]
+  (loop [i x1]
+    (when (<= i x2)
+       (loop [j y1]
+         (when (<= j y2)
+           (loop [k z1]
+             (when (<= k z2)
+               (set-block i j k block)
+               (recur (inc k))))
+           (recur (inc j))))
+      (recur (inc i))))
+   )

@@ -26,11 +26,10 @@ public class Chunk {
 	int vbo;
 	int triangleCount=0;
 	
-	int[] vals=new int[4096];
+	// int[] vals=new int[4096];
 	private AVector<ACell> chunkData;
 	
 	private Chunk() {
-		vals[0]=1;
 	}
 	
 	public static Chunk create(AVector<ACell> chunkData) {
