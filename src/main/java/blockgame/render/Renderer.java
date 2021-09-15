@@ -6,6 +6,8 @@ import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glDepthMask;
+import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11C.GL_LINEAR;
 import static org.lwjgl.opengl.GL11C.GL_NEAREST;
@@ -20,7 +22,18 @@ import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL11C.glTexParameteri;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
+import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
+import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
+import static org.lwjgl.opengl.GL20.glAttachShader;
+import static org.lwjgl.opengl.GL20.glCreateProgram;
+import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
+import static org.lwjgl.opengl.GL20.glGetProgrami;
+import static org.lwjgl.opengl.GL20.glGetUniformLocation;
+import static org.lwjgl.opengl.GL20.glLinkProgram;
+import static org.lwjgl.opengl.GL20.glUniform3fv;
+import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
 
 import java.awt.image.BufferedImage;
@@ -39,11 +52,12 @@ import blockgame.engine.Engine;
 import blockgame.engine.Face;
 import convex.core.data.ACell;
 import convex.core.data.AVector;
-import convex.core.data.prim.CVMLong;
 
 public class Renderer {
 	
-	int program;
+	int chunkProgram;
+	int hudProgram;
+	
 	int texture;
 	static int vs_inputPosition;
 	static int vs_texturePosition;
@@ -57,12 +71,46 @@ public class Renderer {
 
 	
 	private Engine engine=Engine.create();
+	private HUD hud=new HUD(engine);
 
 	
-	int createProgram() throws IOException {
+	int createChunkProgram() throws IOException {
 		int program = glCreateProgram();
 		int vshader = Utils.createShader("shaders/vertex-shader.vert", GL_VERTEX_SHADER);
 		int fshader = Utils.createShader("shaders/fragment-shader.frag", GL_FRAGMENT_SHADER);
+		glAttachShader(program, vshader);
+		glAttachShader(program, fshader);
+		glLinkProgram(program);
+		int linked = glGetProgrami(program, GL_LINK_STATUS);
+		String programLog = glGetProgramInfoLog(program);
+		if (programLog.trim().length() > 0) {
+			System.err.println(programLog);
+		}
+		if (linked == 0) {
+			throw new AssertionError("Could not link program");
+		}
+		glUseProgram(program);
+		// transformUniform = glGetUniformLocation(program, "transform");
+		// glUseProgram(0);
+		
+		// set up positions for input attributes
+		vs_inputPosition = glGetAttribLocation(program, "position");
+		vs_texturePosition = glGetAttribLocation(program, "texture");
+		vs_normalPosition = glGetAttribLocation(program, "normal");
+		
+		vs_PPosition = glGetUniformLocation(program, "P");
+		vs_MVPosition = glGetUniformLocation(program, "MV");
+
+		fs_LightDirPosition = glGetUniformLocation(program, "vLightDir");
+
+		return program;
+		// TODO: do we need to dispose the program somehow?
+	}
+	
+	int createHUDProgram() throws IOException {
+		int program = glCreateProgram();
+		int vshader = Utils.createShader("shaders/hud-shader.vert", GL_VERTEX_SHADER);
+		int fshader = Utils.createShader("shaders/hud-shader.frag", GL_FRAGMENT_SHADER);
 		glAttachShader(program, vshader);
 		glAttachShader(program, fshader);
 		glLinkProgram(program);
@@ -124,7 +172,8 @@ public class Renderer {
 
 	public void init() {
 		try {
-			program=createProgram();
+			hudProgram=createHUDProgram();
+			chunkProgram=createChunkProgram();
 			texture=createTexture();
 		} catch (Throwable e) {
 			throw new Error(e);
@@ -187,7 +236,9 @@ public class Renderer {
 	private final FloatBuffer matbufferMV = BufferUtils.createFloatBuffer(16);
 	private final FloatBuffer matbufferVLightDir = BufferUtils.createFloatBuffer(4);
 	
-	private void drawChunks() {		
+	private void drawChunks() {			
+		glUseProgram(chunkProgram);
+
 		projection.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
 		
 		// Projection Matrix
@@ -227,10 +278,18 @@ public class Renderer {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	
+	Matrix4f transformation=new Matrix4f();
+
 	private void drawHUD() {
+		glUseProgram(hudProgram);
+		
 		glDisable(GL_CULL_FACE);
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(false);
+		
+		transformation.setOrtho2D(-width/2, width/2, -height/2, height/2);
+			
+		hud.draw();
 		
 	}
 

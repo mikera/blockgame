@@ -242,7 +242,7 @@ public class Engine {
 	private int[] toolBar= {0,1,2,3,10,11,12,1,2,3};
 
 	/**
-	 * Gets the currently selected placable block value
+	 * Gets the currently selected placeable block value
 	 * @return
 	 */
 	public ACell getPlaceableBlock() {
