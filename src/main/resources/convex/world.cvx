@@ -58,3 +58,5 @@
            (recur (inc j))))
       (recur (inc i))))
    )
+
+;; (fill 0 0 0 15 15 0 1)

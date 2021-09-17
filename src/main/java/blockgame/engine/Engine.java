@@ -67,7 +67,7 @@ public class Engine {
 			// String chunkString="["+bx+" "+by+" "+bz+"]"; // Old format
 			long chunkPos= bx+ by * 1048576 + bz*1099511627776l;
 			String chunkString=Long.toString(chunkPos);
-			r = convex.querySync(Reader.read("(call #4439 (get-chunk "+chunkString+"))"));
+			r = convex.querySync(Reader.read("(call #4562 (get-chunk "+chunkString+"))"));
 		} catch (TimeoutException | IOException e) {
 			throw Utils.sneakyThrow(e);
 		}

@@ -12,6 +12,7 @@ import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.system.MemoryUtil.memAllocFloat;
 import static org.lwjgl.system.MemoryUtil.memFree;
 
+import java.nio.BufferOverflowException;
 import java.nio.FloatBuffer;
 
 import org.joml.Vector3i;
@@ -84,18 +85,27 @@ public class Chunk {
 		return vbo;
 	}
 	
+	FloatBuffer vb = FloatBuffer.allocate(30000);
 	private FloatBuffer buildAll() {
-		FloatBuffer vb = FloatBuffer.allocate(30000);
-		for (int k=0; k<16; k++) {
-			for (int j=0; j<16; j++) {
-				for (int i=0; i<16; i++) {
-					long ix=i+j*16+k*256;
-					ACell block=chunkData.get(ix);
-					if (block!=null) {
-						vb=addBlock(vb,i,j,k,block);
+		vb.clear();
+		while (true) {
+			try {
+				for (int k=0; k<16; k++) {
+					for (int j=0; j<16; j++) {
+						for (int i=0; i<16; i++) {
+							long ix=i+j*16+k*256;
+							ACell block=chunkData.get(ix);
+							if (block!=null) {
+								vb=addBlock(vb,i,j,k,block);
+							}
+						}
 					}
 				}
+			} catch (BufferOverflowException be) {
+				vb=FloatBuffer.allocate(vb.capacity()*2);
+				continue;
 			}
+			break;
 		}
 		
 		vb.flip();
