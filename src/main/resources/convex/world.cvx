@@ -38,9 +38,9 @@
 (defn set-block [x y z block] 
   (let [[cpos off] (pos-to-chunk x y z)
         chunk (or (get chunks cpos) blank-chunk)
+        old (get chunk off)
         chunk (assoc chunk off block)]
-    (def chunks (assoc chunks cpos chunk))
-    block))
+    (def chunks (assoc chunks cpos chunk))))
 
 (defn get-block [x y z] 
   (let [[cpos off] (pos-to-chunk x y z)

@@ -352,18 +352,20 @@ public class Renderer {
 		if (dt<0) throw new Error("Time going backwards! "+dt);
 		if (dt>0.1f) dt=0.1f; // max 100ms time step
 		
+		float SPEED=50f;
+		
 		tempDir.set(0,1,0);
 		tempDir.rotateZ(-heading);
-		tempDir.mul(backForward*dt*20f);
+		tempDir.mul(backForward*dt*SPEED);
 		playerVelocity.add(tempDir);
 		
 		tempDir.set(1,0,0);
 		tempDir.rotateZ(-heading);
-		tempDir.mul(leftRight*dt*20f);
+		tempDir.mul(leftRight*dt*SPEED);
 		playerVelocity.add(tempDir);
 		
 		tempDir.set(0,0,1);
-		tempDir.mul(upDown*dt*20f);
+		tempDir.mul(upDown*dt*SPEED);
 		playerVelocity.add(tempDir);
 		
 		playerPos.fma(dt, playerVelocity);
