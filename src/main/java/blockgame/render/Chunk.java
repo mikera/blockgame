@@ -108,8 +108,15 @@ public class Chunk {
 		if (meta==null) meta=(AHashMap<Keyword, ACell>) Assets.blockData.get(CVMLong.ONE);
 		AVector<ABlob> tex=(AVector<ABlob>) meta.get(Assets.TEX_KEY);
 		
-		for (int i=0; i<6; i++) {
-			vb=addFace(vb, x, y, z,i,tex.get(i).toLong());
+		for (int face=0; face<6; face++) {
+			Vector3i fd=Face.DIR[face];
+			
+			// Why does x need - ?? Error in lookup tables?
+			ACell facing=engine.getBlock(x-fd.x, y+fd.y, z+fd.z);
+			if (facing!=null) {
+				continue;
+			}
+			vb=addFace(vb, x, y, z,face,tex.get(face).toLong());
 		}
 		
 		return vb;
@@ -118,7 +125,7 @@ public class Chunk {
 	// North = +y East = +x
 	// x,y,z offsets
 	float[][] VERTS= {{0,0,0},{0,0,1},{0,1,0},{0,1,1},{1,0,0},{1,0,1},{1,1,0},{1,1,1}};
-	// top, N, E, S, W, bottom
+	// U, N, E, S, W, D
 	int[][] FACES= {{7,3,1,5},{3,7,6,2},{1,3,2,0},{5,1,0,4},{7,5,4,6},{2,6,4,0}};
 	
 	// texture tile size
@@ -137,6 +144,7 @@ public class Chunk {
 		
 		float[] normal=Face.NORMAL[face];
 		
+		// Vertices in square numbered clockwise 0,1,2,3
 		// 0,1,3
 		fb.put(v0[0]+bx).put(v0[1]+by).put(v0[2]+bz).put(normal).put(tx).put(ty);
 		fb.put(v1[0]+bx).put(v1[1]+by).put(v1[2]+bz).put(normal).put(tx+TD).put(ty);

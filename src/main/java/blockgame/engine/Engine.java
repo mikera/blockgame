@@ -111,7 +111,7 @@ public class Engine {
 		x&=0xf;
 		y&=0xf;
 		z&=0xf;
-		return z*256+y*16+x;
+		return (z*256)+(y*16)+x;
 	}
 
 	public ACell getBlock(int x, int y, int z) {
