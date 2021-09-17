@@ -86,7 +86,7 @@ public class Engine {
 				if (chunk==null) chunk=EMPTY_CHUNK;
 				Long cpos=chunkAddress(bx,by,bz);
 				chunks.put(cpos, chunk);
-				System.out.println("Loaded chunk at "+bx+","+by+","+bz);
+				System.out.println("Loaded chunk at "+locString(bx,by,bz));
 			}).exceptionallyAsync(e->{		
 				System.err.println(queryForm); 
 				System.err.println(e); 
@@ -97,6 +97,14 @@ public class Engine {
 		}
 	}
 	
+	public static String locString(int bx, int by, int bz) {
+		return bx+","+by+","+bz;
+	}
+	
+	public static String locString(Vector3i pos) {
+		return locString(pos.x,pos.y,pos.z);
+	}
+
 	public HashMap<Long,AVector<ACell>> chunks=new HashMap<>(91);
 	
 	public AVector<ACell> getChunk(int x, int y, int z) {
@@ -152,7 +160,7 @@ public class Engine {
 		int bz=z&~0xf;
 		chunks.put(chunkAddress(bx,by,bz), chunk);
 		if (block==null) block=Symbols.NIL;
-		ACell trans=Reader.read("(call "+worldAddress+" (place-block "+x+" "+y+" "+z+" "+block+"))");
+		ACell trans=Reader.read("(call "+worldAddress+" (place-block "+locString(x,y,z)+" "+block+"))");
 		try {
 			convex.transact(Invoke.create(addr, 0, trans));
 		} catch (IOException e) {
@@ -271,7 +279,7 @@ public class Engine {
 		return tool;
 	}
 	
-	private int[] toolBar= {0,1,2,3,10,11,12,1,2,3};
+	private int[] toolBar= {0,1,2,3,10,11,12,13,14,3};
 
 	/**
 	 * Gets the currently selected placeable block value
@@ -280,6 +288,8 @@ public class Engine {
 	public ACell getPlaceableBlock() {
 		return CVMLong.create(toolBar[tool]);
 	}
+
+
 
 
 
