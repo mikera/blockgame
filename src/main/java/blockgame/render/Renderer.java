@@ -279,7 +279,7 @@ public class Renderer {
 		int ply=((int)Math.floor(playerPos.y))&~0xf;
 		int plz=((int)Math.floor(playerPos.z))&~0xf;
 		
-		int DIST=16;
+		int DIST=32;
 		for (int cx=plx-DIST; cx<=plx+DIST; cx+=16) {
 			for (int cy=ply-DIST; cy<=ply+DIST; cy+=16) {
 				for (int cz=plz-DIST; cz<=plz+DIST; cz+=16) {

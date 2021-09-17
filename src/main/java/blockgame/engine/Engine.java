@@ -17,6 +17,7 @@ import convex.core.data.Address;
 import convex.core.data.Vectors;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
+import convex.core.lang.Symbols;
 import convex.core.transactions.Invoke;
 import convex.core.util.Utils;
 
@@ -150,6 +151,7 @@ public class Engine {
 		int by=y&~0xf;
 		int bz=z&~0xf;
 		chunks.put(chunkAddress(bx,by,bz), chunk);
+		if (block==null) block=Symbols.NIL;
 		ACell trans=Reader.read("(call "+worldAddress+" (place-block "+x+" "+y+" "+z+" "+block+"))");
 		try {
 			convex.transact(Invoke.create(addr, 0, trans));
