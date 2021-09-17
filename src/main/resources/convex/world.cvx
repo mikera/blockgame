@@ -39,7 +39,8 @@
   (let [[cpos off] (pos-to-chunk x y z)
         chunk (or (get chunks cpos) blank-chunk)
         chunk (assoc chunk off block)]
-    (def chunks (assoc chunks cpos chunk))))
+    (def chunks (assoc chunks cpos chunk))
+    block))
 
 (defn get-block [x y z] 
   (let [[cpos off] (pos-to-chunk x y z)
@@ -60,3 +61,6 @@
    )
 
 ;; (fill 0 0 0 15 15 0 1)
+;; (fill 5 5 1 9 9 4 6) // walls
+;; (fill 6 6 1 8 8 4 nil) // interior
+;; (fill 7 5 1 7 5 2 nil) //door

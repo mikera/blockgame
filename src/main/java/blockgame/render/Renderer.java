@@ -1,5 +1,6 @@
 package blockgame.render;
 
+import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
@@ -22,13 +23,26 @@ import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL11C.glTexParameteri;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
+import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
+import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
+import static org.lwjgl.opengl.GL20.glAttachShader;
+import static org.lwjgl.opengl.GL20.glCreateProgram;
+import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
+import static org.lwjgl.opengl.GL20.glGetProgrami;
+import static org.lwjgl.opengl.GL20.glGetUniformLocation;
+import static org.lwjgl.opengl.GL20.glLinkProgram;
+import static org.lwjgl.opengl.GL20.glUniform3fv;
+import static org.lwjgl.opengl.GL20.glUniform4fv;
+import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.HashMap;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -40,7 +54,6 @@ import blockgame.assets.Assets;
 import blockgame.engine.Engine;
 import blockgame.engine.Face;
 import convex.core.data.ACell;
-import convex.core.data.AVector;
 
 public class Renderer {
 	
@@ -161,8 +174,6 @@ public class Renderer {
         return id;
     }
 
-	private Chunk chunk;
-
 	public void init() {
 		try {
 			hudProgram=createHUDProgram();
@@ -173,7 +184,6 @@ public class Renderer {
 		}
 		
 		hud.init();
-		createModel();
  
         
 		// Set the clear color
@@ -182,11 +192,16 @@ public class Renderer {
 
 	}
 	
+	private HashMap<Vector3i,Chunk> chunks=new HashMap<>(100);
 
-
-	private void createModel() {
-		chunk = Chunk.create(new Vector3i(0,0,0),engine);
-		
+	private Chunk getChunk(Vector3i cpos) {
+		Chunk chunk=chunks.get(cpos);
+		if (chunk==null) {
+			cpos=new Vector3i(cpos);
+			chunk=Chunk.create(cpos, engine);
+			chunks.put(cpos, chunk);
+		}
+		return chunk;
 	}
 
 	public void close() {
@@ -200,7 +215,7 @@ public class Renderer {
 	
 	Engine.HitResult hitResult=new Engine.HitResult();
 
-	Vector3f tpos=new Vector3f(0,0,0);
+
 	Vector3f up=new Vector3f(0,0,1);
 	
 	float QUARTER_TURN=(float) (Math.PI/2);
@@ -228,10 +243,19 @@ public class Renderer {
 	private final FloatBuffer matbufferMV = BufferUtils.createFloatBuffer(16);
 	private final FloatBuffer matbufferVLightDir = BufferUtils.createFloatBuffer(4);
 	
+	private Vector3i cpos=new Vector3i(0,0,0);
+	
 	private void drawChunks() {			
 		glUseProgram(chunkProgram);
+		
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+		
+		glDisable(GL_BLEND);
 
+		// General set up for projection and view matrices
 		projection.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
+		
 		
 		// Projection Matrix
 		projection.get(0, matbufferP);		
@@ -243,35 +267,44 @@ public class Renderer {
 		view.rotateX(QUARTER_TURN+pitch);
 		view.invert();
 		
-		model.identity();
-		model.translate(tpos);
-	
-		// ModelView Matrix
-		mv.identity();	
-		mv.mul(view);
-		mv.mul(model);
-
-		mv.get(0, matbufferMV);		
-		glUniformMatrix4fv(Renderer.c_vs_MVPosition, false,  matbufferMV);
-		
 		// Light direction
 		vLightDir.set(-2,-1,4,0);
 		vLightDir.mul(view);
 		vLightDir.normalize();
 		vLightDir.get(0, matbufferVLightDir);		
 		glUniform3fv(Renderer.c_fs_LightDirPosition, matbufferVLightDir);
-		
-		glEnable(GL_CULL_FACE);
-		glEnable(GL_DEPTH_TEST);
-		
-		glDisable(GL_BLEND);
 
+		// Player chunk position
+		int plx=((int)Math.floor(playerPos.x))&~0xf;
+		int ply=((int)Math.floor(playerPos.y))&~0xf;
+		int plz=((int)Math.floor(playerPos.z))&~0xf;
 		
-		chunk.draw();
+		int DIST=16;
+		for (int cx=plx-DIST; cx<=plx+DIST; cx+=16) {
+			for (int cy=ply-DIST; cy<=ply+DIST; cy+=16) {
+				for (int cz=plz-DIST; cz<=plz+DIST; cz+=16) {
+					cpos.set(cx,cy,cz);
+		
+					model.identity();
+					model.translate(cx,cy,cz);
+				
+					// ModelView Matrix
+					mv.identity();	
+					mv.mul(view);
+					mv.mul(model);
+			
+					mv.get(0, matbufferMV);		
+					glUniformMatrix4fv(Renderer.c_vs_MVPosition, false,  matbufferMV);
+					
+					getChunk(cpos).draw();
+				}
+			}
+		}
 		
 		// Clear Buffer
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
+	
 	
 	Matrix4f transformation=new Matrix4f();
 
@@ -317,6 +350,7 @@ public class Renderer {
 
 	public void applyMove(float backForward, float leftRight, float upDown, float dt) {
 		if (dt<0) throw new Error("Time going backwards! "+dt);
+		if (dt>0.1f) dt=0.1f; // max 100ms time step
 		
 		tempDir.set(0,1,0);
 		tempDir.rotateZ(-heading);

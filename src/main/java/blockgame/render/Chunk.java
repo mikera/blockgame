@@ -27,7 +27,7 @@ import convex.core.data.Keyword;
 import convex.core.data.prim.CVMLong;
 
 public class Chunk {
-	int vbo;
+	int vbo=0;
 	int triangleCount=0;
 	
 	// int[] vals=new int[4096];
@@ -70,16 +70,20 @@ public class Chunk {
 		
 		int n=built.remaining();
 		triangleCount=n/(3*FLOATS_PER_VERTEX);
-		
-		FloatBuffer vertexBuffer = memAllocFloat(n);
-		vertexBuffer.put(built);
-		vertexBuffer.flip();
-
-		vbo = glGenBuffers();
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
-		
-		memFree(vertexBuffer);
+		if (triangleCount>0) {
+			
+			FloatBuffer vertexBuffer = memAllocFloat(n);
+			vertexBuffer.put(built);
+			vertexBuffer.flip();
+	
+			vbo = glGenBuffers();
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
+			
+			memFree(vertexBuffer);
+		} else {
+			vbo=0;
+		}
 		
 		// System.out.println("VBO built! "+vbo);
 		return vbo;
@@ -88,24 +92,26 @@ public class Chunk {
 	FloatBuffer vb = FloatBuffer.allocate(30000);
 	private FloatBuffer buildAll() {
 		vb.clear();
-		while (true) {
-			try {
-				for (int k=0; k<16; k++) {
-					for (int j=0; j<16; j++) {
-						for (int i=0; i<16; i++) {
-							long ix=i+j*16+k*256;
-							ACell block=chunkData.get(ix);
-							if (block!=null) {
-								vb=addBlock(vb,i,j,k,block);
+		if (!chunkData.equals(Engine.EMPTY_CHUNK)) {
+			while (true) {
+				try {
+					for (int k=0; k<16; k++) {
+						for (int j=0; j<16; j++) {
+							for (int i=0; i<16; i++) {
+								long ix=i+j*16+k*256;
+								ACell block=chunkData.get(ix);
+								if (block!=null) {
+									vb=addBlock(vb,i,j,k,block);
+								}
 							}
 						}
 					}
+				} catch (BufferOverflowException be) {
+					vb=FloatBuffer.allocate(vb.capacity()*2);
+					continue;
 				}
-			} catch (BufferOverflowException be) {
-				vb=FloatBuffer.allocate(vb.capacity()*2);
-				continue;
+				break;
 			}
-			break;
 		}
 		
 		vb.flip();
@@ -122,7 +128,7 @@ public class Chunk {
 			Vector3i fd=Face.DIR[face];
 			
 			// Why does x need - ?? Error in lookup tables?
-			ACell facing=engine.getBlock(x-fd.x, y+fd.y, z+fd.z);
+			ACell facing=engine.getBlock(x-fd.x+position.x, y+fd.y+position.y, z+fd.z+position.z);
 			if (facing!=null) {
 				continue;
 			}

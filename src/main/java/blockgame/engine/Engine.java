@@ -2,6 +2,7 @@ package blockgame.engine;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
 import org.joml.Vector3f;
@@ -9,12 +10,14 @@ import org.joml.Vector3i;
 
 import convex.api.Convex;
 import convex.core.Result;
+import convex.core.crypto.AKeyPair;
 import convex.core.data.ACell;
 import convex.core.data.AVector;
 import convex.core.data.Address;
 import convex.core.data.Vectors;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
+import convex.core.transactions.Invoke;
 import convex.core.util.Utils;
 
 /**
@@ -22,7 +25,14 @@ import convex.core.util.Utils;
  */
 public class Engine {
 	
+	static AKeyPair kp=AKeyPair.createSeeded(156778);
+	static Address addr=Address.create(4564);
 	
+	static Address worldAddress=Address.create(4562);
+	
+	static {
+		System.out.println(kp.getAccountKey());
+	}
 
 	public static class HitResult {
 		public int x;
@@ -37,18 +47,15 @@ public class Engine {
 		public Object test(int x, int y, int z);
 	}
 
-	private static final AVector<ACell> EMPTY_CHUNK;
+	public static final AVector<ACell> EMPTY_CHUNK=Vectors.repeat(null, 4096);
 	
-	static {
-		EMPTY_CHUNK=Vectors.repeat(null, 4096);
-	}
-
 	private Convex convex=null;
 	
 	private Engine() {
 		try {
 			convex=Convex.connect(Utils.toInetSocketAddress("convex.world:18888"));
-			convex.setAddress(Address.create(4411));
+			convex.setAddress(addr);
+			convex.setKeyPair(kp);
 		} catch (IOException|TimeoutException e ) {
 			throw Utils.sneakyThrow(e);
 		}
@@ -58,37 +65,49 @@ public class Engine {
 		return new Engine();
 	}
 	
-	public AVector<ACell> loadChunk(int x, int y, int z) {
+	long chunkAddress(int bx, int by, int bz) {
+		return bx+ (by * 1048576l) + bz*1099511627776l;
+	}
+	
+	public void loadChunk(int x, int y, int z) {
 		int bx=x&~0xf;
 		int by=y&~0xf;
 		int bz=z&~0xf;
-		Result r;
 		try {
 			// String chunkString="["+bx+" "+by+" "+bz+"]"; // Old format
-			long chunkPos= bx+ by * 1048576 + bz*1099511627776l;
+			long chunkPos= chunkAddress(bx,by,bz);
 			String chunkString=Long.toString(chunkPos);
-			r = convex.querySync(Reader.read("(call #4562 (get-chunk "+chunkString+"))"));
-		} catch (TimeoutException | IOException e) {
+			ACell queryForm=Reader.read("(call "+worldAddress+" (get-chunk "+chunkString+"))");
+			CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.query(queryForm);
+			cf.thenAcceptAsync(r-> {
+				if (r.isError()) throw new Error("Bad result: "+r);
+				AVector<ACell> chunk=r.getValue();
+				if (chunk==null) chunk=EMPTY_CHUNK;
+				Long cpos=chunkAddress(bx,by,bz);
+				chunks.put(cpos, chunk);
+				System.out.println("Loaded chunk at "+bx+","+by+","+bz);
+			}).exceptionallyAsync(e->{		
+				System.err.println(queryForm); 
+				System.err.println(e); 
+				return null;
+			});
+		} catch (IOException e) {
 			throw Utils.sneakyThrow(e);
 		}
-		if (r.isError()) throw new Error("Bad result: "+r);
-		AVector<ACell> chunk=r.getValue();
-
-		return chunk;
 	}
 	
-	public HashMap<Vector3i,AVector<ACell>> chunks=new HashMap<>();
+	public HashMap<Long,AVector<ACell>> chunks=new HashMap<>(91);
 	
 	public AVector<ACell> getChunk(int x, int y, int z) {
 		int bx=x&~0xf;
 		int by=y&~0xf;
 		int bz=z&~0xf;
 		
-		Vector3i cpos=new Vector3i(bx,by,bz);
+		Long cpos=chunkAddress(bx,by,bz);
 		AVector<ACell> chunk=chunks.get(cpos);
 		if (chunk==null) {
-			chunk=loadChunk(bx,by,bz);
-			if (chunk==null) chunk=EMPTY_CHUNK;
+			loadChunk(bx,by,bz); // schedule chunk load
+			chunk=EMPTY_CHUNK; // placeholder empty chunk
 			chunks.put(cpos,chunk);
 		}
 		
@@ -127,8 +146,16 @@ public class Engine {
 			chunk=EMPTY_CHUNK;
 		}
 		chunk=chunk.assoc(chunkIndex(x,y,z), block);
-		Vector3i cpos=chunkPos(x,y,z);
-		chunks.put(cpos, chunk);
+		int bx=x&~0xf;
+		int by=y&~0xf;
+		int bz=z&~0xf;
+		chunks.put(chunkAddress(bx,by,bz), chunk);
+		ACell trans=Reader.read("(call "+worldAddress+" (place-block "+x+" "+y+" "+z+" "+block+"))");
+		try {
+			convex.transact(Invoke.create(addr, 0, trans));
+		} catch (IOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	public void setBlock(Vector3i target, ACell block) {
@@ -229,7 +256,7 @@ public class Engine {
 	
 	public static void main(String[] args) throws TimeoutException, IOException {
 		Engine e=new Engine();
-		System.out.println(e.loadChunk(0,0,0));
+		e.loadChunk(0,0,0);
 	}
 	
 	private int tool=1;
