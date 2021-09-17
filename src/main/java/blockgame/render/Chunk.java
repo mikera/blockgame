@@ -1,6 +1,7 @@
 package blockgame.render;
 
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
+import blockgame.engine.Engine;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
@@ -12,6 +13,8 @@ import static org.lwjgl.system.MemoryUtil.memAllocFloat;
 import static org.lwjgl.system.MemoryUtil.memFree;
 
 import java.nio.FloatBuffer;
+
+import org.joml.Vector3i;
 
 import blockgame.assets.Assets;
 import blockgame.engine.Face;
@@ -28,13 +31,18 @@ public class Chunk {
 	
 	// int[] vals=new int[4096];
 	private AVector<ACell> chunkData;
+	private final Engine engine;
+	private final Vector3i position;
 	
-	private Chunk() {
+	private Chunk(Vector3i cpos, Engine engine) {
+		this.position=cpos;
+		this.engine=engine;
 	}
 	
-	public static Chunk create(AVector<ACell> chunkData) {
-		Chunk c= new Chunk();
-		c.setData(chunkData);
+	public static Chunk create(Vector3i cpos, Engine engine) {
+		Chunk c= new Chunk(cpos,engine);
+		AVector<ACell> current=engine.getChunk(cpos);
+		c.setData(current);
 		c.createVBO();
 		return c;
 	}
@@ -43,9 +51,10 @@ public class Chunk {
 		this.chunkData=chunkData;
 	}
 	
-	public void refresh(AVector<ACell> newChunkData) {
-		if (chunkData!=newChunkData) {
-			setData(newChunkData);
+	public void refresh() {
+		AVector<ACell> latest=engine.getChunk(position);
+		if (chunkData!=latest) {
+			setData(latest);
 			glDeleteBuffers(vbo);
 			vbo=createVBO();
 		};
@@ -149,6 +158,7 @@ public class Chunk {
 	}
 
 	public void draw() {
+		refresh();
 		if (vbo!=0) {
 			// Bind buffer
 			glBindBuffer(GL_ARRAY_BUFFER, getVBO());

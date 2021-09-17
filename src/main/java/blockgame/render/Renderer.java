@@ -185,9 +185,7 @@ public class Renderer {
 
 
 	private void createModel() {
-		AVector<ACell> chunkData;
-		chunkData = engine.getChunk(0,0,0);
-		chunk = Chunk.create(chunkData);
+		chunk = Chunk.create(new Vector3i(0,0,0),engine);
 		
 	}
 
@@ -354,9 +352,7 @@ public class Renderer {
 			ACell block=engine.getPlaceableBlock();
 			if (block==null) return;
 			engine.setBlock(target,block);
-			AVector<ACell> chunkData=engine.getChunk(target);
 			System.out.println("Block placed at "+target);
-			chunk.refresh(chunkData);
 		}
 	}
 
@@ -372,9 +368,7 @@ public class Renderer {
 			Vector3i target=new Vector3i(hitResult.x,hitResult.y, hitResult.z);
 			
 			engine.setBlock(target,null);
-			AVector<ACell> chunkData=engine.getChunk(target);
 			System.out.println("Block deleted at "+target);
-			chunk.refresh(chunkData);
 		}
 	}
 
