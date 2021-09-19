@@ -57,19 +57,9 @@ import convex.core.data.ACell;
 
 public class Renderer {
 	
-	int chunkProgram;
 	int hudProgram;
 	
 	int texture;
-	static int c_vs_inputPosition;
-	static int c_vs_texturePosition;
-	static int c_vs_normalPosition;
-
-	static int c_vs_PPosition;
-	static int c_vs_MVPosition;
-	
-	static int c_fs_LightDirPosition;
-
 	static int h_vs_inputPosition;
 	static int h_vs_texturePosition;
 	static int h_vs_MVPPosition;
@@ -102,14 +92,14 @@ public class Renderer {
 		// glUseProgram(0);
 		
 		// set up positions for input attributes
-		c_vs_inputPosition = glGetAttribLocation(program, "position");
-		c_vs_texturePosition = glGetAttribLocation(program, "texture");
-		c_vs_normalPosition = glGetAttribLocation(program, "normal");
+		Chunk.c_vs_inputPosition = glGetAttribLocation(program, "position");
+		Chunk.c_vs_texturePosition = glGetAttribLocation(program, "texture");
+		Chunk.c_vs_normalPosition = glGetAttribLocation(program, "normal");
 		
-		c_vs_PPosition = glGetUniformLocation(program, "P");
-		c_vs_MVPosition = glGetUniformLocation(program, "MV");
+		Chunk.c_vs_PPosition = glGetUniformLocation(program, "P");
+		Chunk.c_vs_MVPosition = glGetUniformLocation(program, "MV");
 
-		c_fs_LightDirPosition = glGetUniformLocation(program, "vLightDir");
+		Chunk.c_fs_LightDirPosition = glGetUniformLocation(program, "vLightDir");
 
 		return program;
 		// TODO: do we need to dispose the program somehow?
@@ -176,7 +166,7 @@ public class Renderer {
 	public void init() {
 		try {
 			hudProgram=createHUDProgram();
-			chunkProgram=createChunkProgram();
+			Chunk.chunkProgram=createChunkProgram();
 			texture=createTexture();
 		} catch (Throwable e) {
 			throw new Error(e);
@@ -234,7 +224,7 @@ public class Renderer {
 	}
 	
 	private void drawEntities() {
-		glUseProgram(chunkProgram);
+		glUseProgram(Chunk.chunkProgram);
 		
 		glDisable(GL_CULL_FACE); // Billboards don't want this
 		glEnable(GL_DEPTH_TEST); // Still do depth test
@@ -245,7 +235,7 @@ public class Renderer {
 		
 		// Projection Matrix
 		projection.get(0, matbufferP);		
-		glUniformMatrix4fv(Renderer.c_vs_PPosition, false,  matbufferP);
+		glUniformMatrix4fv(Chunk.c_vs_PPosition, false,  matbufferP);
 
 		view.identity();
 		view.translate(playerPos);
@@ -262,7 +252,7 @@ public class Renderer {
 		mv.mul(model);
 
 		mv.get(0, matbufferMV);		
-		glUniformMatrix4fv(Renderer.c_vs_MVPosition, false,  matbufferMV);
+		glUniformMatrix4fv(Chunk.c_vs_MVPosition, false,  matbufferMV);
 		
 		billboard.draw();
 
@@ -282,7 +272,7 @@ public class Renderer {
 	private Vector3i cpos=new Vector3i(0,0,0);
 	
 	private void drawChunks() {			
-		glUseProgram(chunkProgram);
+		glUseProgram(Chunk.chunkProgram);
 		
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
@@ -295,7 +285,7 @@ public class Renderer {
 		
 		// Projection Matrix
 		projection.get(0, matbufferP);		
-		glUniformMatrix4fv(Renderer.c_vs_PPosition, false,  matbufferP);
+		glUniformMatrix4fv(Chunk.c_vs_PPosition, false,  matbufferP);
 		
 		view.identity();
 		view.translate(playerPos);
@@ -308,7 +298,7 @@ public class Renderer {
 		vLightDir.mul(view);
 		vLightDir.normalize();
 		vLightDir.get(0, matbufferVLightDir);		
-		glUniform3fv(Renderer.c_fs_LightDirPosition, matbufferVLightDir);
+		glUniform3fv(Chunk.c_fs_LightDirPosition, matbufferVLightDir);
 
 		// Player chunk position
 		int plx=((int)Math.floor(playerPos.x))&~0xf;
@@ -330,7 +320,7 @@ public class Renderer {
 					mv.mul(model);
 			
 					mv.get(0, matbufferMV);		
-					glUniformMatrix4fv(Renderer.c_vs_MVPosition, false,  matbufferMV);
+					glUniformMatrix4fv(Chunk.c_vs_MVPosition, false,  matbufferMV);
 					
 					getChunk(cpos).draw();
 				}

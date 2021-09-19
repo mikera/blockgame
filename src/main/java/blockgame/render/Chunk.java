@@ -154,6 +154,13 @@ public class Chunk {
 	
 	// texture tile size
 	float TD=1.0f/128;
+	static int chunkProgram;
+	static int c_fs_LightDirPosition;
+	static int c_vs_MVPosition;
+	static int c_vs_PPosition;
+	static int c_vs_normalPosition;
+	static int c_vs_texturePosition;
+	static int c_vs_inputPosition;
 	
 	public FloatBuffer addFace(FloatBuffer fb, float bx, float by, float bz,int face, long texRef) {
 		int[] FACE=FACES[face];
@@ -198,14 +205,14 @@ public class Chunk {
 			int stride=Chunk.FLOATS_PER_VERTEX*4;
 			
 			// define vertex format, should be after glBindBuffer
-			glVertexAttribPointer(Renderer.c_vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
-	        glEnableVertexAttribArray(Renderer.c_vs_inputPosition);
+			glVertexAttribPointer(Chunk.c_vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
+	        glEnableVertexAttribArray(Chunk.c_vs_inputPosition);
 	        
-			glVertexAttribPointer(Renderer.c_vs_normalPosition,3,GL_FLOAT,false,stride,12L); // Note: stride in bytes
-	        glEnableVertexAttribArray(Renderer.c_vs_normalPosition);
+			glVertexAttribPointer(Chunk.c_vs_normalPosition,3,GL_FLOAT,false,stride,12L); // Note: stride in bytes
+	        glEnableVertexAttribArray(Chunk.c_vs_normalPosition);
 
-	        glVertexAttribPointer(Renderer.c_vs_texturePosition,2,GL_FLOAT,false,stride,24L); // Note: stride in bytes
-	        glEnableVertexAttribArray(Renderer.c_vs_texturePosition);
+	        glVertexAttribPointer(Chunk.c_vs_texturePosition,2,GL_FLOAT,false,stride,24L); // Note: stride in bytes
+	        glEnableVertexAttribArray(Chunk.c_vs_texturePosition);
 
 			
 			glDrawArrays(GL_TRIANGLES, 0, getTriangleCount()*3);
