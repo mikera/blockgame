@@ -1,9 +1,14 @@
 package blockgame.render;
 
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import blockgame.engine.Engine;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
+import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
@@ -245,6 +250,18 @@ public class Chunk {
 	
 	public int getTriangleCount() {
 		return triangleCount;
+	}
+	
+	/**
+	 * Set up OpenGL state for drawing chunks
+	 */
+	public static void prepareState() {
+		glUseProgram(Chunk.chunkProgram);
+		
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+		
+		glDisable(GL_BLEND);
 	}
 
 	public void draw() {

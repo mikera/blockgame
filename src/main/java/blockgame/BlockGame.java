@@ -48,6 +48,7 @@ public class BlockGame {
 	private Renderer renderer=new Renderer();
 	
 	
+    private final boolean[] keysDown = new boolean[GLFW_KEY_LAST + 1];
     private final boolean[] keysPressed = new boolean[GLFW_KEY_LAST + 1];
     private final boolean[] mousePressed = new boolean[GLFW_MOUSE_BUTTON_LAST + 1];
 
@@ -102,27 +103,25 @@ public class BlockGame {
 			if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
 				glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
 			
-			keysPressed[key]=(action == GLFW_PRESS) || (action == GLFW_REPEAT);
+			keysDown[key]=(action == GLFW_PRESS) || (action == GLFW_REPEAT);
+			if (action==GLFW_PRESS) {
+				keysPressed[key]=true;
+			}
 		});
 		
 		// Grab mouse cursor
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		setMouseCapture(true);
 		
-		try(MemoryStack stack=stackPush()){
-			DoubleBuffer xp=stack.mallocDouble(1);
-			DoubleBuffer yp=stack.mallocDouble(2);
-			glfwGetCursorPos(window, xp, yp);
-			mouseX=xp.get(0);
-			mouseY=yp.get(0);
-		}
 		
 		// Setup mouse cursor callback
 		glfwSetCursorPosCallback(window, (window, xpos, ypos) -> {
-			double dx=xpos-mouseX;
-			double dy=ypos-mouseY;
-			renderer.onMouseMove(dx,dy);
-			mouseX=xpos;
-			mouseY=ypos;
+			if (mouseCaptured) {
+				double dx=xpos-mouseX;
+				double dy=ypos-mouseY;
+				renderer.onMouseMove(dx,dy);
+				mouseX=xpos;
+				mouseY=ypos;
+			}
 		});
 		
 		glfwSetMouseButtonCallback(window, (window, button, action, mods) -> {
@@ -170,7 +169,28 @@ public class BlockGame {
 
 
 	}
+
+	private void loadMousePosition() {
+		try(MemoryStack stack=stackPush()){
+			DoubleBuffer xp=stack.mallocDouble(1);
+			DoubleBuffer yp=stack.mallocDouble(2);
+			glfwGetCursorPos(window, xp, yp);
+			mouseX=xp.get(0);
+			mouseY=yp.get(0);
+		}
+	}
 	
+	private boolean mouseCaptured=false;
+	private synchronized void setMouseCapture(boolean capture) {
+		if (capture) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			loadMousePosition();
+		} else {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+		mouseCaptured=capture;
+	}
+
 	public static final long START = System.currentTimeMillis();
 	public static long lastTime = 0;
 
@@ -200,20 +220,25 @@ public class BlockGame {
 		float backForward=0.0f;
 		
 		for (int i=1; i<=9; i++) {
-			if (keysPressed[GLFW_KEY_0+i]) renderer.applyTool(i);
+			if (keysDown[GLFW_KEY_0+i]) renderer.applyTool(i);
 		}	
 
+		if (keysPressed[GLFW_KEY_E]) {
+			setMouseCapture(!mouseCaptured);
+			keysPressed[GLFW_KEY_E]=false;
+		};
+
 		
-		if (keysPressed[GLFW_KEY_W]) backForward+=2;
-		if (keysPressed[GLFW_KEY_S]) backForward-=2;
+		if (keysDown[GLFW_KEY_W]) backForward+=2;
+		if (keysDown[GLFW_KEY_S]) backForward-=2;
 		
 		float leftRight=0.0f;
-		if (keysPressed[GLFW_KEY_A]) leftRight-=1;
-		if (keysPressed[GLFW_KEY_D]) leftRight+=1;
+		if (keysDown[GLFW_KEY_A]) leftRight-=1;
+		if (keysDown[GLFW_KEY_D]) leftRight+=1;
 		
 		float upDown=0.0f;
-		if (keysPressed[GLFW_KEY_LEFT_SHIFT]) upDown-=1;
-		if (keysPressed[GLFW_KEY_SPACE]) upDown+=1;
+		if (keysDown[GLFW_KEY_LEFT_SHIFT]) upDown-=1;
+		if (keysDown[GLFW_KEY_SPACE]) upDown+=1;
 
 		if (mousePressed[GLFW_MOUSE_BUTTON_RIGHT]==true) {
 			renderer.applyRightClick();

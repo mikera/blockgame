@@ -213,8 +213,7 @@ public class Renderer {
 		model.translate(0,0,5);
 
 		// ModelView Matrix
-		mv.identity();	
-		mv.mul(view);
+		mv.set(view);
 		mv.mul(model);
 
 		mv.get(0, matbufferMV);		
@@ -238,12 +237,7 @@ public class Renderer {
 	private Vector3i cpos=new Vector3i(0,0,0);
 	
 	private void drawChunks() {			
-		glUseProgram(Chunk.chunkProgram);
-		
-		glEnable(GL_CULL_FACE);
-		glEnable(GL_DEPTH_TEST);
-		
-		glDisable(GL_BLEND);
+		Chunk.prepareState();
 
 		// General set up for projection and view matrices
 		setupPerspective(projection);
@@ -280,8 +274,7 @@ public class Renderer {
 					model.translate(cx,cy,cz);
 				
 					// ModelView Matrix
-					mv.identity();	
-					mv.mul(view);
+					mv.set(view);
 					mv.mul(model);
 			
 					mv.get(0, matbufferMV);		
