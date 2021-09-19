@@ -6,12 +6,24 @@ import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
+import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
+import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
+import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
+import static org.lwjgl.opengl.GL20.glAttachShader;
+import static org.lwjgl.opengl.GL20.glCreateProgram;
+import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
+import static org.lwjgl.opengl.GL20.glGetProgrami;
+import static org.lwjgl.opengl.GL20.glGetUniformLocation;
+import static org.lwjgl.opengl.GL20.glLinkProgram;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
+import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
 import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.system.MemoryUtil.memAllocFloat;
 import static org.lwjgl.system.MemoryUtil.memFree;
 
+import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.FloatBuffer;
 
@@ -46,6 +58,52 @@ public class Chunk {
 		c.setData(current);
 		c.createVBO();
 		return c;
+	}
+	
+	static int chunkProgram;
+	static int c_fs_LightDirPosition;
+	static int c_vs_MVPosition;
+	static int c_vs_PPosition;
+	static int c_vs_normalPosition;
+	static int c_vs_texturePosition;
+	static int c_vs_inputPosition;
+
+	
+	static int createChunkProgram() throws IOException {
+		int program = glCreateProgram();
+		int vshader = Utils.createShader("shaders/chunk-shader.vert", GL_VERTEX_SHADER);
+		int fshader = Utils.createShader("shaders/chunk-shader.frag", GL_FRAGMENT_SHADER);
+		glAttachShader(program, vshader);
+		glAttachShader(program, fshader);
+		glLinkProgram(program);
+		int linked = glGetProgrami(program, GL_LINK_STATUS);
+		String programLog = glGetProgramInfoLog(program);
+		if (programLog.trim().length() > 0) {
+			System.err.println(programLog);
+		}
+		if (linked == 0) {
+			throw new AssertionError("Could not link program");
+		}
+		glUseProgram(program);
+		// transformUniform = glGetUniformLocation(program, "transform");
+		// glUseProgram(0);
+		
+		// set up positions for input attributes
+		c_vs_inputPosition = glGetAttribLocation(program, "position");
+		c_vs_texturePosition = glGetAttribLocation(program, "texture");
+		c_vs_normalPosition = glGetAttribLocation(program, "normal");
+		
+		c_vs_PPosition = glGetUniformLocation(program, "P");
+		c_vs_MVPosition = glGetUniformLocation(program, "MV");
+
+		c_fs_LightDirPosition = glGetUniformLocation(program, "vLightDir");
+
+		return program;
+		// TODO: do we need to dispose the program somehow?
+	}
+	
+	public static void init() throws IOException {
+		chunkProgram=createChunkProgram();
 	}
 	
 	private void setData(AVector<ACell> chunkData) {
@@ -154,13 +212,6 @@ public class Chunk {
 	
 	// texture tile size
 	float TD=1.0f/128;
-	static int chunkProgram;
-	static int c_fs_LightDirPosition;
-	static int c_vs_MVPosition;
-	static int c_vs_PPosition;
-	static int c_vs_normalPosition;
-	static int c_vs_texturePosition;
-	static int c_vs_inputPosition;
 	
 	public FloatBuffer addFace(FloatBuffer fb, float bx, float by, float bz,int face, long texRef) {
 		int[] FACE=FACES[face];

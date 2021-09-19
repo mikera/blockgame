@@ -72,38 +72,7 @@ public class Renderer {
 	private Billboard billboard=new Billboard();
 
 	
-	int createChunkProgram() throws IOException {
-		int program = glCreateProgram();
-		int vshader = Utils.createShader("shaders/vertex-shader.vert", GL_VERTEX_SHADER);
-		int fshader = Utils.createShader("shaders/fragment-shader.frag", GL_FRAGMENT_SHADER);
-		glAttachShader(program, vshader);
-		glAttachShader(program, fshader);
-		glLinkProgram(program);
-		int linked = glGetProgrami(program, GL_LINK_STATUS);
-		String programLog = glGetProgramInfoLog(program);
-		if (programLog.trim().length() > 0) {
-			System.err.println(programLog);
-		}
-		if (linked == 0) {
-			throw new AssertionError("Could not link program");
-		}
-		glUseProgram(program);
-		// transformUniform = glGetUniformLocation(program, "transform");
-		// glUseProgram(0);
-		
-		// set up positions for input attributes
-		Chunk.c_vs_inputPosition = glGetAttribLocation(program, "position");
-		Chunk.c_vs_texturePosition = glGetAttribLocation(program, "texture");
-		Chunk.c_vs_normalPosition = glGetAttribLocation(program, "normal");
-		
-		Chunk.c_vs_PPosition = glGetUniformLocation(program, "P");
-		Chunk.c_vs_MVPosition = glGetUniformLocation(program, "MV");
 
-		Chunk.c_fs_LightDirPosition = glGetUniformLocation(program, "vLightDir");
-
-		return program;
-		// TODO: do we need to dispose the program somehow?
-	}
 	
 	int createHUDProgram() throws IOException {
 		int program = glCreateProgram();
@@ -166,7 +135,7 @@ public class Renderer {
 	public void init() {
 		try {
 			hudProgram=createHUDProgram();
-			Chunk.chunkProgram=createChunkProgram();
+			Chunk.init();
 			texture=createTexture();
 		} catch (Throwable e) {
 			throw new Error(e);
@@ -178,8 +147,6 @@ public class Renderer {
         
 		// Set the clear color
 		glClearColor(0.2f, 0.7f, 0.85f, 0.0f);
-		
-
 	}
 	
 	private HashMap<Vector3i,Chunk> chunks=new HashMap<>(100);
@@ -230,8 +197,7 @@ public class Renderer {
 		glEnable(GL_DEPTH_TEST); // Still do depth test
 		glEnable(GL_BLEND); // We want alpha blending
 		
-		// General set up for projection and view matrices
-		projection.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
+		setupPerspective(projection);
 		
 		// Projection Matrix
 		projection.get(0, matbufferP);		
@@ -280,8 +246,7 @@ public class Renderer {
 		glDisable(GL_BLEND);
 
 		// General set up for projection and view matrices
-		projection.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
-		
+		setupPerspective(projection);
 		
 		// Projection Matrix
 		projection.get(0, matbufferP);		
@@ -329,6 +294,10 @@ public class Renderer {
 		
 		// Clear Buffer
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+
+	private void setupPerspective(Matrix4f projectionMatrix) {
+		projectionMatrix.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
 	}
 	
 	
