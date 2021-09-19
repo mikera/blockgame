@@ -79,6 +79,7 @@ public class Renderer {
 	
 	private Engine engine=Engine.create();
 	private HUD hud=new HUD(engine);
+	private Billboard billboard=new Billboard();
 
 	
 	int createChunkProgram() throws IOException {
@@ -140,8 +141,6 @@ public class Renderer {
 		h_vs_MVPPosition = glGetUniformLocation(program, "MVP");
 		h_vs_ColourPosition = glGetUniformLocation(program, "colour");
 
-		
-
 		return program;
 		// TODO: do we need to dispose the program somehow?
 	}
@@ -184,6 +183,7 @@ public class Renderer {
 		}
 		
 		hud.init();
+		billboard.init();
  
         
 		// Set the clear color
@@ -229,9 +229,45 @@ public class Renderer {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
 		drawChunks();
+		drawEntities();
 		drawHUD();
 	}
 	
+	private void drawEntities() {
+		glUseProgram(chunkProgram);
+		
+		glDisable(GL_CULL_FACE); // Billboards don't want this
+		glEnable(GL_DEPTH_TEST); // Still do depth test
+		glEnable(GL_BLEND); // We want alpha blending
+		
+		// General set up for projection and view matrices
+		projection.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
+		
+		// Projection Matrix
+		projection.get(0, matbufferP);		
+		glUniformMatrix4fv(Renderer.c_vs_PPosition, false,  matbufferP);
+
+		view.identity();
+		view.translate(playerPos);
+		view.rotateZ(-heading);
+		view.rotateX(QUARTER_TURN+pitch);
+		view.invert();
+		
+		model.identity();
+		model.translate(0,0,5);
+
+		// ModelView Matrix
+		mv.identity();	
+		mv.mul(view);
+		mv.mul(model);
+
+		mv.get(0, matbufferMV);		
+		glUniformMatrix4fv(Renderer.c_vs_MVPosition, false,  matbufferMV);
+		
+		billboard.draw();
+
+	}
+
 	Matrix4f mv=new Matrix4f();
 	Matrix4f view=new Matrix4f();
 	Matrix4f model=new Matrix4f();

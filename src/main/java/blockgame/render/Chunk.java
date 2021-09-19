@@ -120,6 +120,14 @@ public class Chunk {
 	
 	@SuppressWarnings("unchecked")
 	private FloatBuffer addBlock(FloatBuffer vb, int x, int y, int z, ACell type) {
+		// Destructure compound block
+		if (type instanceof AVector) {
+			AVector<?> v=(AVector<?>)type;
+			if (v.count()>0) {
+				type=v.get(0);
+			}
+		}
+		
 		AHashMap<Keyword,ACell> meta=(AHashMap<Keyword, ACell>) Assets.blockData.get(type);
 		if (meta==null) meta=(AHashMap<Keyword, ACell>) Assets.blockData.get(CVMLong.ONE);
 		AVector<ABlob> tex=(AVector<ABlob>) meta.get(Assets.TEX_KEY);

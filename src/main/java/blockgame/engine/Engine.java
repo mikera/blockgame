@@ -279,7 +279,7 @@ public class Engine {
 		return tool;
 	}
 	
-	private int[] toolBar= {0,1,2,3,10,11,12,13,14,3};
+	private int[] toolBar= {0,1,2,3,10,11,12,13,14,20};
 
 	/**
 	 * Gets the currently selected placeable block value
