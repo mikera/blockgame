@@ -69,7 +69,7 @@ public class Chunk {
 	static int c_vs_inputPosition;
 
 	
-	static int createChunkProgram() throws IOException {
+	private static int createProgram() throws IOException {
 		int program = glCreateProgram();
 		int vshader = Utils.createShader("shaders/chunk-shader.vert", GL_VERTEX_SHADER);
 		int fshader = Utils.createShader("shaders/chunk-shader.frag", GL_FRAGMENT_SHADER);
@@ -103,7 +103,7 @@ public class Chunk {
 	}
 	
 	public static void init() throws IOException {
-		chunkProgram=createChunkProgram();
+		chunkProgram=createProgram();
 	}
 	
 	private void setData(AVector<ACell> chunkData) {
@@ -256,14 +256,14 @@ public class Chunk {
 			int stride=Chunk.FLOATS_PER_VERTEX*4;
 			
 			// define vertex format, should be after glBindBuffer
-			glVertexAttribPointer(Chunk.c_vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
-	        glEnableVertexAttribArray(Chunk.c_vs_inputPosition);
+			glVertexAttribPointer(c_vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
+	        glEnableVertexAttribArray(c_vs_inputPosition);
 	        
-			glVertexAttribPointer(Chunk.c_vs_normalPosition,3,GL_FLOAT,false,stride,12L); // Note: stride in bytes
-	        glEnableVertexAttribArray(Chunk.c_vs_normalPosition);
+			glVertexAttribPointer(c_vs_normalPosition,3,GL_FLOAT,false,stride,12L); // Note: stride in bytes
+	        glEnableVertexAttribArray(c_vs_normalPosition);
 
-	        glVertexAttribPointer(Chunk.c_vs_texturePosition,2,GL_FLOAT,false,stride,24L); // Note: stride in bytes
-	        glEnableVertexAttribArray(Chunk.c_vs_texturePosition);
+	        glVertexAttribPointer(c_vs_texturePosition,2,GL_FLOAT,false,stride,24L); // Note: stride in bytes
+	        glEnableVertexAttribArray(c_vs_texturePosition);
 
 			
 			glDrawArrays(GL_TRIANGLES, 0, getTriangleCount()*3);

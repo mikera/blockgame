@@ -137,12 +137,12 @@ public class Renderer {
 			hudProgram=createHUDProgram();
 			Chunk.init();
 			texture=createTexture();
+			hud.init();
+			billboard.init();
 		} catch (Throwable e) {
 			throw new Error(e);
 		}
 		
-		hud.init();
-		billboard.init();
  
         
 		// Set the clear color
@@ -191,7 +191,7 @@ public class Renderer {
 	}
 	
 	private void drawEntities() {
-		glUseProgram(Chunk.chunkProgram);
+		glUseProgram(Billboard.getProgram());
 		
 		glDisable(GL_CULL_FACE); // Billboards don't want this
 		glEnable(GL_DEPTH_TEST); // Still do depth test
