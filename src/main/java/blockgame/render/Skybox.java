@@ -59,11 +59,6 @@ public class Skybox {
 		view.rotateZ(-heading);
 		view.rotateX(Renderer.QUARTER_TURN+pitch);
 		view.invert();
-		// clear translation from view matrix
-		view.m30(0);
-		view.m31(0);
-		view.m32(0);
-
 		
 		trans.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
 		
