@@ -10,17 +10,6 @@ import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDepthMask;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11C.GL_LINEAR;
-import static org.lwjgl.opengl.GL11C.GL_NEAREST;
-import static org.lwjgl.opengl.GL11C.GL_RGBA;
-import static org.lwjgl.opengl.GL11C.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11C.GL_TEXTURE_MAG_FILTER;
-import static org.lwjgl.opengl.GL11C.GL_TEXTURE_MIN_FILTER;
-import static org.lwjgl.opengl.GL11C.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11C.glBindTexture;
-import static org.lwjgl.opengl.GL11C.glGenTextures;
-import static org.lwjgl.opengl.GL11C.glTexImage2D;
-import static org.lwjgl.opengl.GL11C.glTexParameteri;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
@@ -38,10 +27,8 @@ import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.HashMap;
 
 import org.joml.Matrix4f;
@@ -50,7 +37,6 @@ import org.joml.Vector3i;
 import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 
-import blockgame.assets.Assets;
 import blockgame.engine.Engine;
 import blockgame.engine.Face;
 import convex.core.data.ACell;
@@ -59,7 +45,6 @@ public class Renderer {
 	
 	int hudProgram;
 	
-	int texture;
 	static int h_vs_inputPosition;
 	static int h_vs_texturePosition;
 	static int h_vs_MVPPosition;
@@ -104,39 +89,13 @@ public class Renderer {
 		// TODO: do we need to dispose the program somehow?
 	}
 	
-    int createTexture() throws IOException {
-
-        BufferedImage bi=Assets.textureImage;
-        IntBuffer data=BufferUtils.createIntBuffer(2048*2048);
-         
-        int[] argb=new int [2048*2048];
-        bi.getRGB(0, 0, 2048, 2048, argb, 0, 2048);
-        for (int i=0; i<argb.length; i++) {
-        	int col=argb[i];
-        	col=Integer.rotateLeft(col, 8); // rotate to RGBA
-        	// col|=0xFF; // Max alpha
-        	col=Integer.reverseBytes(col);
-        	argb[i]=col;
-        }
-        
-        data.put(argb);
-        data.flip();
-    
-        int id = glGenTextures();
-        System.out.println("Loaded texture: "+id);
-                
-        glBindTexture(GL_TEXTURE_2D, id);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2048,2048, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        return id;
-    }
+ 
 
 	public void init() {
 		try {
 			hudProgram=createHUDProgram();
 			Chunk.init();
-			texture=createTexture();
+			
 			hud.init();
 			billboard.init();
 		} catch (Throwable e) {

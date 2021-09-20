@@ -52,6 +52,8 @@ public class Chunk {
 	private final Engine engine;
 	private final Vector3i position;
 	
+	static Texture texture;
+	
 	private Chunk(Vector3i cpos, Engine engine) {
 		this.position=cpos;
 		this.engine=engine;
@@ -109,6 +111,7 @@ public class Chunk {
 	
 	public static void init() throws IOException {
 		chunkProgram=createProgram();
+		texture=Texture.createTexture(Assets.textureImage);
 	}
 	
 	private void setData(AVector<ACell> chunkData) {
@@ -256,12 +259,15 @@ public class Chunk {
 	 * Set up OpenGL state for drawing chunks
 	 */
 	public static void prepareState() {
+		texture.bind();
+
 		glUseProgram(Chunk.chunkProgram);
 		
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 		
 		glDisable(GL_BLEND);
+		
 	}
 
 	public void draw() {

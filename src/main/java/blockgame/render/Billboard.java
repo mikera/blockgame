@@ -104,6 +104,9 @@ public class Billboard {
 	
 	public void draw() {
 		if (vbo!=0) {
+			// Bind texture
+			Chunk.texture.bind();
+			
 			// Bind buffer
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			
