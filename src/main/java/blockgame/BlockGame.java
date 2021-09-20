@@ -208,7 +208,7 @@ public class BlockGame {
 
 			renderer.render(t);
 
-			glfwSwapBuffers(window); // swap the color buffers
+			glfwSwapBuffers(window); // swap the colour buffers
 
 			// Poll for window events. The key callback above will only be
 			// invoked during this call.

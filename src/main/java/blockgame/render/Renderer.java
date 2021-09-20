@@ -92,8 +92,25 @@ public class Renderer {
 		drawChunks();
 		drawEntities();
 		drawHUD();
+		
+		updateStats();
 	}
 	
+	static long frames=0;
+	static double fps=0;
+	static long lastTime=System.currentTimeMillis();
+	private void updateStats() {
+		long time=System.currentTimeMillis();
+		long elapsed=time-lastTime;
+		frames++;
+		if (elapsed>0) {
+			fps=fps*0.9+0.1*(1000.0/elapsed); 
+		} else {
+			fps+=1.0;
+		}
+		lastTime=time;
+	}
+
 	private void drawEntities() {
 		glUseProgram(Billboard.getProgram());
 		
@@ -198,7 +215,7 @@ public class Renderer {
 	}
 	
 	private void drawHUD() {	
-		hud.draw(width,height);
+		hud.draw(engine,width,height);
 	}
 
 	public void setSize(int width, int height) {

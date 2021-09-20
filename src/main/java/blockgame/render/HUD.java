@@ -27,6 +27,7 @@ import static org.lwjgl.system.MemoryUtil.memFree;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.text.DecimalFormat;
 
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
@@ -86,14 +87,14 @@ public class HUD {
 	Matrix4f transformation=new Matrix4f();
 	private final FloatBuffer matbufferMV = BufferUtils.createFloatBuffer(16);
 
-	public void draw(int width, int height) {
+	public void draw(Engine engine,int width, int height) {
 		glUseProgram(hudProgram);
 		
 		glDisable(GL_CULL_FACE);
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(false);
 		
-		transformation.setOrtho2D(-width/2, width/2, height/2, -height/2);
+		transformation.setOrtho2D(-width/2, width/2, height/2, -height/2); // note vertical flip
 		transformation.get(0, matbufferMV);		
 		
 		glUniformMatrix4fv(h_vs_MVPPosition, false,  matbufferMV);
@@ -121,9 +122,16 @@ public class HUD {
 
 		glDrawArrays(GL_TRIANGLES, 0, getTriangleCount()*3);
 
-		Text.addText(0, 0, "CONVEX");
+		StringBuilder ht=new StringBuilder();
+		ht.append("CONVEX Craft\n");
+		ht.append("Chunks Loaded: "+engine.chunks.size()+"\n");
+		ht.append("FPS:           "+FPSformat.format(Renderer.fps)+"\n");
+		
+		Text.addText(-width/2, -height/2, ht.toString());
 		Text.draw();
 	}
+	
+	DecimalFormat FPSformat = new DecimalFormat("0.0");
 
 	private int getTriangleCount() {
 		return triangleCount;
@@ -156,6 +164,11 @@ public class HUD {
 	}
 	
 	private static FloatBuffer buildAll() {
+		FloatBuffer vb=buildCursor();
+		return vb;
+	}
+	
+	private static FloatBuffer buildCursor() {
 		float s=32f;
 		FloatBuffer vb = FloatBuffer.allocate(30);
 		vb.put(new float[] {-1*s,-1*s,0,7/128f,0/128f});

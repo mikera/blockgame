@@ -81,10 +81,15 @@ public class Text {
 	}
 	
 	public static void addText(float x, float y,String s) {
-		int n=s.length();
-		float size=30f;
-		for (int i=0; i<n; i++) {
-			addChar(fb,x+size*i,y,30f,(int)s.charAt(i));
+		float size=32f;
+		String[] ss=s.split("\n");
+		int lines=ss.length;
+		for (int j=0; j<lines; j++) {
+			String t=ss[j];
+			int n=t.length();
+			for (int i=0; i<n; i++) {
+				addChar(fb,x+size*i*0.75f,y+size*j,30f,(int)t.charAt(i));
+			}
 		}
 	}
 }
