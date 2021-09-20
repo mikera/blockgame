@@ -1,63 +1,140 @@
 package blockgame.render;
 
+import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
+import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.glDepthMask;
+import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
 import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
+import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
+import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
+import static org.lwjgl.opengl.GL20.glAttachShader;
+import static org.lwjgl.opengl.GL20.glCreateProgram;
+import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
+import static org.lwjgl.opengl.GL20.glGetProgrami;
+import static org.lwjgl.opengl.GL20.glGetUniformLocation;
+import static org.lwjgl.opengl.GL20.glLinkProgram;
+import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
+import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
 import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
 import static org.lwjgl.system.MemoryUtil.memAllocFloat;
 import static org.lwjgl.system.MemoryUtil.memFree;
 
+import java.io.IOException;
 import java.nio.FloatBuffer;
+
+import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL20;
 
 import blockgame.engine.Engine;
 
 public class HUD {
 
 	protected Engine engine;
-	private int vbo;
+	private static int cursorVBO;
+	
+	static int hudProgram;
+	
+	static int h_vs_inputPosition;
+	static int h_vs_texturePosition;
+	static int h_vs_MVPPosition;
+	static int h_vs_ColourPosition;
+
 
 	public HUD(Engine engine) {
 		this.engine=engine;
 	}
 	
 	public static final int FLOATS_PER_VERTEX=3+2; // position + texture
-	int triangleCount=0;
+	static int triangleCount=0;
 
+	static int createHUDProgram() throws IOException {
+		int program = glCreateProgram();
+		int vshader = Utils.createShader("shaders/hud-shader.vert", GL_VERTEX_SHADER);
+		int fshader = Utils.createShader("shaders/hud-shader.frag", GL_FRAGMENT_SHADER);
+		glAttachShader(program, vshader);
+		glAttachShader(program, fshader);
+		glLinkProgram(program);
+		int linked = glGetProgrami(program, GL_LINK_STATUS);
+		String programLog = glGetProgramInfoLog(program);
+		if (programLog.trim().length() > 0) {
+			System.err.println(programLog);
+		}
+		if (linked == 0) {
+			throw new AssertionError("Could not link program");
+		}
+		glUseProgram(program);
+		// transformUniform = glGetUniformLocation(program, "transform");
+		// glUseProgram(0);
+		
+		// set up positions for input attributes
+		h_vs_inputPosition = glGetAttribLocation(program, "position");
+		h_vs_texturePosition = glGetAttribLocation(program, "texture");
+		
+		h_vs_MVPPosition = glGetUniformLocation(program, "MVP");
+		h_vs_ColourPosition = glGetUniformLocation(program, "colour");
 
-	public void draw() {
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		return program;
+	}
+	
+	Matrix4f transformation=new Matrix4f();
+	private final FloatBuffer matbufferMV = BufferUtils.createFloatBuffer(16);
+
+	public void draw(int width, int height) {
+		glUseProgram(hudProgram);
+		
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(false);
+		
+		transformation.setOrtho2D(-width/2, width/2, height/2, -height/2);
+		transformation.get(0, matbufferMV);		
+		
+		glUniformMatrix4fv(h_vs_MVPPosition, false,  matbufferMV);
+		GL20.glUniform4f(h_vs_ColourPosition, 1, 1, 1,1);
+
+		// Bind general tile texture
+		Chunk.texture.bind();
+		
+		glBindBuffer(GL_ARRAY_BUFFER, cursorVBO);
 
 		int stride=FLOATS_PER_VERTEX*4;
 		
-		// define vertex format, should be after glBindBuffer
+		// define vertex format, must be after glBindBuffer
 		// position is location 0
-		glVertexAttribPointer(Renderer.h_vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
-        glEnableVertexAttribArray(Renderer.h_vs_inputPosition);
+		glVertexAttribPointer(h_vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
+        glEnableVertexAttribArray(h_vs_inputPosition);
         
         // texture is location 1
-        glVertexAttribPointer(Renderer.h_vs_texturePosition,2,GL_FLOAT,false,stride,12L); // Note: stride in bytes
-        glEnableVertexAttribArray(Renderer.h_vs_texturePosition);
+        glVertexAttribPointer(h_vs_texturePosition,2,GL_FLOAT,false,stride,12L); // Note: stride in bytes
+        glEnableVertexAttribArray(h_vs_texturePosition);
         
+        //glEnable(GL_BLEND);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glDrawArrays(GL_TRIANGLES, 0, getTriangleCount()*3);
 
+		Text.addText(0, 0, "CONVEX");
+		Text.draw();
 	}
 
 	private int getTriangleCount() {
 		return triangleCount;
 	}
 
-	public void init() {
-		vbo=createVBO();
+	public static void init() throws IOException {
+		hudProgram=createHUDProgram();
+		cursorVBO=createVBO();
 	}
-	
 
-
-	private int createVBO() {
+	private static int createVBO() {
 		// Geometry in current context
 		FloatBuffer built = buildAll();
 		
@@ -68,17 +145,17 @@ public class HUD {
 		vertexBuffer.put(built);
 		vertexBuffer.flip();
 
-		vbo = glGenBuffers();
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		cursorVBO = glGenBuffers();
+		glBindBuffer(GL_ARRAY_BUFFER, cursorVBO);
 		glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
 		
 		memFree(vertexBuffer);
 		
 		// System.out.println("VBO built! "+vbo);
-		return vbo;
+		return cursorVBO;
 	}
 	
-	private FloatBuffer buildAll() {
+	private static FloatBuffer buildAll() {
 		float s=32f;
 		FloatBuffer vb = FloatBuffer.allocate(30);
 		vb.put(new float[] {-1*s,-1*s,0,7/128f,0/128f});

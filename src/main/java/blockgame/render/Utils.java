@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.channels.FileChannel;
 
@@ -101,6 +102,14 @@ public class Utils {
 			}
 		}
 		return buffer;
+	}
+
+	public static FloatBuffer resizeBuffer(FloatBuffer vb, int newCapacity) {
+		if (vb.capacity()>=newCapacity) return vb;
+		FloatBuffer nb=FloatBuffer.allocate(newCapacity);
+		  vb.flip();
+	      nb.put(vb);
+	      return nb;
 	}
 
 }

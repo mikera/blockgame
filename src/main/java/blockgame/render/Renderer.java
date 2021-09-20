@@ -12,22 +12,10 @@ import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
-import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
-import static org.lwjgl.opengl.GL20.GL_LINK_STATUS;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20.glAttachShader;
-import static org.lwjgl.opengl.GL20.glCreateProgram;
-import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20.glGetProgrami;
-import static org.lwjgl.opengl.GL20.glGetUniformLocation;
-import static org.lwjgl.opengl.GL20.glLinkProgram;
 import static org.lwjgl.opengl.GL20.glUniform3fv;
-import static org.lwjgl.opengl.GL20.glUniform4fv;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20.glUseProgram;
-import static org.lwjgl.opengl.GL20C.glGetAttribLocation;
 
-import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.HashMap;
 
@@ -43,61 +31,18 @@ import convex.core.data.ACell;
 
 public class Renderer {
 	
-	int hudProgram;
-	
-	static int h_vs_inputPosition;
-	static int h_vs_texturePosition;
-	static int h_vs_MVPPosition;
-	static int h_vs_ColourPosition;
-
-
-	
 	private Engine engine=Engine.create();
 	private HUD hud=new HUD(engine);
 	private Billboard billboard=new Billboard();
 
-	
-
-	
-	int createHUDProgram() throws IOException {
-		int program = glCreateProgram();
-		int vshader = Utils.createShader("shaders/hud-shader.vert", GL_VERTEX_SHADER);
-		int fshader = Utils.createShader("shaders/hud-shader.frag", GL_FRAGMENT_SHADER);
-		glAttachShader(program, vshader);
-		glAttachShader(program, fshader);
-		glLinkProgram(program);
-		int linked = glGetProgrami(program, GL_LINK_STATUS);
-		String programLog = glGetProgramInfoLog(program);
-		if (programLog.trim().length() > 0) {
-			System.err.println(programLog);
-		}
-		if (linked == 0) {
-			throw new AssertionError("Could not link program");
-		}
-		glUseProgram(program);
-		// transformUniform = glGetUniformLocation(program, "transform");
-		// glUseProgram(0);
-		
-		// set up positions for input attributes
-		h_vs_inputPosition = glGetAttribLocation(program, "position");
-		h_vs_texturePosition = glGetAttribLocation(program, "texture");
-		
-		h_vs_MVPPosition = glGetUniformLocation(program, "MVP");
-		h_vs_ColourPosition = glGetUniformLocation(program, "colour");
-
-		return program;
-		// TODO: do we need to dispose the program somehow?
-	}
-	
- 
 
 	public void init() {
 		try {
-			hudProgram=createHUDProgram();
 			Chunk.init();
 			
-			hud.init();
+			HUD.init();
 			billboard.init();
+			Text.init();
 		} catch (Throwable e) {
 			throw new Error(e);
 		}
@@ -252,28 +197,8 @@ public class Renderer {
 		projectionMatrix.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
 	}
 	
-	
-	Matrix4f transformation=new Matrix4f();
-
-	private void drawHUD() {
-		glUseProgram(hudProgram);
-		
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(false);
-		
-		transformation.setOrtho2D(-width/2, width/2, -height/2, height/2);
-		transformation.get(0, matbufferMV);		
-		
-		glUniformMatrix4fv(Renderer.h_vs_MVPPosition, false,  matbufferMV);
-		
-		vLightDir.set(1,1,1,1);
-		vLightDir.get(0, matbufferVLightDir);		
-		glUniform4fv(Renderer.h_vs_ColourPosition, matbufferVLightDir);
-
-			
-		hud.draw();
-		
+	private void drawHUD() {	
+		hud.draw(width,height);
 	}
 
 	public void setSize(int width, int height) {

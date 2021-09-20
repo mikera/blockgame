@@ -13,7 +13,6 @@ import static org.lwjgl.opengl.GL11C.glTexImage2D;
 import static org.lwjgl.opengl.GL11C.glTexParameteri;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
@@ -30,12 +29,12 @@ public class Texture {
 		this.h=h;
 	}
 	
-	public static Texture createTexture(BufferedImage bi) throws IOException {
+	public static Texture createTexture(BufferedImage bi) {
 		int w=bi.getWidth();
 		int h=bi.getHeight();
 		IntBuffer data=BufferUtils.createIntBuffer(w*h);
 	         
-        int[] argb=new int [2048*2048];
+        int[] argb=new int [w*h];
         bi.getRGB(0, 0, w, h, argb, 0, w);
         for (int i=0; i<argb.length; i++) {
         	int col=argb[i];

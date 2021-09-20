@@ -16,6 +16,8 @@ public class Assets {
 
 	public static final Keyword TEX_KEY = Keyword.create("tex");
 
+	public static BufferedImage font;
+
 	public static BufferedImage textureImage;
 	
 	public static AHashMap<CVMLong,ACell> blockData;
@@ -26,6 +28,7 @@ public class Assets {
 
 		try {
 			Assets.textureImage = ImageIO.read(classLoader.getResource("images/textures.png"));
+			Assets.font = ImageIO.read(classLoader.getResource("images/font.png"));
 			blockData=Reader.read(Utils.readResourceAsString("lib/block-data.cvx"));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block

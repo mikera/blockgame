@@ -173,7 +173,7 @@ public class Chunk {
 						}
 					}
 				} catch (BufferOverflowException be) {
-					vb=FloatBuffer.allocate(vb.capacity()*2);
+					vb=Utils.resizeBuffer(vb,vb.capacity()*2);
 					continue;
 				}
 				break;
