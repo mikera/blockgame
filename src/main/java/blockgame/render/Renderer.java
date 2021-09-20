@@ -39,8 +39,8 @@ public class Renderer {
 	public void init() {
 		try {
 			Chunk.init();
-			
 			HUD.init();
+			Skybox.init();
 			billboard.init();
 			Text.init();
 		} catch (Throwable e) {
@@ -79,7 +79,7 @@ public class Renderer {
 
 	Vector3f up=new Vector3f(0,0,1);
 	
-	float QUARTER_TURN=(float) (Math.PI/2);
+	static float QUARTER_TURN=(float) (Math.PI/2);
 
 	protected int width;
 	protected int height;
@@ -88,6 +88,8 @@ public class Renderer {
 		// clear the framebuffer
 		glDepthMask(true);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+		
+		Skybox.draw(width,height,heading,pitch);
 
 		drawChunks();
 		drawEntities();
@@ -117,6 +119,7 @@ public class Renderer {
 		glDisable(GL_CULL_FACE); // Billboards don't want this
 		glEnable(GL_DEPTH_TEST); // Still do depth test
 		glEnable(GL_BLEND); // We want alpha blending
+
 		
 		setupPerspective(projection);
 		

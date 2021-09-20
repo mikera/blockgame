@@ -6,6 +6,7 @@ import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import blockgame.engine.Engine;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.glDepthMask;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glDrawArrays;
 import static org.lwjgl.opengl.GL11.glEnable;
@@ -267,7 +268,7 @@ public class Chunk {
 		glEnable(GL_DEPTH_TEST);
 		
 		glDisable(GL_BLEND);
-		
+		glDepthMask(true);
 	}
 
 	public void draw() {

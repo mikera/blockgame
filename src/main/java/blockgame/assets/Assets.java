@@ -20,6 +20,9 @@ public class Assets {
 
 	public static BufferedImage textureImage;
 	
+	public static BufferedImage skybox;
+
+	
 	public static AHashMap<CVMLong,ACell> blockData;
 
 	static {
@@ -29,6 +32,8 @@ public class Assets {
 		try {
 			Assets.textureImage = ImageIO.read(classLoader.getResource("images/textures.png"));
 			Assets.font = ImageIO.read(classLoader.getResource("images/font.png"));
+			Assets.skybox = ImageIO.read(classLoader.getResource("images/skybox.png"));
+			
 			blockData=Reader.read(Utils.readResourceAsString("lib/block-data.cvx"));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
