@@ -44,16 +44,7 @@ public class Engine {
 
 	public static final AVector<ACell> EMPTY_CHUNK=Vectors.repeat(null, 4096);
 	
-	private Convex convex=null;
-	
 	private Engine() {
-		try {
-			convex=Convex.connect(Utils.toInetSocketAddress("convex.world:18888"));
-			convex.setAddress(Config.addr);
-			convex.setKeyPair(Config.kp);
-		} catch (IOException|TimeoutException e ) {
-			throw Utils.sneakyThrow(e);
-		}
 	}
 	
 	public static Engine create() {
@@ -73,6 +64,7 @@ public class Engine {
 			long chunkPos= chunkAddress(bx,by,bz);
 			String chunkString=Long.toString(chunkPos);
 			ACell queryForm=Reader.read("(call "+Config.worldAddress+" (get-chunk "+chunkString+"))");
+			Convex convex=Config.getConvex();
 			CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.query(queryForm);
 			cf.thenAcceptAsync(r-> {
 				if (r.isError()) throw new Error("Bad result: "+r);
@@ -156,6 +148,7 @@ public class Engine {
 		if (block==null) block=Symbols.NIL;
 		ACell trans=Reader.read("(call "+Config.worldAddress+" (place-block "+locString(x,y,z)+" "+block+"))");
 		try {
+			Convex convex=Config.getConvex();
 			convex.transact(Invoke.create(Config.addr, 0, trans));
 		} catch (IOException e) {
 			System.out.println(e);
