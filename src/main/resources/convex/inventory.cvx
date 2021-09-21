@@ -1,0 +1,55 @@
+;; Inventory implementation
+;; 
+;; 1. Holdings for each user account are a map {item id -> item quantity}
+;; 2. Control is via the registered game engine, expects (def engine <engine-address>) as setup
+
+(import convex.asset :as asset-lib)
+
+(defn check-access
+  []
+  (or (= *caller* engine) (fail :TRUST "Access denied")))
+
+(defn balance
+
+  ^{:doc {:description "Gets the inventory balance of an owner."
+          :signature   [{:params [owner]}
+                        {:params [owner item]}]}
+    :callable? true}
+
+  ([owner]
+    (get-holding owner))
+  
+  ([owner item]
+    (get (get-holding owner) item))
+  
+(defn set-stack
+
+  ^{:callable? true}
+
+  [owner item count]
+  (-set-stack owner item count)
+  )  
+  
+(defn -set-stack
+  ^{:private?  true}
+  [owner item count]
+
+  (let [count (long count)
+        _ (or (<= 0 count 1000000000) (fail "Invalid target balance"))
+        balance (get-holding *caller*)
+        balance (if (> count 0)
+                  (assoc balance item count)
+                  (dissoc balance item))
+        ]
+    (set-holding owner balance)))
+
+(def add-stack
+  ^{:callable? true
+    :private?  true}
+
+  [owner item count]
+  (let [count (long count)
+        current (or (balance owner item) 0)
+        new-count (+ current count)]
+    (-set-stack owner item count)))
+
