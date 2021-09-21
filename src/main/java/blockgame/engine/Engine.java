@@ -8,12 +8,11 @@ import java.util.concurrent.TimeoutException;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
+import blockgame.Config;
 import convex.api.Convex;
 import convex.core.Result;
-import convex.core.crypto.AKeyPair;
 import convex.core.data.ACell;
 import convex.core.data.AVector;
-import convex.core.data.Address;
 import convex.core.data.Vectors;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
@@ -26,13 +25,8 @@ import convex.core.util.Utils;
  */
 public class Engine {
 	
-	static AKeyPair kp=AKeyPair.createSeeded(156778);
-	static Address addr=Address.create(4564);
-	
-	static Address worldAddress=Address.create(4562);
-	
 	static {
-		System.out.println(kp.getAccountKey());
+		System.out.println(Config.kp.getAccountKey());
 	}
 
 	public static class HitResult {
@@ -55,8 +49,8 @@ public class Engine {
 	private Engine() {
 		try {
 			convex=Convex.connect(Utils.toInetSocketAddress("convex.world:18888"));
-			convex.setAddress(addr);
-			convex.setKeyPair(kp);
+			convex.setAddress(Config.addr);
+			convex.setKeyPair(Config.kp);
 		} catch (IOException|TimeoutException e ) {
 			throw Utils.sneakyThrow(e);
 		}
@@ -78,7 +72,7 @@ public class Engine {
 			// String chunkString="["+bx+" "+by+" "+bz+"]"; // Old format
 			long chunkPos= chunkAddress(bx,by,bz);
 			String chunkString=Long.toString(chunkPos);
-			ACell queryForm=Reader.read("(call "+worldAddress+" (get-chunk "+chunkString+"))");
+			ACell queryForm=Reader.read("(call "+Config.worldAddress+" (get-chunk "+chunkString+"))");
 			CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.query(queryForm);
 			cf.thenAcceptAsync(r-> {
 				if (r.isError()) throw new Error("Bad result: "+r);
@@ -160,9 +154,9 @@ public class Engine {
 		int bz=z&~0xf;
 		chunks.put(chunkAddress(bx,by,bz), chunk);
 		if (block==null) block=Symbols.NIL;
-		ACell trans=Reader.read("(call "+worldAddress+" (place-block "+locString(x,y,z)+" "+block+"))");
+		ACell trans=Reader.read("(call "+Config.worldAddress+" (place-block "+locString(x,y,z)+" "+block+"))");
 		try {
-			convex.transact(Invoke.create(addr, 0, trans));
+			convex.transact(Invoke.create(Config.addr, 0, trans));
 		} catch (IOException e) {
 			System.out.println(e);
 		}
