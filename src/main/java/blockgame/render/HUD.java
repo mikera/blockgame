@@ -170,17 +170,15 @@ public class HUD {
 	
 	private static FloatBuffer buildCursor() {
 		float s=32f;
-		FloatBuffer vb = FloatBuffer.allocate(30);
-		vb.put(new float[] {-1*s,-1*s,0,7/128f,0/128f});
-		vb.put(new float[] {1*s,-1*s,0,8/128f,0/128f});
-		vb.put(new float[] {-1*s,1*s,0,7/128f,1/128f});
+		Buildable vb = Buildable.create(FLOATS_PER_VERTEX);
+		vb.put(-1*s,-1*s,0).put(7/128f,0/128f);
+		vb.put(1*s,-1*s,0).put(8/128f,0/128f);
+		vb.put(-1*s,1*s,0).put(7/128f,1/128f);
 		
-		vb.put(new float[] {1*s,-1*s,0,8/128f,0/128f});
-		vb.put(new float[] {-1*s,1*s,0,7/128f,1/128f});
-		vb.put(new float[] {1*s,1*s,0,8/128f,1/128f});
-		
-		vb.flip();
-		return vb;
+		vb.put(1*s,-1*s,0).put(8/128f,0/128f);
+		vb.put(-1*s,1*s,0).put(7/128f,1/128f);
+		vb.put(1*s,1*s,0).put(8/128f,1/128f);
+		return vb.getFlippedBuffer();
 	}
 
 }

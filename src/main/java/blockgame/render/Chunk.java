@@ -268,7 +268,7 @@ public class Chunk {
 			// Bind buffer
 			glBindBuffer(GL_ARRAY_BUFFER, getVBO());
 
-			int stride = Chunk.FLOATS_PER_VERTEX * 4;
+			int stride = geom.strideInBytes();
 
 			// define vertex format, should be after glBindBuffer
 			glVertexAttribPointer(c_vs_inputPosition, 3, GL_FLOAT, false, stride, 0L); // Note: stride in bytes

@@ -107,7 +107,7 @@ public class Skybox {
 	}
 	
 	private static FloatBuffer buildAll() {
-		FloatBuffer vb = FloatBuffer.allocate(6*6*FLOATS_PER_VERTEX);
+		Buildable vb = Buildable.create(FLOATS_PER_VERTEX);
 		addFace(vb,Face.U,0.25f,0.0f);
 		addFace(vb,Face.N,0.75f,0.25f);
 		addFace(vb,Face.E,0.50f,0.25f);
@@ -115,8 +115,7 @@ public class Skybox {
 		addFace(vb,Face.W,0.00f,0.25f);
 		addFace(vb,Face.D,0.25f,0.5f);
 		
-		vb.flip();
-		return vb;
+		return vb.getFlippedBuffer();
 	}
 	
 	// North = +y East = +x
@@ -125,8 +124,7 @@ public class Skybox {
 	// U, N, E, S, W, D
 	static int[][] FACES= {{7,3,1,5},{3,7,6,2},{1,3,2,0},{5,1,0,4},{7,5,4,6},{2,6,4,0}};
 
-	
-	private static void addFace(FloatBuffer fb, int face, float tx, float ty) {
+	private static void addFace(Buildable fb, int face, float tx, float ty) {
 		float TD=0.25f;
 		int[] FACE=FACES[face];
 		// VErtices of face specified clockwise
@@ -144,7 +142,5 @@ public class Skybox {
 		fb.put(v3[0]).put(v3[1]).put(v3[2]).put(tx).put(ty+TD);
 		fb.put(v1[0]).put(v1[1]).put(v1[2]).put(tx+TD).put(ty);
 		fb.put(v2[0]).put(v2[1]).put(v2[2]).put(tx+TD).put(ty+TD);
-
-
 	}
 }

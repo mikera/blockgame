@@ -19,31 +19,28 @@ import blockgame.assets.Assets;
 
 public class Text {
 	
-	static FloatBuffer fb=FloatBuffer.allocate(10000);
+	public static final int FLOATS_PER_VERTEX=3+2; // position + texture
+	static Buildable geom=Buildable.create(FLOATS_PER_VERTEX);
 
 	static Texture texture=Texture.createTexture(Assets.font);
 	static int textVBO;
 	
-	public static final int FLOATS_PER_VERTEX=3+2; // position + texture
-
-	
-	private static FloatBuffer addChar(FloatBuffer fb, float x, float y, float s, int ch) {
+	private static Buildable addChar(Buildable geom, float x, float y, float s, int ch) {
 		float TD=1.0f/16.0f;
 		float tx=(ch&0xF)*TD;
 		float ty=((ch&0xF0)>>4)*TD;
 		
-		
 		// Vertices in square numbered clockwise 0,1,2,3
 		// 0,1,3
-		fb.put(x).put(y).put(0).put(tx).put(ty);
-		fb.put(x+s).put(y).put(0).put(tx+TD).put(ty);
-		fb.put(x).put(y+s).put(0).put(tx).put(ty+TD);
+		geom.put(x,y,0).put(tx,ty);
+		geom.put(x+s,y,0).put(tx+TD,ty);
+		geom.put(x,y+s,0).put(tx,ty+TD);
 		// 3,1,2
-		fb.put(x).put(y+s).put(0).put(tx).put(ty+TD);
-		fb.put(x+s).put(y).put(0).put(tx+TD).put(ty);
-		fb.put(x+s).put(y+s).put(0).put(tx+TD).put(ty+TD);
+		geom.put(x,y+s,0).put(tx,ty+TD);
+		geom.put(x+s,y,0).put(tx+TD,ty);
+		geom.put(x+s,y+s,0).put(tx+TD,ty+TD);
 		
-		return fb;
+		return geom;
 	}
 	
 	public static void init() {
@@ -53,7 +50,7 @@ public class Text {
 	public static void draw() {
 		Text.texture.bind();
 
-		fb.flip();
+		FloatBuffer fb=geom.getFlippedBuffer();
 		int n=fb.remaining();
 		
 		FloatBuffer vertexBuffer = memAllocFloat(n);
@@ -77,7 +74,7 @@ public class Text {
 
 		glDrawArrays(GL_TRIANGLES, 0, n/FLOATS_PER_VERTEX);
 		
-		fb.clear();
+		geom.clear();
 	}
 	
 	public static void addText(float x, float y,String s) {
@@ -88,7 +85,7 @@ public class Text {
 			String t=ss[j];
 			int n=t.length();
 			for (int i=0; i<n; i++) {
-				addChar(fb,x+size*i*0.75f,y+size*j,30f,(int)t.charAt(i));
+				addChar(geom,x+size*i*0.75f,y+size*j,30f,(int)t.charAt(i));
 			}
 		}
 	}

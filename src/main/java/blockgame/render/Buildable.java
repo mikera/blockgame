@@ -3,7 +3,8 @@ package blockgame.render;
 import java.nio.FloatBuffer;
 
 /**
- * Stateful vertex buffer builder.
+ * Lightweight stateful vertex buffer builder.
+ * Up to caller to determine vertex layout
  */
 public class Buildable {
 
@@ -62,5 +63,9 @@ public class Buildable {
 	public FloatBuffer getFlippedBuffer() {
 		fb.flip();
 		return fb;
+	}
+
+	public int strideInBytes() {
+		return 4*FLOATS_PER_VERTEX;
 	}
 }
