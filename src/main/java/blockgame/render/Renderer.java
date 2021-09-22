@@ -71,7 +71,7 @@ public class Renderer {
 	}
 
 	Vector3f tempDir=new Vector3f(0,0,0);
-	Vector3f playerPos=new Vector3f(0,-3,2);
+	Vector3f playerPos=new Vector3f(8,-4,6);
 	Vector3f playerVelocity=new Vector3f(0,0,0);
 	
 	Engine.HitResult hitResult=new Engine.HitResult();

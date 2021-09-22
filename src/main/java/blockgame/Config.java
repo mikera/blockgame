@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
 
+import blockgame.engine.WorldGen;
 import convex.api.Convex;
 import convex.core.Result;
 import convex.core.State;
@@ -60,7 +61,7 @@ public class Config {
 				State genesisState=Init.createState(Lists.of(LOCAL_KEYPAIRS[0].getAccountKey()));
 				
 				HashMap<Keyword, Object> config=new HashMap<>();
-				config.put(Keywords.STORE, EtchStore.create(new File("blockgame-db.etch")));
+				config.put(Keywords.STORE, STORE);
 				config.put(Keywords.RESTORE, true);
 				config.put(Keywords.STATE, genesisState);
 				config.put(Keywords.KEYPAIR, LOCAL_KEYPAIRS[0]);
@@ -74,11 +75,9 @@ public class Config {
 					
 					world=Deploy.doDeploy(PEER_CONVEX);
 					
-					r=PEER_CONVEX.transactSync(Invoke.create(PEER_ADDRESS, 0, Reader.read("(call "+world+" (build-house))")));
-					if (r.isError()) throw new Error(r.toString());
-					
 					convex=Convex.connect(SERVER);
 					convex.setAddress(addr, kp);
+					WorldGen.generate(convex);
 					
 				} catch (Throwable e) {
 					e.printStackTrace();

@@ -34,13 +34,19 @@
 			<artifactId>convex-core</artifactId>
 			<version>0.7.0</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>world.convex</groupId>
 			<artifactId>convex-peer</artifactId>
 			<version>0.7.0</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>net.mikera</groupId>
+			<artifactId>mikera</artifactId>
+			<version>1.6.1</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
@@ -143,9 +149,9 @@
 			<classifier>${lwjgl.natives}</classifier>
 		</dependency>
 		<dependency>
-            <groupId>org.joml</groupId>
-            <artifactId>joml</artifactId>
-            <version>${joml.version}</version>
-        </dependency>
+			<groupId>org.joml</groupId>
+			<artifactId>joml</artifactId>
+			<version>${joml.version}</version>
+		</dependency>
 	</dependencies>
 </project>
