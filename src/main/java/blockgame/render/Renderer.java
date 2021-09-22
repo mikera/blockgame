@@ -25,19 +25,21 @@ import org.joml.Vector3i;
 import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 
+import blockgame.Config;
 import blockgame.engine.Engine;
 import blockgame.engine.Face;
 import convex.core.data.ACell;
 
 public class Renderer {
 	
-	private Engine engine=Engine.create();
+	private Engine engine;
 	private HUD hud=new HUD(engine);
 	private Billboard billboard=new Billboard();
 
 
 	public void init() {
 		try {
+			engine=Config.getEngine();
 			Chunk.init();
 			HUD.init();
 			Skybox.init();
@@ -53,6 +55,9 @@ public class Renderer {
 		glClearColor(0.2f, 0.7f, 0.85f, 0.0f);
 	}
 	
+	/**
+	 * Chunks indexed by base chunk co-ordinate
+	 */
 	private HashMap<Vector3i,Chunk> chunks=new HashMap<>(100);
 
 	private Chunk getChunk(Vector3i cpos) {
@@ -274,11 +279,16 @@ public class Renderer {
 		if (hitResult.hit==null) {
 			System.out.println("Mouse RIGHT clicked in empty space pos=" +playerPos+ " dir="+tempDir);
 		} else {
-			Vector3i target=new Vector3i(hitResult.x,hitResult.y, hitResult.z);
+			int x=hitResult.x;
+			int y=hitResult.y;
+			int z=hitResult.z;
+			Vector3i target=new Vector3i(x,y,z);
 			target.add(Face.DIR[hitResult.face]); // block on face
 			
 			ACell block=engine.getPlaceableBlock();
-			if (block==null) return;
+			if (block==null) {
+				return;
+			}
 			engine.setBlock(target,block);
 			System.out.println("Block placed at "+Engine.locString(target));
 		}
@@ -293,11 +303,36 @@ public class Renderer {
 		if (hitResult.hit==null) {
 			System.out.println("Mouse LEFT clicked in empty space pos=" +playerPos+ " dir="+tempDir);
 		} else {
-			Vector3i target=new Vector3i(hitResult.x,hitResult.y, hitResult.z);
-			
+			int x=hitResult.x;
+			int y=hitResult.y;
+			int z=hitResult.z;
+			Vector3i target=new Vector3i(x,y,z);
+			maybeRebuildChunk(x,y,z);
 			engine.setBlock(target,null);
 			System.out.println("Block deleted at "+target);
 		}
+	}
+
+	private void maybeRebuildChunk(int x, int y, int z) {
+		int bx=x&0xf;
+		if (bx==0) rebuildChunk(x-1,y,z);
+		if (bx==15) rebuildChunk(x+1,y,z);
+		int by=y&0xf;
+		if (by==0) rebuildChunk(x,y-1,z);
+		if (by==15) rebuildChunk(x,y+1,z);
+		int bz=z&0xf;
+		if (bz==0) rebuildChunk(x,y,z-1);
+		if (bz==15) rebuildChunk(x,y,z+1);
+
+	}
+
+	private void rebuildChunk(int x, int y, int z) {
+		// round to chunk base co-ordinate
+		x&=~0xf;
+		y&=~0xf;
+		z&=~0xf;
+		Chunk chunk=getChunk(new Vector3i(x,y,z));
+		chunk.rebuild();
 	}
 
 	public void applyTool(int i) {

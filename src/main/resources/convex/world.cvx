@@ -6,6 +6,9 @@
 (defn ^:callable? get-chunk [cpos]
   (get chunks cpos))
 
+(defn ^:callable? set-chunk [cpos data]
+  (assoc chunks cpos data))
+
 (defn ^:callable? break-block [x y z]
   (set-block x y z nil))
 
@@ -47,7 +50,7 @@
         chunk (get chunks cpos)]
     (cond chunk (nth chunk off))))
 
-(defn fill [x1 y1 z1 x2 y2 z2 block]
+(defn ^:callable? fill [x1 y1 z1 x2 y2 z2 block]
   (loop [i x1]
     (when (<= i x2)
        (loop [j y1]

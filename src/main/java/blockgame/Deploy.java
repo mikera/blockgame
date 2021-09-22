@@ -15,7 +15,8 @@ public class Deploy {
 	
 	/**
 	 * Deploys the game work to a connected Convex network
-	 * @param convex Convex client instance
+	 * @param convex Convex client instance, configured for world controller Account
+	 * @param addr 
 	 * @return Address of world actor
 	 */
 	public static Address doDeploy(Convex convex) {
@@ -29,14 +30,16 @@ public class Deploy {
 
 	private static Address deployCode(Convex convex, String path) throws IOException, TimeoutException {
 		String code=Utils.readResourceAsString(path);
+		Address god=convex.getAddress();
+		System.out.println("Deploying code with controller address: " +god);
 		
-		Result r=convex.transactSync(Invoke.create(convex.getAddress(), 0, "(deploy `(do "+ code +"\n))"));
+		Result r=convex.transactSync(Invoke.create(god, 0, "(deploy `(do (set-controller "+god+") "+ code +"\n))"));
 		if (r.isError()) {
 			throw new Error(r.toString());
 		}
 		
-		Address a=r.getValue();
+		Address worldAddress=r.getValue();
 		
-		return a;
+		return worldAddress;
 	}
 }

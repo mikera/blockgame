@@ -49,6 +49,10 @@ import convex.core.data.prim.CVMLong;
 public class Chunk {
 	int vbo = 0;
 	int triangleCount = 0;
+	
+	// Flags for control
+	private boolean rebuilding=false;
+
 
 	// int[] vals=new int[4096];
 	private AVector<ACell> chunkData;
@@ -128,6 +132,10 @@ public class Chunk {
 			vbo = createVBO();
 		}
 		;
+	}
+	
+	public void rebuild() {
+		rebuilding=true;
 	}
 
 	public static final int FLOATS_PER_VERTEX = 3 + 3 + 2; // position + texture + normal
@@ -240,6 +248,10 @@ public class Chunk {
 	}
 
 	public int getVBO() {
+		if (rebuilding) {
+			vbo=createVBO();
+			rebuilding=false;
+		}
 		return vbo;
 	}
 

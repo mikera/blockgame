@@ -55,6 +55,31 @@ public class Engine {
 		return bx+ (by * 1048576l) + bz*1099511627776l;
 	}
 	
+	public void uploadChunk(int x, int y, int z) {
+		int bx=x&~0xf;
+		int by=y&~0xf;
+		int bz=z&~0xf;
+		try {
+			// String chunkString="["+bx+" "+by+" "+bz+"]"; // Old format
+			long chunkPos= chunkAddress(bx,by,bz);
+			String chunkString=Long.toString(chunkPos);
+			AVector<ACell> chunkData=getChunk(bx,by,bz);
+			ACell form=Reader.read("(eval-as "+Config.world+" `(set-chunk "+chunkString+" "+chunkData.toString()+"))");
+			Convex convex=Config.getConvex();
+			CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.transact(Invoke.create(convex.getAddress(), 0, form));
+			cf.thenAcceptAsync(r-> {
+				if (r.isError()) throw new Error("Bad result: "+r);
+				System.out.println("Uploaded chunk at "+locString(bx,by,bz));
+			}).exceptionallyAsync(e->{		
+				System.err.println(form); 
+				System.err.println(e); 
+				return null;
+			});
+		} catch (IOException e) {
+			throw Utils.sneakyThrow(e);
+		}
+	}
+	
 	public void loadChunk(int x, int y, int z) {
 		int bx=x&~0xf;
 		int by=y&~0xf;
@@ -72,7 +97,7 @@ public class Engine {
 				if (chunk==null) chunk=EMPTY_CHUNK;
 				Long cpos=chunkAddress(bx,by,bz);
 				chunks.put(cpos, chunk);
-				System.out.println("Loaded chunk at "+locString(bx,by,bz));
+				// System.out.println("Loaded chunk at "+locString(bx,by,bz));
 			}).exceptionallyAsync(e->{		
 				System.err.println(queryForm); 
 				System.err.println(e); 
@@ -135,6 +160,18 @@ public class Engine {
 	}
 	
 	public void setBlock(int x, int y, int z, ACell block) {
+		setBlockLocal(x,y,z,block);
+		if (block==null) block=Symbols.NIL;
+		ACell trans=Reader.read("(call "+Config.world+" (place-block "+locString(x,y,z)+" "+block+"))");
+		try {
+			Convex convex=Config.getConvex();
+			convex.transact(Invoke.create(Config.addr, 0, trans));
+		} catch (IOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	public void setBlockLocal(int x, int y, int z, ACell block) {
 		AVector<ACell> chunk=getChunk(x,y,z);
 		if (chunk==null) {
 			if (block==null) return;
@@ -145,14 +182,6 @@ public class Engine {
 		int by=y&~0xf;
 		int bz=z&~0xf;
 		chunks.put(chunkAddress(bx,by,bz), chunk);
-		if (block==null) block=Symbols.NIL;
-		ACell trans=Reader.read("(call "+Config.world+" (place-block "+locString(x,y,z)+" "+block+"))");
-		try {
-			Convex convex=Config.getConvex();
-			convex.transact(Invoke.create(Config.addr, 0, trans));
-		} catch (IOException e) {
-			System.out.println(e);
-		}
 	}
 	
 	public void setBlock(Vector3i target, ACell block) {
@@ -274,6 +303,40 @@ public class Engine {
 	 */
 	public ACell getPlaceableBlock() {
 		return CVMLong.create(toolBar[tool]);
+	}
+
+	/**
+	 * Get currently configured Convex client instance
+	 * @return
+	 */
+	public Convex getConvex() {
+		return Config.getConvex();
+	}
+
+	/**
+	 * Fill blocks in the local environment
+	 * @param x1 Start x
+	 * @param y1 Start y
+	 * @param z1 Start z
+	 * @param x2 End x
+	 * @param y2 End y
+	 * @param z2 End z
+	 * @param block Block to fill with
+	 */
+	public void fillBlocks(int x1, int y1, int z1, int x2, int y2, int z2, ACell block) {
+		int t;
+		if (x1>x2) {t=x1; x1=x2; x2=t;}
+		if (y1>y2) {t=y1; y1=y2; y2=t;}
+		if (z1>z2) {t=z1; z1=z2; z2=t;}
+		
+		for (int x=x1; x<=x2; x++) {
+			for (int y=y1; y<=y2; y++) {
+				for (int z=z1; z<=z2; z++) {
+					setBlockLocal(x,y,z,block);
+				}
+			}
+			
+		}
 	}
 
 

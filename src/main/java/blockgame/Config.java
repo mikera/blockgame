@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.TimeoutException;
 
+import blockgame.engine.Engine;
 import blockgame.engine.WorldGen;
 import convex.api.Convex;
 import convex.core.Result;
@@ -43,6 +44,11 @@ public class Config {
 			AKeyPair.createSeeded(1337),
 	};
 
+	/**
+	 * Game engine instance
+	 */
+	private static Engine engine;
+
 	static Server SERVER;
 	static Convex PEER_CONVEX;
 	static Address PEER_ADDRESS;
@@ -53,6 +59,8 @@ public class Config {
 	public static boolean local=true;
 	
 	public static void init(boolean b) {
+		engine=Engine.create();
+
 		local =b;
 		try {
 			if (local) {
@@ -72,12 +80,12 @@ public class Config {
 					PEER_CONVEX.setAddress(PEER_ADDRESS, LOCAL_KEYPAIRS[0]);
 					Result r=PEER_CONVEX.transactSync(Invoke.create(PEER_ADDRESS, 0, Reader.read("(let [addr (create-account "+kp.getAccountKey()+")] (transfer addr 100000000000) addr)")));
 					addr=r.getValue();
-					
-					world=Deploy.doDeploy(PEER_CONVEX);
-					
+
 					convex=Convex.connect(SERVER);
 					convex.setAddress(addr, kp);
-					WorldGen.generate(convex);
+					world=Deploy.doDeploy(convex);
+					
+					WorldGen.create(engine).generate();
 					
 				} catch (Throwable e) {
 					e.printStackTrace();
@@ -95,10 +103,17 @@ public class Config {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+		
+		System.out.println("Config complete user="+addr +" world="+world+"");
+
 	}
 
 	public static Convex getConvex() {
 		return convex;
+	}
+
+	public static Engine getEngine() {
+		return engine;
 	}
 
 
