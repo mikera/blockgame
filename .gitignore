@@ -3,3 +3,4 @@
 /.settings/
 /.classpath
 *.log
+/blockgame-db.etch
