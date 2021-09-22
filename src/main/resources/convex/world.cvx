@@ -60,7 +60,9 @@
       (recur (inc i))))
    )
 
-(fill 0 0 0 15 15 0 1)
-;; (fill 5 5 1 9 9 4 6) // walls
-;; (fill 6 6 1 8 8 4 nil) // interior
-;; (fill 7 5 1 7 5 2 nil) //door
+(defn ^:callable? build-house []
+	(fill 4 4 0 10 10 0 1)
+	(fill 5 5 1 9 9 4 12) ;; walls
+	(fill 6 6 1 8 8 4 nil) ;; interior
+	(fill 7 5 1 7 5 2 nil) ;; door
+)

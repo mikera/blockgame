@@ -76,6 +76,8 @@ public class BlockGame {
 	double mouseY;
 
 	void init() {
+		Config.init(Config.local);
+		
 		// Setup an error callback. The default implementation
 		// will print the error message in System.err.
 		GLFWErrorCallback.createPrint(System.err).set();

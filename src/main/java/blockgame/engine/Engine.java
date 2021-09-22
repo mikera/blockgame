@@ -63,7 +63,7 @@ public class Engine {
 			// String chunkString="["+bx+" "+by+" "+bz+"]"; // Old format
 			long chunkPos= chunkAddress(bx,by,bz);
 			String chunkString=Long.toString(chunkPos);
-			ACell queryForm=Reader.read("(call "+Config.worldAddress+" (get-chunk "+chunkString+"))");
+			ACell queryForm=Reader.read("(call "+Config.world+" (get-chunk "+chunkString+"))");
 			Convex convex=Config.getConvex();
 			CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.query(queryForm);
 			cf.thenAcceptAsync(r-> {
@@ -146,7 +146,7 @@ public class Engine {
 		int bz=z&~0xf;
 		chunks.put(chunkAddress(bx,by,bz), chunk);
 		if (block==null) block=Symbols.NIL;
-		ACell trans=Reader.read("(call "+Config.worldAddress+" (place-block "+locString(x,y,z)+" "+block+"))");
+		ACell trans=Reader.read("(call "+Config.world+" (place-block "+locString(x,y,z)+" "+block+"))");
 		try {
 			Convex convex=Config.getConvex();
 			convex.transact(Invoke.create(Config.addr, 0, trans));
