@@ -91,13 +91,16 @@ public class BlockGame {
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
 
-		int width=2048;
-		int height=1536;
+		// Get the resolution of the primary monitor
+		GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+		
+		int width=(int) (vidmode.width()*0.80);
+		int height=(int) (vidmode.height()*0.80);
 		// Create the window
 		window = glfwCreateWindow(width, height, "Convex On-Chain Gaming Demo", NULL, NULL);
 		if (window == NULL)
 			throw new RuntimeException("Failed to create the GLFW window");
-		renderer.setSize(width, height);
 
 		// Setup a key callback. It will be called every time a key is pressed, repeated
 		// or released.
@@ -137,7 +140,7 @@ public class BlockGame {
 		
 		// For screen resize etc.
 	    glfwSetFramebufferSizeCallback(window, (window,w, h) -> {
-	    	renderer.setSize(w,h);
+	    	// renderer.setSize(w,h);
 	    });
 	       
 
@@ -149,8 +152,6 @@ public class BlockGame {
 			// Get the window size passed to glfwCreateWindow
 			glfwGetWindowSize(window, pWidth, pHeight);
 
-			// Get the resolution of the primary monitor
-			GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
 			// Center the window
 			glfwSetWindowPos(window, (vidmode.width() - pWidth.get(0)) / 2, (vidmode.height() - pHeight.get(0)) / 2);
@@ -163,13 +164,13 @@ public class BlockGame {
 
 		// Enable v-sync
 		glfwSwapInterval(1);
+		
+		renderer.setSize(width, height);
+		renderer.init();
 
 		// Make the window visible
 		glfwShowWindow(window);
 		
-		renderer.init();
-
-
 	}
 
 	private void loadMousePosition() {

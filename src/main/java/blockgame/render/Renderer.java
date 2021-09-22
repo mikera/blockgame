@@ -10,6 +10,7 @@ import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDepthMask;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.glViewport;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL20.glUniform3fv;
@@ -36,6 +37,9 @@ public class Renderer {
 	private HUD hud=new HUD(engine);
 	private Billboard billboard=new Billboard();
 
+	protected int width;
+	protected int height;
+
 
 	public void init() {
 		try {
@@ -48,9 +52,7 @@ public class Renderer {
 		} catch (Throwable e) {
 			throw new Error(e);
 		}
-		
- 
-        
+
 		// Set the clear color
 		glClearColor(0.2f, 0.7f, 0.85f, 0.0f);
 	}
@@ -86,13 +88,12 @@ public class Renderer {
 	
 	static float QUARTER_TURN=(float) (Math.PI/2);
 
-	protected int width;
-	protected int height;
 	
 	public void render(float t) {
 		// clear the framebuffer
 		glDepthMask(true);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+		glViewport(0,0,width,height);
 		
 		Skybox.draw(width,height,heading,pitch);
 
@@ -193,7 +194,7 @@ public class Renderer {
 		int ply=((int)Math.floor(playerPos.y))&~0xf;
 		int plz=((int)Math.floor(playerPos.z))&~0xf;
 		
-		int DIST=48;
+		int DIST=128;
 		for (int cx=plx-DIST; cx<=plx+DIST; cx+=16) {
 			for (int cy=ply-DIST; cy<=ply+DIST; cy+=16) {
 				for (int cz=plz-DIST; cz<=plz+DIST; cz+=16) {
@@ -213,13 +214,10 @@ public class Renderer {
 				}
 			}
 		}
-		
-		// Clear Buffer
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 	private void setupPerspective(Matrix4f projectionMatrix) {
-		projectionMatrix.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
+		projectionMatrix.setPerspective((float) (Math.PI/4), width/height, 0.1f, 100f);
 	}
 	
 	private void drawHUD() {	

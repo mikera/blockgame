@@ -35,21 +35,30 @@ public class WorldGen {
 		int by=j*16;
 		System.out.println("Generating Chunk: "+bx+","+by);
 		
+		int maxHeight=0;
 		for (int x=0; x<16; x++) {
 			for (int y=0; y<16; y++) {
-				generateTile(bx+x,by+y);
+				int h=generateTile(bx+x,by+y);
+				maxHeight=Math.max(maxHeight, h);
 			}
 
 		}
 		
-		for (int k=-16; k<32; k+=32) {
+		for (int k=-16; k<maxHeight; k+=32) {
 			engine.uploadChunk(bx, by, k);
 		}
 	}
 
-	public void generateTile(int x, int y) {
+	public int generateTile(int x, int y) {
 		int height=(int)((Simplex.noise(x*0.02f, y*0.02f)-0.5)*10);
-		engine.fillBlocks(x,y,-16,x,y,height,CVMLong.create(2));
-		engine.setBlockLocal(x, y, height, CVMLong.create(1));	
+		engine.fillBlocks(x,y,-16,x,y,height-1,CVMLong.create(2));
+		if (height>0) {
+			engine.setBlockLocal(x, y, height-1, CVMLong.create(1));	
+		} else if (height<0) {
+			engine.fillBlocks(x, y, height, x, y, -1, CVMLong.create(11));
+		} else {
+			engine.setBlockLocal(x, y, height-1, CVMLong.create(10));	
+		}
+		return Math.max(0, height);
 	}
 }

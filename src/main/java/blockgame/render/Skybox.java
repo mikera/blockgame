@@ -60,7 +60,7 @@ public class Skybox {
 		view.rotateX(Renderer.QUARTER_TURN+pitch);
 		view.invert();
 		
-		trans.setPerspective((float) (Math.PI/3), width/height, 0.1f, 100f);
+		trans.setPerspective((float) (Math.PI/3), ((float)width)/height, 0.1f, 100f);
 		
 		trans.mul(view); // multiple with view
 		

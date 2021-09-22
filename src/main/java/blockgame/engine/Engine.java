@@ -56,6 +56,7 @@ public class Engine {
 	}
 	
 	public void uploadChunk(int x, int y, int z) {
+		// Chunk base location
 		int bx=x&~0xf;
 		int by=y&~0xf;
 		int bz=z&~0xf;
@@ -70,6 +71,7 @@ public class Engine {
 			cf.thenAcceptAsync(r-> {
 				if (r.isError()) throw new Error("Bad result: "+r);
 				System.out.println("Uploaded chunk at "+locString(bx,by,bz));
+				chunks.put(chunkPos, chunkData);
 			}).exceptionallyAsync(e->{		
 				System.err.println(form); 
 				System.err.println(e); 
@@ -118,6 +120,9 @@ public class Engine {
 
 	public HashMap<Long,AVector<ACell>> chunks=new HashMap<>(91);
 	
+	/**
+	 * Get the chunk that includes the specified block location
+	 */
 	public AVector<ACell> getChunk(int x, int y, int z) {
 		int bx=x&~0xf;
 		int by=y&~0xf;
@@ -134,10 +139,28 @@ public class Engine {
 		return chunk;
 	}
 	
+	/**
+	 * Get the chunk that includes the specified block location from local store
+	 * @return Chunk data or null if not set locally
+	 */
+	public AVector<ACell> getChunkLocal(int x, int y, int z) {
+		int bx=x&~0xf;
+		int by=y&~0xf;
+		int bz=z&~0xf;
+		
+		Long cpos=chunkAddress(bx,by,bz);
+		AVector<ACell> chunk=chunks.get(cpos);
+		
+		return chunk;
+	}
+	
 	public AVector<ACell> getChunk(Vector3i target) {
 		return getChunk(target.x,target.y,target.z);
 	}
 	
+	/**
+	 * Get a Vector3i pointing to the chunk base location
+	 */
 	public Vector3i chunkPos(int x, int y, int z) {
 		int bx=x&~0xf;
 		int by=y&~0xf;
@@ -146,6 +169,13 @@ public class Engine {
 		return cpos;
 	}
  	
+	/**
+	 * Get the block index within a chunk (0-4095)
+	 * @param x X Position
+	 * @param y Y Position
+	 * @param z Z Position
+	 * @return Block index
+	 */
 	public static int chunkIndex(int x, int y, int z) {
 		x&=0xf;
 		y&=0xf;
@@ -172,7 +202,7 @@ public class Engine {
 	}
 	
 	public void setBlockLocal(int x, int y, int z, ACell block) {
-		AVector<ACell> chunk=getChunk(x,y,z);
+		AVector<ACell> chunk=getChunkLocal(x,y,z);
 		if (chunk==null) {
 			if (block==null) return;
 			chunk=EMPTY_CHUNK;
