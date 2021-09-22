@@ -3,9 +3,7 @@ package blockgame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.Test;
 
@@ -30,8 +28,9 @@ public class ConvexTest {
 	};
 	
 	private static Server SERVER;
-	private static Convex CONVEX;
+	private static Convex PEER_CONVEX;
 	private static Address ADDRESS;
+	private static Convex CONVEX;
 	
 	static AKeyPair USER_KP=AKeyPair.createSeeded(1234567);
 	static AccountKey USER_KEY=USER_KP.getAccountKey();
@@ -45,11 +44,17 @@ public class ConvexTest {
 		config.put(Keywords.KEYPAIR, KEYPAIRS[0]);
 		SERVER=API.launchPeer(config);
 		try {
-			CONVEX = Convex.connect(SERVER);
+			PEER_CONVEX = Convex.connect(SERVER);
 			ADDRESS=Init.getGenesisAddress();
-			CONVEX.setAddress(ADDRESS, KEYPAIRS[0]);
-			Result r=CONVEX.transactSync(Invoke.create(ADDRESS, 0, Reader.read("(let [addr (create-account "+USER_KEY+")] (transfer addr 100000000000) addr)")));
+			PEER_CONVEX.setAddress(ADDRESS, KEYPAIRS[0]);
+			Result r=PEER_CONVEX.transactSync(Invoke.create(ADDRESS, 0, Reader.read("(let [addr (create-account "+USER_KEY+")] (transfer addr 100000000000) addr)")));
 			USER_ADDRESS=r.getValue();
+			
+			Deploy.doDeploy(PEER_CONVEX);
+			
+			CONVEX=Convex.connect(SERVER);
+			CONVEX.setAddress(USER_ADDRESS, USER_KP);
+			
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
@@ -57,10 +62,10 @@ public class ConvexTest {
 	
 	@Test
 	public void testUserBalance() throws IOException {
-		Long bal=CONVEX.getBalance(ADDRESS);
+		Long bal=PEER_CONVEX.getBalance(ADDRESS);
 		assertTrue(bal>0);
 		
-		bal=CONVEX.getBalance(USER_ADDRESS);
+		bal=PEER_CONVEX.getBalance(USER_ADDRESS);
 		assertTrue(bal>0);
 	}
 }
