@@ -217,7 +217,7 @@ public class Renderer {
 	}
 
 	private void setupPerspective(Matrix4f projectionMatrix) {
-		projectionMatrix.setPerspective((float) (Math.PI/4), width/height, 0.1f, 100f);
+		projectionMatrix.setPerspective((float) (Math.PI/4), width/height, 0.1f, 1000f);
 	}
 	
 	private void drawHUD() {	

@@ -18,7 +18,7 @@ void main()
     // Diffuse Light
     float diffuseFactor = max(dot(mvVertexNormal, vLightDir ), 0.0);
 
-	float light = diffuseFactor*0.7+0.3;
+	float light = diffuseFactor*0.5+0.5;
 
     outputColour = texture2D(tex, tex_coord)*light;
     // if ((outputColour.a)<=0.0) discard;
