@@ -39,6 +39,7 @@ public class HUD {
 
 	protected Engine engine;
 	private static int cursorVBO;
+	private static int toolsVBO;
 	
 	static int hudProgram;
 	
@@ -104,8 +105,15 @@ public class HUD {
 		Chunk.texture.bind();
 		
 		drawCursor();
+		drawTools(engine, width, height);
 
 		drawHUDText(engine, width, height);
+	}
+
+	
+
+	private void drawTools(Engine engine, int width, int height) {
+		
 	}
 
 	private void drawHUDText(Engine engine, int width, int height) {
@@ -147,7 +155,8 @@ public class HUD {
 
 	public static void init(Engine engine) throws IOException {
 		hudProgram=createHUDProgram();
-		cursorVBO=createVBO();
+		cursorVBO=createVBO();	
+		toolsVBO=glGenBuffers();
 	}
 
 	private static int createVBO() {
