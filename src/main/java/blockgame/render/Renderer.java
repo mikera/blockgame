@@ -34,7 +34,7 @@ import convex.core.data.ACell;
 public class Renderer {
 	
 	private Engine engine;
-	private HUD hud=new HUD(engine);
+	private HUD hud;
 	private Billboard billboard=new Billboard();
 
 	protected int width;
@@ -44,8 +44,9 @@ public class Renderer {
 	public void init() {
 		try {
 			engine=Config.getEngine();
+			hud=new HUD(engine);
 			Chunk.init();
-			HUD.init();
+			HUD.init(engine);
 			Skybox.init();
 			billboard.init();
 			Text.init();
@@ -217,11 +218,11 @@ public class Renderer {
 	}
 
 	private void setupPerspective(Matrix4f projectionMatrix) {
-		projectionMatrix.setPerspective((float) (Math.PI/4), width/height, 0.1f, 1000f);
+		projectionMatrix.setPerspective((float) (Math.PI/4), ((float)width)/height, 0.1f, 1000f);
 	}
 	
 	private void drawHUD() {	
-		hud.draw(engine,width,height);
+		hud.draw(width,height);
 	}
 
 	public void setSize(int width, int height) {

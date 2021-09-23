@@ -56,6 +56,7 @@ public class Chunk {
 
 	// int[] vals=new int[4096];
 	private AVector<ACell> chunkData;
+	
 	private final Engine engine;
 	private final Vector3i position;
 

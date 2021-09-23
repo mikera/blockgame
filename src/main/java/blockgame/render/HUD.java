@@ -87,7 +87,7 @@ public class HUD {
 	Matrix4f transformation=new Matrix4f();
 	private final FloatBuffer matbufferMV = BufferUtils.createFloatBuffer(16);
 
-	public void draw(Engine engine,int width, int height) {
+	public void draw(int width, int height) {
 		glUseProgram(hudProgram);
 		
 		glDisable(GL_CULL_FACE);
@@ -103,6 +103,22 @@ public class HUD {
 		// Bind general tile texture
 		Chunk.texture.bind();
 		
+		drawCursor();
+
+		drawHUDText(engine, width, height);
+	}
+
+	private void drawHUDText(Engine engine, int width, int height) {
+		StringBuilder ht=new StringBuilder();
+		ht.append("CONVEX Craft\n");
+		ht.append("Chunks Loaded: "+engine.chunks.size()+"\n");
+		ht.append("FPS:           "+FPSformat.format(Renderer.fps)+"\n");
+		
+		Text.addText(-width/2, -height/2, ht.toString());
+		Text.draw();
+	}
+
+	private void drawCursor() {
 		glBindBuffer(GL_ARRAY_BUFFER, cursorVBO);
 
 		int stride=FLOATS_PER_VERTEX*4;
@@ -121,14 +137,6 @@ public class HUD {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glDrawArrays(GL_TRIANGLES, 0, getTriangleCount()*3);
-
-		StringBuilder ht=new StringBuilder();
-		ht.append("CONVEX Craft\n");
-		ht.append("Chunks Loaded: "+engine.chunks.size()+"\n");
-		ht.append("FPS:           "+FPSformat.format(Renderer.fps)+"\n");
-		
-		Text.addText(-width/2, -height/2, ht.toString());
-		Text.draw();
 	}
 	
 	DecimalFormat FPSformat = new DecimalFormat("0.0");
@@ -137,7 +145,7 @@ public class HUD {
 		return triangleCount;
 	}
 
-	public static void init() throws IOException {
+	public static void init(Engine engine) throws IOException {
 		hudProgram=createHUDProgram();
 		cursorVBO=createVBO();
 	}
