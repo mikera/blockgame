@@ -145,15 +145,18 @@ public class HUD {
 	private void buildTools(int w, int h) {
 		
 		int s=128;
+		int b=16;
+		int selected=engine.getToolIndex();
 			
 		for (int i=1; i<=9; i++) {
 			ACell tool=engine.getTool(i);
 			int tx=Lib.getToolTexture(tool);
 			// tx=0x0202;
 			
-			float x=(i-5)*s*1.5f;
-			float y=(h/2)-(s*1.5f);
+			float x=(i-5)*(s+b*2);
+			float y=(h/2)-(s+b*2);
 			
+			addQuad(tools,x-b,y-b,s+2*b,(i==selected)?0x0204:0x0a00);
 			addQuad(tools,x,y,s,tx);
 		}
 		
@@ -237,17 +240,22 @@ public class HUD {
 	}
 	
 	private static void addQuad(Buildable builder,float x1, float y1, float size, int texture) {
+		addQuad(builder,x1,y1,size,size,texture);
+
+	}
+	
+	private static void addQuad(Buildable builder,float x1, float y1, float w, float h, int texture) {
 		float tx=Texture.tx(texture);
 		float ty=Texture.ty(texture);
 		float TD=Texture.TD;
 		
 		builder.put(x1,y1,0).put(tx,ty);
-		builder.put(x1+size,y1,0).put(tx+TD,ty);
-		builder.put(x1,y1+size,0).put(tx,ty+TD);
+		builder.put(x1+w,y1,0).put(tx+TD,ty);
+		builder.put(x1,y1+h,0).put(tx,ty+TD);
 		
-		builder.put(x1,y1+size,0).put(tx,ty+TD);
-		builder.put(x1+size,y1,0).put(tx+TD,ty);
-		builder.put(x1+size,y1+size,0).put(tx+TD,ty+TD);
+		builder.put(x1,y1+h,0).put(tx,ty+TD);
+		builder.put(x1+w,y1,0).put(tx+TD,ty);
+		builder.put(x1+w,y1+h,0).put(tx+TD,ty+TD);
 
 	}
 
