@@ -18,6 +18,7 @@ import convex.core.lang.Reader;
 import convex.core.lang.Symbols;
 import convex.core.transactions.Invoke;
 import convex.core.util.Utils;
+import mikera.util.Maths;
 
 /**
  * Main off-chain game engine
@@ -370,6 +371,10 @@ public class Engine {
 			}
 			
 		}
+	}
+
+	public void doScroll(int yoffset) {
+		setToolIndex(Maths.middle(tool+yoffset,1,9));
 	}
 
 

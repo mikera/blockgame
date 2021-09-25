@@ -114,6 +114,10 @@ public class BlockGame {
 			}
 		});
 		
+		glfwSetScrollCallback(window,(window,xoffset,yoffset)->{
+			doScroll(yoffset);
+		});
+		
 		// Grab mouse cursor
 		setMouseCapture(true);
 		
@@ -171,6 +175,10 @@ public class BlockGame {
 		// Make the window visible
 		glfwShowWindow(window);
 		
+	}
+
+	private void doScroll(double yoffset) {
+		renderer.engine.doScroll((int)yoffset);
 	}
 
 	private void loadMousePosition() {

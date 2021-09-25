@@ -33,7 +33,7 @@ import convex.core.data.ACell;
 
 public class Renderer {
 	
-	private Engine engine;
+	public Engine engine;
 	private HUD hud;
 	private Billboard billboard=new Billboard();
 
