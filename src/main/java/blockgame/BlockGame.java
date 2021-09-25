@@ -260,6 +260,7 @@ public class BlockGame {
 
 	public static void main(String[] args) {
 		new BlockGame().run();
+		System.out.println("Main thread ending normally");
 	}
 
 }

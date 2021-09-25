@@ -336,7 +336,7 @@ public class Renderer {
 
 	public void applyTool(int i) {
 		// TODO Auto-generated method stub
-		engine.setTool(i);
+		engine.setToolIndex(i);
 	}
 
 }

@@ -14,7 +14,6 @@ import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.data.AVector;
 import convex.core.data.Vectors;
-import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
 import convex.core.lang.Symbols;
 import convex.core.transactions.Invoke;
@@ -317,22 +316,26 @@ public class Engine {
 	
 	private int tool=1;
 
-	public void setTool(int i) {
+	public void setToolIndex(int i) {
 		tool=i;
 	}
 
-	public int getTool() {
+	public int getToolIndex() {
 		return tool;
 	}
 	
-	private int[] toolBar= {0,1,2,3,10,11,12,13,14,20};
+	public ACell getTool(int i) {
+		return toolBar[i];
+	}
+	
+	private ACell[] toolBar= new ACell[]{null,Lib.GRASS,Lib.DIRT,Lib.STONE,Lib.STONE_BRICKS, Lib.BOULDER,Lib.LOG, Lib.LEAVES,Lib.WATER,Lib.GRANITE};
 
 	/**
-	 * Gets the currently selected placeable block value
+	 * Gets the currently selected placeable block value, or null if cannot place
 	 * @return
 	 */
 	public ACell getPlaceableBlock() {
-		return CVMLong.create(toolBar[tool]);
+		return toolBar[tool];
 	}
 
 	/**

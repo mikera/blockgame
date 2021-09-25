@@ -8,38 +8,38 @@ import java.nio.FloatBuffer;
  */
 public class Buildable {
 
-	public final int FLOATS_PER_VERTEX;
+	private final int FLOATS_PER_VERTEX;
 	private FloatBuffer fb;
 	
 	private Buildable(int fpv) {
 		this.FLOATS_PER_VERTEX=fpv;
 		fb=FloatBuffer.allocate(100*FLOATS_PER_VERTEX);
 	}
-	
+
 	public static Buildable create(int floatsPerVertex) {
 		return new Buildable(floatsPerVertex);
 	}
 	
 	public Buildable put(float a) {
-		ensureCapacity(fb.position()+1);
+		ensureSpace(1);
 		fb.put(a);
 		return this;
 	}
 	
 	public Buildable put(float a, float b) {
-		ensureCapacity(fb.position()+2);
+		ensureSpace(2);
 		fb.put(a).put(b);
 		return this;
 	}
 	
 	public Buildable put(float a, float b, float c) {
-		ensureCapacity(fb.position()+3);
+		ensureSpace(3);
 		fb.put(a).put(b).put(c);
 		return this;
 	}
 	
 	public Buildable put(float[] fs) {
-		ensureCapacity(fb.position()+fs.length);
+		ensureSpace(fs.length);
 		fb.put(fs);
 		return this;
 	}
@@ -48,21 +48,29 @@ public class Buildable {
 		fb.clear();
 	}
 
-	private void ensureCapacity(int required) {
-		int current=fb.capacity();
+	private void ensureSpace(int required) {
+		int current=fb.remaining();
 		if (current<required) {
-			int newCapacity=Math.max(required, 2*current);
-			fb=Utils.resizeBuffer(fb, newCapacity);
+			int pos=fb.position();
+			int newCapacity=Math.max(pos+required, 2*pos);
+			if (newCapacity>fb.capacity()) {
+				fb=Utils.resizeBuffer(fb, newCapacity);
+			} else {
+				System.out.println("Surprised no resize?");
+			}
 		}
 	}
 	
-	public int getTriangleCount() {
-		return fb.remaining()/(3*FLOATS_PER_VERTEX);
+	public int floatsPerTriangle() {
+		return 3*FLOATS_PER_VERTEX;
 	}
 
+	/**
+	 * Gets flipped buffer after building. Should clear afterwards.
+	 * @return Flipped vertex buffer
+	 */
 	public FloatBuffer getFlippedBuffer() {
-		fb.flip();
-		return fb;
+		return fb.flip();
 	}
 
 	public int strideInBytes() {

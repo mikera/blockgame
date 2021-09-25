@@ -63,5 +63,20 @@ public class Texture {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
  		
 	}
+	
+	// texture tile size
+	public static final float TD = 1.0f / 128;
+
+	
+	public static float tx(long texRef) {
+		return (texRef & 0xFF) * TD;
+	}
+	
+	public static float ty(long texRef) {
+		return ((texRef & 0xFF00) >> 8) * TD;
+	}
+	
+
+
 
 }

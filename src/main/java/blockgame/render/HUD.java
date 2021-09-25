@@ -34,10 +34,12 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20;
 
 import blockgame.engine.Engine;
+import blockgame.engine.Lib;
+import convex.core.data.ACell;
 
 public class HUD {
 
-	protected Engine engine;
+	protected final Engine engine;
 	private static int cursorVBO;
 	private static int toolsVBO;
 	
@@ -105,18 +107,60 @@ public class HUD {
 		Chunk.texture.bind();
 		
 		drawCursor();
-		drawTools(engine, width, height);
+		drawTools(width, height);
 
-		drawHUDText(engine, width, height);
+		drawHUDText(width, height);
 	}
 
 	
-
-	private void drawTools(Engine engine, int width, int height) {
+	private Buildable tools=Buildable.create(FLOATS_PER_VERTEX);
+	private void drawTools(int width, int height) {
+		tools.clear();
+		buildTools(width,height);
 		
+		FloatBuffer fb=tools.getFlippedBuffer();
+		int n=fb.remaining();
+		FloatBuffer vertexBuffer = memAllocFloat(n);
+		vertexBuffer.put(fb);
+		vertexBuffer.flip();
+		
+		// Copy native vertexbuffer to GL buffer
+		glBindBuffer(GL_ARRAY_BUFFER, toolsVBO);
+		glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STREAM_DRAW);
+		memFree(vertexBuffer);
+		
+		int stride=FLOATS_PER_VERTEX*4;
+		// define vertex format, must be after glBindBuffer
+		// position is location 0
+		glVertexAttribPointer(h_vs_inputPosition,3,GL_FLOAT,false,stride,0L); // Note: stride in bytes
+        glEnableVertexAttribArray(h_vs_inputPosition);
+        
+        // texture is location 1
+        glVertexAttribPointer(h_vs_texturePosition,2,GL_FLOAT,false,stride,12L); // Note: stride in bytes
+        glEnableVertexAttribArray(h_vs_texturePosition);
+ 
+		glDrawArrays(GL_TRIANGLES, 0, n/FLOATS_PER_VERTEX);
 	}
 
-	private void drawHUDText(Engine engine, int width, int height) {
+	private void buildTools(int w, int h) {
+		
+		int s=128;
+			
+		for (int i=1; i<=9; i++) {
+			ACell tool=engine.getTool(i);
+			int tx=Lib.getToolTexture(tool);
+			// tx=0x0202;
+			
+			float x=(i-5)*s*1.5f;
+			float y=(h/2)-(s*1.5f);
+			
+			addQuad(tools,x,y,s,tx);
+		}
+		
+		// addQuad(tools,0,0,64,0);
+	}
+
+	private void drawHUDText(int width, int height) {
 		StringBuilder ht=new StringBuilder();
 		ht.append("CONVEX Craft\n");
 		ht.append("Chunks Loaded: "+engine.chunks.size()+"\n");
@@ -188,14 +232,23 @@ public class HUD {
 	private static FloatBuffer buildCursor() {
 		float s=32f;
 		Buildable vb = Buildable.create(FLOATS_PER_VERTEX);
-		vb.put(-1*s,-1*s,0).put(7/128f,0/128f);
-		vb.put(1*s,-1*s,0).put(8/128f,0/128f);
-		vb.put(-1*s,1*s,0).put(7/128f,1/128f);
-		
-		vb.put(1*s,-1*s,0).put(8/128f,0/128f);
-		vb.put(-1*s,1*s,0).put(7/128f,1/128f);
-		vb.put(1*s,1*s,0).put(8/128f,1/128f);
+		addQuad(vb,-s,-s,s*2,0x0007);
 		return vb.getFlippedBuffer();
+	}
+	
+	private static void addQuad(Buildable builder,float x1, float y1, float size, int texture) {
+		float tx=Texture.tx(texture);
+		float ty=Texture.ty(texture);
+		float TD=Texture.TD;
+		
+		builder.put(x1,y1,0).put(tx,ty);
+		builder.put(x1+size,y1,0).put(tx+TD,ty);
+		builder.put(x1,y1+size,0).put(tx,ty+TD);
+		
+		builder.put(x1,y1+size,0).put(tx,ty+TD);
+		builder.put(x1+size,y1,0).put(tx+TD,ty);
+		builder.put(x1+size,y1+size,0).put(tx+TD,ty+TD);
+
 	}
 
 }

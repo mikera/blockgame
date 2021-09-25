@@ -221,8 +221,6 @@ public class Chunk {
 	// U, N, E, S, W, D
 	int[][] FACES = { { 7, 3, 1, 5 }, { 3, 7, 6, 2 }, { 1, 3, 2, 0 }, { 5, 1, 0, 4 }, { 7, 5, 4, 6 }, { 2, 6, 4, 0 } };
 
-	// texture tile size
-	float TD = 1.0f / 128;
 
 	public void addFace(Buildable geom, float bx, float by, float bz, int face, long texRef) {
 		int[] FACE = FACES[face];
@@ -232,8 +230,9 @@ public class Chunk {
 		float[] v2 = VERTS[FACE[2]]; // bottom right
 		float[] v3 = VERTS[FACE[3]]; // bottom left
 
-		float tx = (texRef & 0xFF) * TD;
-		float ty = ((texRef & 0xFF00) >> 8) * TD;
+		float tx=Texture.tx(texRef);
+		float ty=Texture.ty(texRef);
+		float TD=Texture.TD;
 
 		float[] normal = Face.NORMAL[face];
 

@@ -67,6 +67,14 @@ public class Utils {
 		newBuffer.put(buffer);
 		return newBuffer;
 	}
+	
+	public static FloatBuffer resizeBuffer(FloatBuffer vb, int newCapacity) {
+		if (vb.capacity()>=newCapacity) return vb;
+		FloatBuffer nb=FloatBuffer.allocate(newCapacity);
+		vb.flip();
+	    nb.put(vb);
+	    return nb;
+	}
 
 	public static ByteBuffer ioResourceToByteBuffer(String resource, int bufferSize) throws IOException {
 		ByteBuffer buffer;
@@ -104,12 +112,6 @@ public class Utils {
 		return buffer;
 	}
 
-	public static FloatBuffer resizeBuffer(FloatBuffer vb, int newCapacity) {
-		if (vb.capacity()>=newCapacity) return vb;
-		FloatBuffer nb=FloatBuffer.allocate(newCapacity);
-		  vb.flip();
-	      nb.put(vb);
-	      return nb;
-	}
+
 
 }
