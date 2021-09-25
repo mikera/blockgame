@@ -58,7 +58,8 @@ public class Config {
 	
 	public static boolean local=true;
 	
-	public static void init(boolean b) {
+	public static synchronized void init(boolean b) {
+		if (engine!=null) return;
 		engine=Engine.create();
 
 		local =b;

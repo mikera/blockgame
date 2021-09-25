@@ -11,8 +11,6 @@ import convex.core.data.Address;
 
 public class ConvexTest {
 
-	static Address USER_ADDRESS;
-
 	static {
 		Config.init(true);
 	}
@@ -23,7 +21,7 @@ public class ConvexTest {
 		Long bal = convex.getBalance(Config.PEER_ADDRESS);
 		assertTrue(bal > 0);
 
-		bal = convex.getBalance(USER_ADDRESS);
+		bal = convex.getBalance(convex.getAddress());
 		assertTrue(bal > 0);
 	}
 }
