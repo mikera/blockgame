@@ -64,7 +64,9 @@ public class Texture {
  		
 	}
 	
-	// texture tile size
+	/**
+	 * Texture tile size
+	 */
 	public static final float TD = 1.0f / 128;
 
 	

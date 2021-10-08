@@ -21,7 +21,7 @@ public class WorldGen {
 		//Convex convex=engine.getConvex();
 		//Result r=convex.transactSync(Invoke.create(convex.getAddress(), 0, Reader.read("(call "+Config.world+" (build-house))")));
 		//if (r.isError()) throw new Error(r.toString());
-		int GENRANGE=13;
+		int GENRANGE=8;
 		
 		for (int i=-GENRANGE; i<=GENRANGE; i++) {
 			for (int j=-GENRANGE; j<=GENRANGE; j++) {

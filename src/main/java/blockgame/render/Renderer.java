@@ -23,6 +23,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL20;
 
 import blockgame.Config;
 import blockgame.engine.Engine;
@@ -93,6 +94,7 @@ public class Renderer {
 		glDepthMask(true);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 		glViewport(0,0,width,height);
+		GL20.glFrontFace(GL20.GL_CW);
 		
 		Skybox.draw(width,height,heading,pitch);
 

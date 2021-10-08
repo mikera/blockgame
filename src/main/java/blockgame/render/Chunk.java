@@ -209,8 +209,8 @@ public class Chunk {
 			Vector3i fd = Face.DIR[face];
 
 			// Why does x need - ?? Error in lookup tables?
-			ACell facing = engine.getBlock(x - fd.x + position.x, y + fd.y + position.y, z + fd.z + position.z);
-			if (facing != null) {
+			int ft = transparency(x + fd.x + position.x, y + fd.y + position.y, z + fd.z + position.z);
+			if (ft==0) {
 				continue;
 			}
 			addFace(geom, x, y, z, face, tex.get(face).toLong());
@@ -222,7 +222,7 @@ public class Chunk {
 	private static final float[][] VERTS = { { 0, 0, 0 }, { 0, 0, 1 }, { 0, 1, 0 }, { 0, 1, 1 }, { 1, 0, 0 }, { 1, 0, 1 }, { 1, 1, 0 },
 			{ 1, 1, 1 } };
 	// U, N, E, S, W, D
-	private static final int[][] FACES = { { 7, 3, 1, 5 }, { 3, 7, 6, 2 }, { 1, 3, 2, 0 }, { 5, 1, 0, 4 }, { 7, 5, 4, 6 }, { 2, 6, 4, 0 } };
+	private static final int[][] FACES = { { 3,7,5,1 }, { 7,3,2,6 }, { 5,7,6,4 }, { 1,5,4,0 }, { 3,1,0,2 }, { 6,2,0,4 } };
 
 	private final float [] a0=new float[3];
 	private final float [] a1=new float[3];
@@ -238,7 +238,7 @@ public class Chunk {
 		Vector3i DIR = Face.DIR[face];
 		
 		// Set bx,by,bz to world position immediately facing location
-		bx+=-DIR.x+position.x;
+		bx+=DIR.x+position.x;
 		by+=DIR.y+position.y;
 		bz+=DIR.z+position.z;
 		
@@ -283,9 +283,10 @@ public class Chunk {
 		float[] v2 = VERTS[FACE[2]]; // bottom right
 		float[] v3 = VERTS[FACE[3]]; // bottom left
 
-		float tx=Texture.tx(texRef);
-		float ty=Texture.ty(texRef);
-		float TD=Texture.TD;
+		float tdelta=Texture.TD*0.0001f;
+		float tx=Texture.tx(texRef)+tdelta;
+		float ty=Texture.ty(texRef)+tdelta;
+		float TD=Texture.TD-tdelta*2;;
 
 		float[] normal = Face.NORMAL[face];
 		
