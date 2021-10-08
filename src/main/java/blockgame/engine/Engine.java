@@ -13,9 +13,11 @@ import blockgame.Deploy;
 import convex.api.Convex;
 import convex.core.Result;
 import convex.core.data.ACell;
+import convex.core.data.AMap;
 import convex.core.data.AVector;
 import convex.core.data.Address;
 import convex.core.data.Vectors;
+import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
 import convex.core.lang.Symbols;
 import convex.core.transactions.ATransaction;
@@ -66,11 +68,14 @@ public class Engine {
 				cmds.append("(call "+inv+" (set-stack "+player+" "+tool+" 99)) ");
 			}
 		}
-		cmds.append(")");
+		cmds.append(" (call "+inv+" (balance *address*)))");
 		Invoke trans=Invoke.create(player, 0, Reader.read(cmds.toString()));
 		Result r=convex.transactSync(trans);
 		if (r.isError()) throw new Error(r.toString());
+		invMap=r.getValue();
 	}
+	
+	private AMap<ACell,ACell> invMap;
 	
 	long chunkAddress(int bx, int by, int bz) {
 		return bx+ (by * 1048576l) + bz*1099511627776l;
@@ -399,8 +404,9 @@ public class Engine {
 	}
 
 	public int getToolQuantity(ACell tool) {
-		// TODO Auto-generated method stub
-		return 99;
+		ACell q= invMap.get(tool);
+		if (q==null) return 0;
+		return (int) ((CVMLong)q).longValue();
 	}
 
 
