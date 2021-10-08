@@ -374,7 +374,7 @@ public class Engine {
 	}
 
 	public void doScroll(int yoffset) {
-		setToolIndex(Maths.middle(tool+yoffset,1,9));
+		setToolIndex(Maths.middle(tool-yoffset,1,9));
 	}
 
 

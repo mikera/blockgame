@@ -79,9 +79,11 @@ public class Chunk {
 	static int c_fs_LightDirPosition;
 	static int c_vs_MVPosition;
 	static int c_vs_PPosition;
+	
+	static int c_vs_inputPosition;
 	static int c_vs_normalPosition;
 	static int c_vs_texturePosition;
-	static int c_vs_inputPosition;
+	static int c_vs_colourPosition;
 
 	private static int createProgram() throws IOException {
 		int program = glCreateProgram();
@@ -106,6 +108,7 @@ public class Chunk {
 		c_vs_inputPosition = glGetAttribLocation(program, "position");
 		c_vs_texturePosition = glGetAttribLocation(program, "texture");
 		c_vs_normalPosition = glGetAttribLocation(program, "normal");
+		c_vs_colourPosition = glGetAttribLocation(program, "vertex_colour");
 
 		c_vs_PPosition = glGetUniformLocation(program, "P");
 		c_vs_MVPosition = glGetUniformLocation(program, "MV");
@@ -139,7 +142,7 @@ public class Chunk {
 		rebuilding=true;
 	}
 
-	public static final int FLOATS_PER_VERTEX = 3 + 3 + 2; // position + texture + normal
+	public static final int FLOATS_PER_VERTEX = 3 + 3 + 2 + 3; // position + normal + texture + colour
 	public static final int VERTICES_PER_FACE = 6; // 2 triangles, 3 vertices each
 
 	private int createVBO() {
@@ -216,15 +219,65 @@ public class Chunk {
 
 	// North = +y East = +x
 	// x,y,z offsets
-	float[][] VERTS = { { 0, 0, 0 }, { 0, 0, 1 }, { 0, 1, 0 }, { 0, 1, 1 }, { 1, 0, 0 }, { 1, 0, 1 }, { 1, 1, 0 },
+	private static final float[][] VERTS = { { 0, 0, 0 }, { 0, 0, 1 }, { 0, 1, 0 }, { 0, 1, 1 }, { 1, 0, 0 }, { 1, 0, 1 }, { 1, 1, 0 },
 			{ 1, 1, 1 } };
 	// U, N, E, S, W, D
-	int[][] FACES = { { 7, 3, 1, 5 }, { 3, 7, 6, 2 }, { 1, 3, 2, 0 }, { 5, 1, 0, 4 }, { 7, 5, 4, 6 }, { 2, 6, 4, 0 } };
+	private static final int[][] FACES = { { 7, 3, 1, 5 }, { 3, 7, 6, 2 }, { 1, 3, 2, 0 }, { 5, 1, 0, 4 }, { 7, 5, 4, 6 }, { 2, 6, 4, 0 } };
 
-
-	public void addFace(Buildable geom, float bx, float by, float bz, int face, long texRef) {
+	private final float [] a0=new float[3];
+	private final float [] a1=new float[3];
+	private final float [] a2=new float[3];
+	private final float [] a3=new float[3];
+	
+	private void computeAmbients(int bx, int by, int bz, int face) {
 		int[] FACE = FACES[face];
-		// VErtices of face specified clockwise
+		// Vertices of face specified clockwise
+		float[] v0 = VERTS[FACE[0]]; // top left
+		float[] v1 = VERTS[FACE[1]]; // top right
+		float[] v3 = VERTS[FACE[3]]; // bottom left
+		Vector3i DIR = Face.DIR[face];
+		
+		// Set bx,by,bz to world position immediately facing location
+		bx+=-DIR.x+position.x;
+		by+=DIR.y+position.y;
+		bz+=DIR.z+position.z;
+		
+		// world direction for checks to left of face (v0 - v1)
+		int dx=Math.round(v0[0]-v1[0]);
+		int dy=Math.round(v0[1]-v1[1]);
+		int dz=Math.round(v0[2]-v1[2]);
+				
+		// world direction for checks to top of face (v0 - v3)
+		int ex=Math.round(v0[0]-v3[0]);
+		int ey=Math.round(v0[1]-v3[1]);
+		int ez=Math.round(v0[2]-v3[2]);
+			
+		int left=transparency(bx+dx,by+dy,bz+dz);
+		int right=transparency(bx-dx,by-dy,bz-dz);
+		int top=transparency(bx+ex,by+ey,bz+ez);
+		int bot=transparency(bx-ex,by-ey,bz-ez);
+		
+		computeAmbient(a0,left+top+((left+top)==0?0:transparency(bx+dx+ex,by+dy+ey,bz+dz+ez)));	
+		computeAmbient(a1,right+top+((right+top)==0?0:transparency(bx-dx+ex,by-dy+ey,bz-dz+ez)));	
+		computeAmbient(a2,right+bot+((right+bot)==0?0:transparency(bx-dx-ex,by-dy-ey,bz-dz-ez)));	
+		computeAmbient(a3,left+bot+((left+bot)==0?0:transparency(bx+dx-ex,by+dy-ey,bz+dz-ez)));	
+	}
+
+	private int transparency(int x, int y, int z) {
+		ACell b=engine.getBlock(x, y, z);
+		return (b==null)?1:0;
+	}
+
+	private void computeAmbient(float[] as, int x) {
+		float light=(x+1)*0.25f;
+		as[0]=light;
+		as[1]=light;
+		as[2]=light;
+	}
+
+	public void addFace(Buildable geom, int bx, int by, int bz, int face, long texRef) {
+		int[] FACE = FACES[face];
+		// Vertices of face specified clockwise
 		float[] v0 = VERTS[FACE[0]]; // top left
 		float[] v1 = VERTS[FACE[1]]; // top right
 		float[] v2 = VERTS[FACE[2]]; // bottom right
@@ -235,16 +288,25 @@ public class Chunk {
 		float TD=Texture.TD;
 
 		float[] normal = Face.NORMAL[face];
+		
+		computeAmbients(bx,by,bz,face);
 
 		// Vertices in square numbered clockwise 0,1,2,3
+		if (a0[1]+a2[1]<a1[1]+a3[1]) {
+			
+			
+		}
+	
 		// 0,1,3
-		geom.put(v0[0] + bx).put(v0[1] + by).put(v0[2] + bz).put(normal).put(tx).put(ty);
-		geom.put(v1[0] + bx).put(v1[1] + by).put(v1[2] + bz).put(normal).put(tx + TD).put(ty);
-		geom.put(v3[0] + bx).put(v3[1] + by).put(v3[2] + bz).put(normal).put(tx).put(ty + TD);
+		geom.put(v0[0] + bx,v0[1] + by,v0[2] + bz).put(normal).put(tx,ty).put(a0);
+		geom.put(v1[0] + bx,v1[1] + by,v1[2] + bz).put(normal).put(tx + TD,ty).put(a1);
+		geom.put(v3[0] + bx,v3[1] + by,v3[2] + bz).put(normal).put(tx,ty + TD).put(a3);
 		// 3,1,2
-		geom.put(v3[0] + bx).put(v3[1] + by).put(v3[2] + bz).put(normal).put(tx).put(ty + TD);
-		geom.put(v1[0] + bx).put(v1[1] + by).put(v1[2] + bz).put(normal).put(tx + TD).put(ty);
-		geom.put(v2[0] + bx).put(v2[1] + by).put(v2[2] + bz).put(normal).put(tx + TD).put(ty + TD);
+		geom.put(v3[0] + bx,v3[1] + by,v3[2] + bz).put(normal).put(tx,ty + TD).put(a3);
+		geom.put(v1[0] + bx,v1[1] + by,v1[2] + bz).put(normal).put(tx + TD,ty).put(a1);
+		geom.put(v2[0] + bx,v2[1] + by,v2[2] + bz).put(normal).put(tx + TD,ty + TD).put(a2);
+			
+
 	}
 
 	public int getVBO() {
@@ -291,6 +353,9 @@ public class Chunk {
 
 			glVertexAttribPointer(c_vs_texturePosition, 2, GL_FLOAT, false, stride, 24L); // Note: stride in bytes
 			glEnableVertexAttribArray(c_vs_texturePosition);
+
+			glVertexAttribPointer(c_vs_colourPosition, 3, GL_FLOAT, false, stride, 32L); // Note: stride in bytes
+			glEnableVertexAttribArray(c_vs_colourPosition);
 
 			glDrawArrays(GL_TRIANGLES, 0, getTriangleCount() * 3);
 		}

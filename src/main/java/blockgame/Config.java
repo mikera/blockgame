@@ -1,10 +1,7 @@
 package blockgame;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.concurrent.TimeoutException;
-
 import blockgame.engine.Engine;
 import blockgame.engine.WorldGen;
 import convex.api.Convex;

@@ -8,9 +8,9 @@
 
 
 layout (location = POSITION) in vec3 position;
-layout (location = TEXTURE) in vec2 texture;
 layout (location = NORMAL) in vec3 normal;
-layout (location = COLOUR) in vec4 vertex_colour;
+layout (location = TEXTURE) in vec2 texture;
+layout (location = COLOUR) in vec3 vertex_colour;
 
 out vec2 tex_coord;
 smooth out vec4 theColour;
@@ -25,7 +25,7 @@ void main()
     vec4 mvPos = MV * vec4(position, 1.0);
     
     gl_Position = P * mvPos;
-    theColour = vertex_colour;
+    theColour = vec4(vertex_colour,0);
     tex_coord = texture;
     mvVertexNormal = normalize(MV * vec4(normal, 0.0)).xyz;
     mvVertexPos = mvPos.xyz;

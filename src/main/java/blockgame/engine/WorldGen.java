@@ -21,11 +21,11 @@ public class WorldGen {
 		//Convex convex=engine.getConvex();
 		//Result r=convex.transactSync(Invoke.create(convex.getAddress(), 0, Reader.read("(call "+Config.world+" (build-house))")));
 		//if (r.isError()) throw new Error(r.toString());
-		int GENRANGE=8;
+		int GENRANGE=13;
 		
 		for (int i=-GENRANGE; i<=GENRANGE; i++) {
 			for (int j=-GENRANGE; j<=GENRANGE; j++) {
-				generateBlock(i,j);
+				generateArea(i,j);
 			}
 		}
 	}
@@ -61,10 +61,10 @@ public class WorldGen {
 
 	public int[] heights=new int[256];
 	
-	private void generateBlock(int i, int j) {
+	private void generateArea(int i, int j) {
 		int bx=i*16;
 		int by=j*16;
-		System.out.println("Generating Chunk: "+bx+","+by);
+		System.out.println("Generating Chunk Area: "+bx+","+by);
 		
 		int maxHeight=0;
 		for (int x=0; x<16; x++) {
@@ -75,14 +75,14 @@ public class WorldGen {
 			}
 		}
 		
-		decorateBlock(bx,by);
+		decorateArea(bx,by);
 		
 		for (int k=-16; k<maxHeight; k+=32) {
 			engine.uploadChunk(bx, by, k);
 		}
 	}
 
-	private void decorateBlock(int bx, int by) {
+	private void decorateArea(int bx, int by) {
 		int type=rint(60,bx,by,676969);
 		switch (type) {
 			case 1: case 2: case 3: {
