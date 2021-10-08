@@ -135,7 +135,6 @@ public class Chunk {
 			glDeleteBuffers(vbo);
 			vbo = createVBO();
 		}
-		;
 	}
 	
 	public void rebuild() {
@@ -283,7 +282,7 @@ public class Chunk {
 		float[] v2 = VERTS[FACE[2]]; // bottom right
 		float[] v3 = VERTS[FACE[3]]; // bottom left
 
-		float tdelta=Texture.TD*0.0001f;
+		float tdelta=Texture.TD*0.01f;
 		float tx=Texture.tx(texRef)+tdelta;
 		float ty=Texture.ty(texRef)+tdelta;
 		float TD=Texture.TD-tdelta*2;;
