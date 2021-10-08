@@ -12,16 +12,17 @@ import convex.core.util.Utils;
 public class Deploy {
 
 	public static Address world;
+	public static Address inventory;
 	
 	/**
 	 * Deploys the game work to a connected Convex network
 	 * @param convex Convex client instance, configured for world controller Account
-	 * @param addr 
 	 * @return Address of world actor
 	 */
 	public static Address doDeploy(Convex convex) {
 		try {
 			world=deployCode(convex,"convex/world.cvx");
+			// inventory=deployCode(convex,"convex/inventory.cvx");
 		} catch (Throwable t) {
 			Utils.sneakyThrow(t);
 		}
@@ -38,8 +39,8 @@ public class Deploy {
 			throw new Error(r.toString());
 		}
 		
-		Address worldAddress=r.getValue();
+		Address addr=r.getValue();
 		
-		return worldAddress;
+		return addr;
 	}
 }

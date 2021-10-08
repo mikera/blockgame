@@ -377,6 +377,11 @@ public class Engine {
 		setToolIndex(Maths.middle(tool-yoffset,1,9));
 	}
 
+	public int getToolQuantity(ACell tool) {
+		// TODO Auto-generated method stub
+		return 99;
+	}
+
 
 
 

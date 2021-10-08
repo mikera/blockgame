@@ -5,6 +5,8 @@
 
 (import convex.asset :as asset-lib)
 
+(def engine *controller*)
+
 (defn check-access
   []
   (or (= *caller* engine) (fail :TRUST "Access denied")))

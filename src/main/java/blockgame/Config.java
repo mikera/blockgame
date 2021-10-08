@@ -81,7 +81,8 @@ public class Config {
 
 					convex=Convex.connect(SERVER);
 					convex.setAddress(addr, kp);
-					world=Deploy.doDeploy(convex);
+					Deploy.doDeploy(convex);
+					world=Deploy.world;
 					
 					WorldGen.create(engine).generate();
 					

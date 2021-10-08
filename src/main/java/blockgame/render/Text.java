@@ -20,6 +20,7 @@ import blockgame.assets.Assets;
 public class Text {
 	
 	public static final int FLOATS_PER_VERTEX=3+2; // position + texture
+	public static final float SIZE = 32f;
 	static Buildable geom=Buildable.create(FLOATS_PER_VERTEX);
 
 	static Texture texture=Texture.createTexture(Assets.font);
@@ -78,7 +79,7 @@ public class Text {
 	}
 	
 	public static void addText(float x, float y,String s) {
-		float size=32f;
+		float size=SIZE;
 		String[] ss=s.split("\n");
 		int lines=ss.length;
 		for (int j=0; j<lines; j++) {
