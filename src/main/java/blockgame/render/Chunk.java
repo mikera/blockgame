@@ -292,21 +292,27 @@ public class Chunk {
 		computeAmbients(bx,by,bz,face);
 
 		// Vertices in square numbered clockwise 0,1,2,3
-		if (a0[1]+a2[1]<a1[1]+a3[1]) {
+		// Build geometry as triangles chosen to round off shadows
+		if (a0[1]+a2[1]>=a1[1]+a3[1]) {
+			// 0,1,2
+			geom.put(v0[0] + bx,v0[1] + by,v0[2] + bz).put(normal).put(tx,ty).put(a0);
+			geom.put(v1[0] + bx,v1[1] + by,v1[2] + bz).put(normal).put(tx + TD,ty).put(a1);
+			geom.put(v2[0] + bx,v2[1] + by,v2[2] + bz).put(normal).put(tx + TD,ty + TD).put(a2);
+			// 0,2,3
+			geom.put(v0[0] + bx,v0[1] + by,v0[2] + bz).put(normal).put(tx,ty).put(a0);
+			geom.put(v2[0] + bx,v2[1] + by,v2[2] + bz).put(normal).put(tx + TD,ty + TD).put(a2);
+			geom.put(v3[0] + bx,v3[1] + by,v3[2] + bz).put(normal).put(tx,ty + TD).put(a3);
 			
-			
+		} else {
+			// 0,1,3
+			geom.put(v0[0] + bx,v0[1] + by,v0[2] + bz).put(normal).put(tx,ty).put(a0);
+			geom.put(v1[0] + bx,v1[1] + by,v1[2] + bz).put(normal).put(tx + TD,ty).put(a1);
+			geom.put(v3[0] + bx,v3[1] + by,v3[2] + bz).put(normal).put(tx,ty + TD).put(a3);
+			// 3,1,2
+			geom.put(v3[0] + bx,v3[1] + by,v3[2] + bz).put(normal).put(tx,ty + TD).put(a3);
+			geom.put(v1[0] + bx,v1[1] + by,v1[2] + bz).put(normal).put(tx + TD,ty).put(a1);
+			geom.put(v2[0] + bx,v2[1] + by,v2[2] + bz).put(normal).put(tx + TD,ty + TD).put(a2);
 		}
-	
-		// 0,1,3
-		geom.put(v0[0] + bx,v0[1] + by,v0[2] + bz).put(normal).put(tx,ty).put(a0);
-		geom.put(v1[0] + bx,v1[1] + by,v1[2] + bz).put(normal).put(tx + TD,ty).put(a1);
-		geom.put(v3[0] + bx,v3[1] + by,v3[2] + bz).put(normal).put(tx,ty + TD).put(a3);
-		// 3,1,2
-		geom.put(v3[0] + bx,v3[1] + by,v3[2] + bz).put(normal).put(tx,ty + TD).put(a3);
-		geom.put(v1[0] + bx,v1[1] + by,v1[2] + bz).put(normal).put(tx + TD,ty).put(a1);
-		geom.put(v2[0] + bx,v2[1] + by,v2[2] + bz).put(normal).put(tx + TD,ty + TD).put(a2);
-			
-
 	}
 
 	public int getVBO() {
