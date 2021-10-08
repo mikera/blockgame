@@ -22,7 +22,7 @@
     (get-holding owner))
   
   ([owner item]
-    (get (get-holding owner) item))
+    (get (get-holding owner) item)))
   
 (defn set-stack
 
@@ -45,7 +45,7 @@
         ]
     (set-holding owner balance)))
 
-(def add-stack
+(defn add-stack
   ^{:callable? true
     :private?  true}
 

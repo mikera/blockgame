@@ -9,13 +9,16 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import blockgame.Config;
+import blockgame.Deploy;
 import convex.api.Convex;
 import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.data.AVector;
+import convex.core.data.Address;
 import convex.core.data.Vectors;
 import convex.core.lang.Reader;
 import convex.core.lang.Symbols;
+import convex.core.transactions.ATransaction;
 import convex.core.transactions.Invoke;
 import convex.core.util.Utils;
 import mikera.util.Maths;
@@ -49,6 +52,24 @@ public class Engine {
 	
 	public static Engine create() {
 		return new Engine();
+	}
+	
+	public void createPlayer() throws TimeoutException, IOException {
+		Convex convex=getConvex();
+		Address inv=Deploy.inventory;
+		Address player=convex.getAddress();
+		StringBuilder cmds=new StringBuilder();
+		cmds.append("(do ");
+		for (int i=1; i<=9; i++) {
+			ACell tool=getTool(i);
+			if (tool!=null) {
+				cmds.append("(call "+inv+" (set-stack "+player+" "+tool+" 99)) ");
+			}
+		}
+		cmds.append(")");
+		Invoke trans=Invoke.create(player, 0, Reader.read(cmds.toString()));
+		Result r=convex.transactSync(trans);
+		if (r.isError()) throw new Error(r.toString());
 	}
 	
 	long chunkAddress(int bx, int by, int bz) {

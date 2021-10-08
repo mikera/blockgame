@@ -22,7 +22,7 @@ public class Deploy {
 	public static Address doDeploy(Convex convex) {
 		try {
 			world=deployCode(convex,"convex/world.cvx");
-			// inventory=deployCode(convex,"convex/inventory.cvx");
+			inventory=deployCode(convex,"convex/inventory.cvx");
 		} catch (Throwable t) {
 			Utils.sneakyThrow(t);
 		}
@@ -34,7 +34,7 @@ public class Deploy {
 		Address god=convex.getAddress();
 		System.out.println("Deploying code with controller address: " +god);
 		
-		Result r=convex.transactSync(Invoke.create(god, 0, "(deploy `(do (set-controller "+god+") "+ code +"\n))"));
+		Result r=convex.transactSync(Invoke.create(god, 0, "(deploy `(do (def *controller* "+god+") (set-controller *controller*) "+ code +"\n))"));
 		if (r.isError()) {
 			throw new Error(r.toString());
 		}
@@ -43,4 +43,6 @@ public class Deploy {
 		
 		return addr;
 	}
+	
+
 }

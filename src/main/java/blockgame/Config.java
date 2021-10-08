@@ -72,23 +72,23 @@ public class Config {
 				config.put(Keywords.STATE, genesisState);
 				config.put(Keywords.KEYPAIR, LOCAL_KEYPAIRS[0]);
 				SERVER=API.launchPeer(config);
-				try {
-					PEER_CONVEX = Convex.connect(SERVER);
-					PEER_ADDRESS=Init.getGenesisAddress();
-					PEER_CONVEX.setAddress(PEER_ADDRESS, LOCAL_KEYPAIRS[0]);
-					Result r=PEER_CONVEX.transactSync(Invoke.create(PEER_ADDRESS, 0, Reader.read("(let [addr (create-account "+kp.getAccountKey()+")] (transfer addr 100000000000) addr)")));
-					addr=r.getValue();
 
-					convex=Convex.connect(SERVER);
-					convex.setAddress(addr, kp);
-					Deploy.doDeploy(convex);
-					world=Deploy.world;
-					
-					WorldGen.create(engine).generate();
-					
-				} catch (Throwable e) {
-					e.printStackTrace();
-				}
+				PEER_CONVEX = Convex.connect(SERVER);
+				PEER_ADDRESS=Init.getGenesisAddress();
+				PEER_CONVEX.setAddress(PEER_ADDRESS, LOCAL_KEYPAIRS[0]);
+				Result r=PEER_CONVEX.transactSync(Invoke.create(PEER_ADDRESS, 0, Reader.read("(let [addr (create-account "+kp.getAccountKey()+")] (transfer addr 100000000000) addr)")));
+				addr=r.getValue();
+
+				convex=Convex.connect(SERVER);
+				convex.setAddress(addr, kp);
+				Deploy.doDeploy(convex);
+				world=Deploy.world;
+				
+				WorldGen.create(engine).generate();
+				
+				engine.createPlayer();
+				System.out.println("Player created!");
+
 			} else {
 				STORE=(EtchStore) Stores.current();
 				
@@ -101,6 +101,7 @@ public class Config {
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
+			Utils.sneakyThrow(t);
 		}
 		
 		System.out.println("Config complete user="+addr +" world="+world+"");
