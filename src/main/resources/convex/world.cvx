@@ -1,4 +1,5 @@
 
+(def inventory nil)
 
 ;; TODO: convert to blob-map?
 (def chunks {})
