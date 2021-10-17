@@ -21,5 +21,5 @@ void main()
 	vec4 light = vec4(diffuseFactor*0.5 + 0.5*theColour,1.0);
 
     outputColour = texture2D(tex, tex_coord)*light;
-    // if ((outputColour.a)<=0.0) discard;
+    if ((outputColour.a)<=0.5) discard;
 }

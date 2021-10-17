@@ -20,7 +20,6 @@ import convex.core.data.Vectors;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
 import convex.core.lang.Symbols;
-import convex.core.transactions.ATransaction;
 import convex.core.transactions.Invoke;
 import convex.core.util.Utils;
 import mikera.util.Maths;

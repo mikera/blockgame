@@ -7,7 +7,6 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import convex.api.Convex;
-import convex.core.data.Address;
 
 public class ConvexTest {
 

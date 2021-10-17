@@ -39,6 +39,7 @@ import org.joml.Vector3i;
 import blockgame.assets.Assets;
 import blockgame.engine.Engine;
 import blockgame.engine.Face;
+import blockgame.engine.Lib;
 import blockgame.engine.Rand;
 import convex.core.data.ABlob;
 import convex.core.data.ACell;
@@ -200,10 +201,10 @@ public class Chunk {
 			}
 		}
 
-		AHashMap<Keyword, ACell> meta = (AHashMap<Keyword, ACell>) Assets.blockData.get(type);
+		AHashMap<Keyword, ACell> meta = (AHashMap<Keyword, ACell>) Lib.blockData.get(type);
 		if (meta == null)
-			meta = (AHashMap<Keyword, ACell>) Assets.blockData.get(CVMLong.ONE);
-		AVector<ABlob> tex = (AVector<ABlob>) meta.get(Assets.TEX_KEY);
+			meta = (AHashMap<Keyword, ACell>) Lib.blockData.get(CVMLong.ONE);
+		AVector<ABlob> tex = (AVector<ABlob>) meta.get(Lib.KEY_TEX);
 
 		for (int face = 0; face < 6; face++) {
 			Vector3i fd = Face.DIR[face];
@@ -275,7 +276,7 @@ public class Chunk {
 
 	private int transparency(int x, int y, int z) {
 		ACell b=engine.getBlock(x, y, z);
-		return (b==null)?1:0;
+		return Lib.isTransparent(b)?1:0;
 	}
 
 	private void computeAmbient(float[] as, int x) {

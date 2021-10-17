@@ -1,15 +1,41 @@
 package blockgame.engine;
 
-import blockgame.assets.Assets;
+import java.io.IOException;
+
 import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AHashMap;
+import convex.core.data.AString;
 import convex.core.data.AVector;
 import convex.core.data.Keyword;
+import convex.core.data.Keywords;
+import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.data.prim.CVMLong;
+import convex.core.lang.Reader;
+import convex.core.util.Utils;
 
 public class Lib {
+	public static final AHashMap<CVMLong,AHashMap<Keyword,ACell>> blockData;
+
+	public static final AHashMap<AString,CVMLong> namelookup;
+
+	static {
+		try {
+			blockData=Reader.read(Utils.readResourceAsString("lib/block-data.cvx"));
+			namelookup=blockData.reduceEntries((m,me)->{
+				AHashMap<Keyword,ACell> data=me.getValue();
+				m=m.assoc(data.get(Keywords.NAME),me.getKey());
+				return m;
+			}, Maps.empty());
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			throw Utils.sneakyThrow(e1);
+		}
+		
+	}
+	
 	public static final CVMLong AIR=null;
 	
 	public static final CVMLong GRASS=block("grass");
@@ -30,30 +56,35 @@ public class Lib {
 	public static final CVMLong STONE_BLOCK=CVMLong.create(60);
 	public static final CVMLong STONE_SLABS=CVMLong.create(61);
 	public static final CVMLong STONE_BRICKS=CVMLong.create(62);
+
 	
+	public static final Keyword KEY_TRANS=Keyword.create("trans");
+	public static final Keyword KEY_TEX = Keyword.create("tex");
+
 	public static final CVMLong WATER=CVMLong.create(4);
-
-
 	
 	public static final CVMLong BOULDER=STONE_BLOCK;
-
-
-
+	
 	private static CVMLong block(String string) {
-		return Assets.namelookup.get(Strings.create(string));
+		return Lib.namelookup.get(Strings.create(string));
 	}
-
-
 
 	@SuppressWarnings("unchecked")
 	public static int getToolTexture(ACell type) {
-		AHashMap<Keyword, ACell> meta = (AHashMap<Keyword, ACell>) Assets.blockData.get(type);
+		AHashMap<Keyword, ACell> meta = (AHashMap<Keyword, ACell>) blockData.get(type);
 		if (meta==null) return 0;
-		AVector<ABlob> tex = (AVector<ABlob>) meta.get(Assets.TEX_KEY);
+		AVector<ABlob> tex = (AVector<ABlob>) meta.get(Lib.KEY_TEX);
 		if (tex==null) return 0;
 		
 		return (int) tex.get(1).toLong();
 	}
+
+	public static boolean isTransparent(ACell block) {
+		if (block==null) return true;
+		return blockData.get(block).get(KEY_TRANS)!=null;
+	}
+
+
 
 
 }
