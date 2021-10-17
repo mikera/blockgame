@@ -142,6 +142,11 @@ public class HUD {
 		glDrawArrays(GL_TRIANGLES, 0, n/FLOATS_PER_VERTEX);
 	}
 
+	/**
+	 * Display for tools at the bottom of screen
+	 * @param w Screen width
+	 * @param h Screen height
+	 */
 	private void buildTools(int w, int h) {
 		
 		int s=128;

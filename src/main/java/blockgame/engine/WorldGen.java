@@ -30,35 +30,6 @@ public class WorldGen {
 		}
 	}
 	
-	public long xorshift64(long x) {
-		x ^= x << 13;
-		x ^= x >> 7;
-		x ^= x << 17;
-		return x;
-	}
-	
-	public int rint(int max, long seedx) {
-		long x=76756;
-		x=xorshift64(x^seedx);
-		return Math.floorMod((int)xorshift64(x),max);
-	}
-	
-	public int rint(int max, long seedx, long seedy) {
-		long x=seedx*17+seedy;
-		x=xorshift64(x^seedx);
-		x=xorshift64(x^seedy);
-		return Math.floorMod((int)xorshift64(x),max);
-	}
-
-	public int rint(int max, long seedx, long seedy, long seedz) {
-		long x=seedx*5787591+seedy*19+seedz;
-		x=xorshift64(x^seedx);
-		x=xorshift64(x^seedy);
-		x=xorshift64(x^seedz);
-		return Math.floorMod((int)xorshift64(x),max);
-	}
-
-
 	public int[] heights=new int[256];
 	
 	private void generateArea(int i, int j) {
@@ -83,10 +54,10 @@ public class WorldGen {
 	}
 
 	private void decorateArea(int bx, int by) {
-		int type=rint(60,bx,by,676969);
+		int type=Rand.rint(60,bx,by,676969);
 		switch (type) {
 			case 1: case 2: case 3: {
-				int num=1+rint(4,bx,by,546546)+(rint(3,bx,by,464)*rint(4,bx,by,6546));
+				int num=1+Rand.rint(4,bx,by,546546)+(Rand.rint(3,bx,by,464)*Rand.rint(4,bx,by,6546));
 				generateTrees(num,bx, by);
 				break;
 			}
@@ -115,8 +86,8 @@ public class WorldGen {
 
 	private void generateTrees(int num, int bx, int by) {
 		for (int i=0; i<num; i++) {
-			int ox=1+rint(14,bx,by,678+i*56);
-			int oy=1+rint(14,bx,by,5641564+i*456);
+			int ox=1+Rand.rint(14,bx,by,678+i*56);
+			int oy=1+Rand.rint(14,bx,by,5641564+i*456);
 			int h=heights[oy*16+ox];
 			if (h>1) {
 				generateTree(bx+ox,by+oy,h);
@@ -131,7 +102,7 @@ public class WorldGen {
 				int x=bx+ox;
 				int y=by+oy;
 				
-				int c=rint(50,x,y,595); // average ~5 rocks
+				int c=Rand.rint(50,x,y,595); // average ~5 rocks
 				if (c==0) {
 					engine.setBlockLocal(x, y, h, Lib.BOULDER);
 				}
@@ -140,7 +111,7 @@ public class WorldGen {
 	}
 	
 	private void generateBushes(int bx, int by) {
-		int sparseness=10+rint(100,bx,by,54676);
+		int sparseness=10+Rand.rint(100,bx,by,54676);
 		for (int ox=0; ox<16; ox++) {
 			for (int oy=0; oy<16; oy++) {
 				int h=heights[oy*16+ox];
@@ -149,7 +120,7 @@ public class WorldGen {
 				int y=by+oy;
 				
 				
-				int c=rint(sparseness,x,y,595); 
+				int c=Rand.rint(sparseness,x,y,595); 
 				if (c==0) {
 					engine.setBlockLocal(x, y, h, Lib.LEAVES);
 				}
@@ -160,10 +131,10 @@ public class WorldGen {
 	private static ACell[] ruinBlocks= new ACell[]{Lib.STONE_BLOCK,Lib.STONE, Lib.STONE_SLABS};
 	private void generateRuin(int bx, int by) {
 		if (heights[8*16+8]<=0) return; // skip if no land
- 		int size=2+rint(3,bx,by,456663);
-		int xsize=size+rint(3,bx,by,67868); 
-		int ysize=size+rint(3,bx,by,453);
-		if (rint(3,bx,by,54475)==0) generateRocks(bx,by);
+ 		int size=2+Rand.rint(3,bx,by,456663);
+		int xsize=size+Rand.rint(3,bx,by,67868); 
+		int ysize=size+Rand.rint(3,bx,by,453);
+		if (Rand.rint(3,bx,by,54475)==0) generateRocks(bx,by);
 		for (int ox=0; ox<16; ox++) {
 			for (int oy=0; oy<16; oy++) {
 				if (!((Math.abs(ox-8)==xsize)||(Math.abs(oy-8)==ysize))) continue;
@@ -175,7 +146,7 @@ public class WorldGen {
 				int ht=Math.max(0, (int)(plasma(x,y,8,5695)*6.0+3));
 				
 				for (int z=h; z<h+ht; z++) {
-					ACell blk=ruinBlocks[rint(ruinBlocks.length,x,y,z)];
+					ACell blk=ruinBlocks[Rand.rint(ruinBlocks.length,x,y,z)];
 					engine.setBlockLocal(x, y, z, blk);
 				}
 			}
@@ -183,7 +154,7 @@ public class WorldGen {
 	}
 
 	private void generateTree(int x, int y, int h) {
-		int ht=3+rint(5,x,y,h);
+		int ht=3+Rand.rint(5,x,y,h);
 		engine.fillBlocks(x-1,y-1,h+ht-1,x+1,y+1,h+ht+1,Lib.LEAVES);
 		engine.fillBlocks(x,y,h,x,y,h+ht,Lib.LOG);
 		engine.setBlockLocal(x,y,h+ht+2,Lib.LEAVES);
@@ -214,7 +185,7 @@ public class WorldGen {
 	private static ACell[] rockLayers=new ACell[] {Lib.STONE,Lib.STONE,Lib.STONE, Lib.STONE, Lib.STONE, Lib.STONE, Lib.CHALK, Lib.CHALK, Lib.GRANITE};
 	private void fillRock(int x, int y, int h) {
 		for (int z=-16; z<=h; z++) {
-			int type=rint(rockLayers.length,z);
+			int type=Rand.rint(rockLayers.length,z);
 			
 			engine.setBlockLocal(x,y,z,rockLayers[type]);
 		}

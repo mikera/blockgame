@@ -39,6 +39,7 @@ import org.joml.Vector3i;
 import blockgame.assets.Assets;
 import blockgame.engine.Engine;
 import blockgame.engine.Face;
+import blockgame.engine.Rand;
 import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AHashMap;
@@ -223,6 +224,7 @@ public class Chunk {
 	// U, N, E, S, W, D
 	private static final int[][] FACES = { { 3,7,5,1 }, { 7,3,2,6 }, { 5,7,6,4 }, { 1,5,4,0 }, { 3,1,0,2 }, { 6,2,0,4 } };
 
+	// ambient lighting for the 4 vertices of a visible block face
 	private final float [] a0=new float[3];
 	private final float [] a1=new float[3];
 	private final float [] a2=new float[3];
@@ -260,6 +262,15 @@ public class Chunk {
 		computeAmbient(a1,right+top+((right+top)==0?0:transparency(bx-dx+ex,by-dy+ey,bz-dz+ez)));	
 		computeAmbient(a2,right+bot+((right+bot)==0?0:transparency(bx-dx-ex,by-dy-ey,bz-dz-ez)));	
 		computeAmbient(a3,left+bot+((left+bot)==0?0:transparency(bx+dx-ex,by+dy-ey,bz+dz-ez)));	
+
+		float diff=0.15f;
+		float dr=(0.5f+Rand.rint(100, bx, by, bz)/100.f)*diff;
+		float dg=(0.5f+Rand.rint(100, bx, by, bz)/100.f)*diff;
+		float db=(0.5f+Rand.rint(100, bx, by, bz)/100.f)*diff;
+		a0[0]+=dr; a0[1]+=dg; a0[2]+=db;
+		a1[0]+=dr; a1[1]+=dg; a1[2]+=db;
+		a2[0]+=dr; a2[1]+=dg; a2[2]+=db;
+		a3[0]+=dr; a3[1]+=dg; a3[2]+=db;
 	}
 
 	private int transparency(int x, int y, int z) {
@@ -282,10 +293,10 @@ public class Chunk {
 		float[] v2 = VERTS[FACE[2]]; // bottom right
 		float[] v3 = VERTS[FACE[3]]; // bottom left
 
-		float tdelta=Texture.TD*0.01f;
+		float tdelta=Texture.TD*0.02f;
 		float tx=Texture.tx(texRef)+tdelta;
 		float ty=Texture.ty(texRef)+tdelta;
-		float TD=Texture.TD-tdelta*2;;
+		float TD=Texture.TD-(tdelta*2);
 
 		float[] normal = Face.NORMAL[face];
 		

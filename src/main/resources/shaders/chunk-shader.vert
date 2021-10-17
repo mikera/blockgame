@@ -13,7 +13,7 @@ layout (location = TEXTURE) in vec2 texture;
 layout (location = COLOUR) in vec3 vertex_colour;
 
 out vec2 tex_coord;
-smooth out vec4 theColour;
+smooth out vec3 theColour;
 out vec3 mvVertexNormal;
 out vec3 mvVertexPos;
 
@@ -25,7 +25,7 @@ void main()
     vec4 mvPos = MV * vec4(position, 1.0);
     
     gl_Position = P * mvPos;
-    theColour = vec4(vertex_colour,0);
+    theColour = vertex_colour;
     tex_coord = texture;
     mvVertexNormal = normalize(MV * vec4(normal, 0.0)).xyz;
     mvVertexPos = mvPos.xyz;
