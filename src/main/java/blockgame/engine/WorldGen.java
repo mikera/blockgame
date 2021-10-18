@@ -81,6 +81,12 @@ public class WorldGen {
 				generateBushes(bx, by);
 				break;
 			}
+			
+			case 11: {
+				generateMushrooms(bx, by);
+				break;
+			}
+
 		}
 	}
 
@@ -105,6 +111,23 @@ public class WorldGen {
 				int c=Rand.rint(50,x,y,595); // average ~5 rocks
 				if (c==0) {
 					engine.setBlockLocal(x, y, h, Lib.BOULDER);
+				}
+			}
+		}
+	}
+	
+	ACell[] MUSHROOMS=new ACell[] {Lib.PURPLE_MUSHROOM,Lib.RED_MUSHROOM,Lib.GREY_MUSHROOM,Lib.GREY_MUSHROOM, Lib.GREY_MUSHROOM};
+	private void generateMushrooms(int bx, int by) {
+		ACell type=MUSHROOMS[Rand.rint(MUSHROOMS.length, bx,by,7897)];
+		for (int ox=0; ox<16; ox++) {
+			for (int oy=0; oy<16; oy++) {
+				int h=heights[oy*16+ox];
+				int x=bx+ox;
+				int y=by+oy;
+				
+				int c=Rand.rint(50,x,y,595); // average ~5 shrooms
+				if (c==0) {
+					engine.setBlockLocal(x, y, h, type);
 				}
 			}
 		}
@@ -173,11 +196,28 @@ public class WorldGen {
 		
 		fillRock(x, y, ht-1);
 		if (ht>0) {
-			if (top!=null) engine.setBlockLocal(x, y, ht-1, top);	
+			if (top!=null) {
+				engine.setBlockLocal(x, y, ht-1, top);	
+				if (top==Lib.GRASS) {
+					double gzone=Math.max(0.0,snoise(x, y, 130, 6876987));
+					if (gzone>0) {
+						int grassiness=(int)(1000.0/(gzone*100));
+						int gtop=Rand.rint(grassiness, x, y, 568565);
+						switch (gtop) {
+						case 0: engine.setBlockLocal(x, y, ht, Lib.MEDIUM_GRASS); break;
+						case 1: engine.setBlockLocal(x, y, ht, Lib.SHORT_GRASS); break;
+						default:
+							// nothing
+						}
+					}
+				}
+				
+			}
 		} else if (ht<0) {
-			engine.fillBlocks(x, y, ht, x, y, -1, CVMLong.create(11)); // water
+			engine.fillBlocks(x, y, ht, x, y, -1, Lib.WATER); // water
 		} else {
-			engine.setBlockLocal(x, y, ht-1, (height<0)?CVMLong.create(11):CVMLong.create(15));	
+			ACell top=(height<0)?Lib.WATER:Lib.SAND;
+			engine.setBlockLocal(x, y, ht-1, top);	
 		}
 		return Math.max(0, ht);
 	}

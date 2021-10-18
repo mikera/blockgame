@@ -34,6 +34,8 @@ import static org.lwjgl.system.MemoryUtil.memFree;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 
+import org.bouncycastle.util.Arrays;
+import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import blockgame.assets.Assets;
@@ -191,7 +193,6 @@ public class Chunk {
 		return geom.getFlippedBuffer();
 	}
 
-	@SuppressWarnings("unchecked")
 	private void addBlock(Buildable geom, int x, int y, int z, ACell type) {
 		// Destructure compound block
 		if (type instanceof AVector) {
@@ -200,10 +201,79 @@ public class Chunk {
 				type = v.get(0);
 			}
 		}
-
 		AHashMap<Keyword, ACell> meta = (AHashMap<Keyword, ACell>) Lib.blockData.get(type);
 		if (meta == null)
-			meta = (AHashMap<Keyword, ACell>) Lib.blockData.get(CVMLong.ONE);
+			meta = (AHashMap<Keyword, ACell>) Lib.blockData.get(Lib.GRASS);
+		ACell model=meta.get(Lib.KEY_MODEL);
+		if (model==null) {
+			addStandardBlock(geom,x,y,z,meta);
+		} else {
+			int mod=(int)((CVMLong)model).longValue();
+			switch (mod) {
+			case 1:
+				addCrossBillboard(geom,x,y,z,meta);
+				break;
+			default: 
+				addStandardBlock(geom,x,y,z,meta);
+			}
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void addCrossBillboard(Buildable geom, int x, int y, int z, AHashMap<Keyword, ACell> meta) {
+		AVector<ABlob> tex = (AVector<ABlob>) meta.get(Lib.KEY_TEX);
+
+		Utils.fill(a0,1.0f);
+		addBillboardPlane(1,7,6,0,x,y,z,tex.get(0));
+		addBillboardPlane(3,5,4,2,x,y,z,tex.get(0));
+	}
+	
+	float[] bnormal=new float[3];
+	Vector3f bnm=new Vector3f();
+	Vector3f bnm2=new Vector3f();
+	private void addBillboardPlane(int i0, int i1, int i2, int i3, int x, int y, int z, ABlob tex) {
+		long texRef=tex.toLong();
+		float tdelta=Texture.TD*0.02f;
+		float tx=Texture.tx(texRef)+tdelta;
+		float ty=Texture.ty(texRef)+tdelta;
+		float TD=Texture.TD-(tdelta*2);
+
+		float[] v0=VERTS[i0];
+		float[] v1=VERTS[i1];
+		float[] v2=VERTS[i2];
+		float[] v3=VERTS[i3];
+		computeNormal(v0,v1,v2);
+		geom.put(v0[0] + x,v0[1] + y,v0[2] + z).put(bnormal).put(tx,ty).put(a0);
+		geom.put(v1[0] + x,v1[1] + y,v1[2] + z).put(bnormal).put(tx+TD,ty).put(a0);
+		geom.put(v2[0] + x,v2[1] + y,v2[2] + z).put(bnormal).put(tx + TD,ty + TD).put(a0);
+		geom.put(v2[0] + x,v2[1] + y,v2[2] + z).put(bnormal).put(tx + TD,ty + TD).put(a0);
+		geom.put(v3[0] + x,v3[1] + y,v3[2] + z).put(bnormal).put(tx,ty+TD).put(a0);
+		geom.put(v0[0] + x,v0[1] + y,v0[2] + z).put(bnormal).put(tx,ty).put(a0);
+		Utils.negate(bnormal);
+		geom.put(v0[0] + x,v0[1] + y,v0[2] + z).put(bnormal).put(tx,ty).put(a0);
+		geom.put(v2[0] + x,v2[1] + y,v2[2] + z).put(bnormal).put(tx + TD,ty + TD).put(a0);
+		geom.put(v1[0] + x,v1[1] + y,v1[2] + z).put(bnormal).put(tx+TD,ty).put(a0);
+		geom.put(v2[0] + x,v2[1] + y,v2[2] + z).put(bnormal).put(tx + TD,ty + TD).put(a0);
+		geom.put(v0[0] + x,v0[1] + y,v0[2] + z).put(bnormal).put(tx,ty).put(a0);
+		geom.put(v3[0] + x,v3[1] + y,v3[2] + z).put(bnormal).put(tx,ty+TD).put(a0);
+
+	}
+
+	private void computeNormal(float[] v0, float[] v1, float[] v2) {
+		bnm.set(v1);
+		bnm.sub(v0[0],v0[1],v0[2]);
+		bnm2.set(v2);
+		bnm2.sub(v0[0],v0[1],v0[2]);
+		bnm.cross(bnm2);
+		bnm.normalize();
+		bnormal[0]=bnm.x;
+		bnormal[1]=bnm.y;
+		bnormal[2]=bnm.z;
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	private void addStandardBlock(Buildable geom, int x, int y, int z, AHashMap<Keyword, ACell> meta) {
 		AVector<ABlob> tex = (AVector<ABlob>) meta.get(Lib.KEY_TEX);
 
 		for (int face = 0; face < 6; face++) {

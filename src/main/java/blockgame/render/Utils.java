@@ -112,6 +112,18 @@ public class Utils {
 		return buffer;
 	}
 
+	public static void fill(float[] a, float f) {
+		for (int i=0; i<a.length; i++) {
+			a[i]=f;
+		}
+	}
+
+	public static void negate(float[] a) {
+		for (int i=0; i<a.length; i++) {
+			a[i]=-a[i];
+		}
+	}
+
 
 
 }

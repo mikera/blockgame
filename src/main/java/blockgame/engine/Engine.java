@@ -354,7 +354,7 @@ public class Engine {
 		return toolBar[i];
 	}
 	
-	private ACell[] toolBar= new ACell[]{null,Lib.GRASS,Lib.DIRT,Lib.STONE,Lib.STONE_BRICKS, Lib.BOULDER,Lib.LOG, Lib.LEAVES,Lib.WATER,Lib.GRANITE};
+	private ACell[] toolBar= new ACell[]{null,Lib.GRASS,Lib.DIRT,Lib.STONE,Lib.STONE_BRICKS, Lib.BOULDER,Lib.LOG, Lib.LEAVES,Lib.RED_MUSHROOM,Lib.MEDIUM_GRASS};
 
 	/**
 	 * Gets the currently selected placeable block value, or null if cannot place

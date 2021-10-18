@@ -86,5 +86,30 @@
  83 {:name "basalt"
     :tex [0x0d03 0x0d03 0x0d03 0x0d03 0x0d03 0x0d03]}
  
+ 200 {:name "purple mushroom"
+    :tex [0x1200]
+    :trans true
+    :model 1}
+ 
+ 201 {:name "red mushroom"
+    :tex [0x1201]
+    :trans true
+    :model 1}
+  
+  202 {:name "grey mushroom"
+    :tex [0x1202]
+    :trans true
+    :model 1}
+  
+  300 {:name "medium grass"
+    :tex [0x1300]
+    :trans true
+    :model 1}
+
+  301 {:name "short grass"
+    :tex [0x1301]
+    :trans true
+    :model 1}
+ 
 
  }

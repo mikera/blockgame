@@ -40,11 +40,22 @@ public class Lib {
 	
 	public static final CVMLong GRASS=block("grass");
 	public static final CVMLong DIRT=block("dirt");
+	public static final CVMLong SAND=block("sand");
+	public static final CVMLong WATER=block("water");
+
 	
 	public static final CVMLong CHALK=block("chalk");
 	public static final CVMLong STONE=block("stone");
 	public static final CVMLong GRANITE=block("granite");
 	public static final CVMLong BASALT=block("basalt");
+	
+	public static final CVMLong PURPLE_MUSHROOM=block("purple mushroom");
+	public static final CVMLong RED_MUSHROOM=block("red mushroom");
+	public static final CVMLong GREY_MUSHROOM=block("grey mushroom");
+
+	public static final CVMLong MEDIUM_GRASS=block("medium grass");
+	public static final CVMLong SHORT_GRASS=block("short grass");
+
 	
 	public static final CVMLong LOG=CVMLong.create(20);
 	public static final CVMLong LEAVES=CVMLong.create(4);
@@ -60,8 +71,8 @@ public class Lib {
 	
 	public static final Keyword KEY_TRANS=Keyword.create("trans");
 	public static final Keyword KEY_TEX = Keyword.create("tex");
+	public static final Keyword KEY_MODEL = Keyword.create("model");
 
-	public static final CVMLong WATER=CVMLong.create(4);
 	
 	public static final CVMLong BOULDER=STONE_BLOCK;
 	
@@ -75,8 +86,8 @@ public class Lib {
 		if (meta==null) return 0;
 		AVector<ABlob> tex = (AVector<ABlob>) meta.get(Lib.KEY_TEX);
 		if (tex==null) return 0;
-		
-		return (int) tex.get(1).toLong();
+		long c=tex.count();
+		return (int) tex.get((c>1)?1:0).toLong();
 	}
 
 	public static boolean isTransparent(ACell block) {
