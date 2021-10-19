@@ -2,6 +2,7 @@ package blockgame.engine;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 
 import convex.core.data.ACell;
 import convex.core.data.prim.CVMLong;
@@ -68,7 +69,7 @@ public class WorldGen {
 			}
 			
 			case 7: case 8: {
-				generateRocks(bx, by);
+				generateScattered(bx, by,0.02,Lib.BOULDER);
 				break;
 			}
 			
@@ -86,6 +87,18 @@ public class WorldGen {
 				generateMushrooms(bx, by);
 				break;
 			}
+			
+			case 12: {
+				generateScattered(bx, by,0.02,Lib.DEAD_BUSH,Lib.PRED_GROWABLE);
+				break;
+			}
+
+			case 13: {
+				generateScattered(bx, by,0.02,Lib.GREEN_BUSH,Lib.PRED_GROWABLE);
+				generateTrees(1,bx, by);
+				break;
+			}
+
 
 		}
 	}
@@ -101,16 +114,30 @@ public class WorldGen {
 		}
 	}
 	
-	private void generateRocks(int bx, int by) {
+	/**
+	 * Generate scattered blocks in chunk at surface level
+	 * @param bx
+	 * @param by
+	 * @param freq
+	 * @param type
+	 */
+	private void generateScattered(int bx, int by, double freq, ACell type) {
+		generateScattered(bx,by,freq,type,null);
+	}
+	
+	private void generateScattered(int bx, int by, double freq, ACell type, Predicate<ACell> topTest) {
+		int chances=(int)(1.0/freq);
 		for (int ox=0; ox<16; ox++) {
 			for (int oy=0; oy<16; oy++) {
 				int h=heights[oy*16+ox];
 				int x=bx+ox;
 				int y=by+oy;
 				
-				int c=Rand.rint(50,x,y,595); // average ~5 rocks
+				int c=Rand.rint(chances,x,y,595+chances);
 				if (c==0) {
-					engine.setBlockLocal(x, y, h, Lib.BOULDER);
+					if ((topTest==null)||(topTest.test(engine.getBlock(x, y, h-1)))) {
+						engine.setBlockLocal(x, y, h, type);
+					}
 				}
 			}
 		}
@@ -119,18 +146,7 @@ public class WorldGen {
 	ACell[] MUSHROOMS=new ACell[] {Lib.PURPLE_MUSHROOM,Lib.RED_MUSHROOM,Lib.GREY_MUSHROOM,Lib.GREY_MUSHROOM, Lib.GREY_MUSHROOM};
 	private void generateMushrooms(int bx, int by) {
 		ACell type=MUSHROOMS[Rand.rint(MUSHROOMS.length, bx,by,7897)];
-		for (int ox=0; ox<16; ox++) {
-			for (int oy=0; oy<16; oy++) {
-				int h=heights[oy*16+ox];
-				int x=bx+ox;
-				int y=by+oy;
-				
-				int c=Rand.rint(50,x,y,595); // average ~5 shrooms
-				if (c==0) {
-					engine.setBlockLocal(x, y, h, type);
-				}
-			}
-		}
+		generateScattered(bx,by,0.02,type,Lib.PRED_GROWABLE);
 	}
 	
 	private void generateBushes(int bx, int by) {
@@ -157,7 +173,7 @@ public class WorldGen {
  		int size=2+Rand.rint(3,bx,by,456663);
 		int xsize=size+Rand.rint(3,bx,by,67868); 
 		int ysize=size+Rand.rint(3,bx,by,453);
-		if (Rand.rint(3,bx,by,54475)==0) generateRocks(bx,by);
+		if (Rand.rint(3,bx,by,54475)==0) generateScattered(bx,by,0.02,Lib.BOULDER);
 		for (int ox=0; ox<16; ox++) {
 			for (int oy=0; oy<16; oy++) {
 				if (!((Math.abs(ox-8)==xsize)||(Math.abs(oy-8)==ysize))) continue;
@@ -199,9 +215,9 @@ public class WorldGen {
 			if (top!=null) {
 				engine.setBlockLocal(x, y, ht-1, top);	
 				if (top==Lib.GRASS) {
-					double gzone=Math.max(0.0,snoise(x, y, 130, 6876987));
+					double gzone=Math.max(0.0,snoise(x, y, 130, 6876987)-0.1);
 					if (gzone>0) {
-						int grassiness=(int)(1000.0/(gzone*100));
+						int grassiness=(int)(1000.0/(gzone*50));
 						int gtop=Rand.rint(grassiness, x, y, 568565);
 						switch (gtop) {
 						case 0: engine.setBlockLocal(x, y, ht, Lib.MEDIUM_GRASS); break;

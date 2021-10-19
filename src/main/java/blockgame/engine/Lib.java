@@ -1,6 +1,7 @@
 package blockgame.engine;
 
 import java.io.IOException;
+import java.util.function.Predicate;
 
 import convex.core.data.ABlob;
 import convex.core.data.ACell;
@@ -55,6 +56,8 @@ public class Lib {
 
 	public static final CVMLong MEDIUM_GRASS=block("medium grass");
 	public static final CVMLong SHORT_GRASS=block("short grass");
+	public static final CVMLong DEAD_BUSH=block("dead bush");
+	public static final CVMLong GREEN_BUSH=block("green bush");
 
 	
 	public static final CVMLong LOG=CVMLong.create(20);
@@ -75,6 +78,13 @@ public class Lib {
 
 	
 	public static final CVMLong BOULDER=STONE_BLOCK;
+
+	public static final Predicate<ACell> PRED_GROWABLE = new Predicate<ACell>() {
+		@Override
+		public boolean test(ACell t) {
+			return t.equals(GRASS);
+		}	
+	};
 	
 	private static CVMLong block(String string) {
 		return Lib.namelookup.get(Strings.create(string));

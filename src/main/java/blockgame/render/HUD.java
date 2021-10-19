@@ -161,7 +161,7 @@ public class HUD {
 			float x=(i-5)*(s+b*2);
 			float y=(h/2)-(s+b*2);
 			
-			addQuad(tools,x-b,y-b,s+2*b,(i==selected)?0x0204:0x0a00);
+			addQuad(tools,x-b,y-b,s+2*b,(i==selected)?0x1401:0x1400);
 			
 			int quant=engine.getToolQuantity(tool);
 			if (quant>0) {

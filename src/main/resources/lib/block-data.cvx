@@ -11,7 +11,8 @@
     :tex [0x0703 0x0703 0x0703 0x0703 0x0703 0x0703]}
  
  4 {:name "leaves"
-    :tex [0x0404 0x0404 0x0404 0x0404 0x0404 0x0404]}
+    :tex [0x0404 0x0404 0x0404 0x0404 0x0404 0x0404]
+    :trans true}
 
  
  10 {:name "orange"
@@ -108,6 +109,16 @@
 
   301 {:name "short grass"
     :tex [0x1301]
+    :trans true
+    :model 1}
+  
+  302 {:name "dead bush"
+    :tex [0x1302]
+    :trans true
+    :model 1}
+    
+  303 {:name "green bush"
+    :tex [0x1303]
     :trans true
     :model 1}
  
