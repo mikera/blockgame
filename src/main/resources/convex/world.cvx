@@ -8,13 +8,24 @@
   (get chunks cpos))
 
 (defn ^:callable? set-chunk [cpos data]
-  (assoc chunks cpos data))
+  (def chunks (assoc chunks cpos data)))
 
 (defn ^:callable? break-block [x y z]
-  (set-block x y z nil))
+  (let [curr (get-block x y z)]
+    (cond (nil? curr)
+      (fail "Empty block!")
+      (do 
+        (call inventory (add-stack *caller* curr 1))
+        (set-block x y z nil)))))
 
 (defn ^:callable? place-block [x y z block] 
-  (set-block x y z block))
+  (let [c (or (call inventory (balance *caller* block)) 0)]
+    (cond
+      (> c 0) 
+        (do
+          (call inventory (set-stack *caller* block (dec c)))
+          (set-block x y z block))
+      (fail (str "No holding of block: " block)))))
 
 (def blank-chunk 
   (loop [acc [] i 512]

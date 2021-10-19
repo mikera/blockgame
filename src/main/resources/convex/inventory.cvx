@@ -38,7 +38,7 @@
 
   (let [count (long count)
         _ (or (<= 0 count 1000000000) (fail "Invalid target balance"))
-        balance (get-holding *caller*)
+        balance (get-holding owner)
         balance (if (> count 0)
                   (assoc balance item count)
                   (dissoc balance item))
@@ -53,5 +53,5 @@
   (let [count (long count)
         current (or (balance owner item) 0)
         new-count (+ current count)]
-    (-set-stack owner item count)))
+    (-set-stack owner item new-count)))
 

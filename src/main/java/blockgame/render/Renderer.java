@@ -289,7 +289,6 @@ public class Renderer {
 				return;
 			}
 			engine.setBlock(target,block);
-			System.out.println("Block placed at "+Engine.locString(target));
 		}
 	}
 
@@ -308,7 +307,8 @@ public class Renderer {
 			Vector3i target=new Vector3i(x,y,z);
 			maybeRebuildChunk(x,y,z);
 			engine.setBlock(target,null);
-			System.out.println("Block deleted at "+target);
+			System.out.println("Block deleted at "+target+ " in chunk "+engine.chunkAddress(x,y,z));
+			engine.loadChunk(x, y, z);
 		}
 	}
 

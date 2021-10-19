@@ -49,7 +49,7 @@ public class WorldGen {
 		
 		decorateArea(bx,by);
 		
-		for (int k=-16; k<maxHeight; k+=32) {
+		for (int k=-16; k<=maxHeight; k+=16) {
 			engine.uploadChunk(bx, by, k);
 		}
 	}

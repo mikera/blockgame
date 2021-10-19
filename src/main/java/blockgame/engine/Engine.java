@@ -3,6 +3,7 @@ package blockgame.engine;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 import org.joml.Vector3f;
@@ -64,7 +65,7 @@ public class Engine {
 		for (int i=1; i<=9; i++) {
 			ACell tool=getTool(i);
 			if (tool!=null) {
-				cmds.append("(call "+inv+" (set-stack "+player+" "+tool+" 99)) ");
+				cmds.append("(call "+inv+" (set-stack "+player+" "+tool+" 9)) ");
 			}
 		}
 		cmds.append(" (call "+inv+" (balance *address*)))");
@@ -74,9 +75,37 @@ public class Engine {
 		invMap=r.getValue();
 	}
 	
+	private Future<Result> refreshInventory() {
+		Convex convex=getConvex();
+		Address inv=Deploy.inventory;
+		String cmd=(" (call "+inv+" (balance *address*))");
+		ACell queryCmd=Reader.read(cmd);
+		CompletableFuture<Result> result=null;
+		try {
+			result = (CompletableFuture<Result>) convex.query(queryCmd);
+			result.thenAcceptAsync(r->{
+				if (r.isError()) {
+					System.err.println(r);
+				} else {
+					AMap<ACell,ACell> newInv=r.getValue();
+					boolean changed=!newInv.equals(invMap);
+					System.out.println("Inventory update: "+changed);
+					if (changed) {
+						invMap=r.getValue();
+					}
+				}
+			});
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;		
+	}
+	
 	private AMap<ACell,ACell> invMap;
 	
-	long chunkAddress(int bx, int by, int bz) {
+	public long chunkAddress(long bx, long by, long bz) {
+		bx&=~0xfl; by&=~0xfl; bz&=~0xfl; // ensure rounded chunk address
 		return bx+ (by * 1048576l) + bz*1099511627776l;
 	}
 	
@@ -90,12 +119,12 @@ public class Engine {
 			long chunkPos= chunkAddress(bx,by,bz);
 			String chunkString=Long.toString(chunkPos);
 			AVector<ACell> chunkData=getChunk(bx,by,bz);
-			ACell form=Reader.read("(eval-as "+Config.world+" `(set-chunk "+chunkString+" "+chunkData.toString()+"))");
+			ACell form=Reader.read("(call "+Config.world+" (set-chunk "+chunkString+" "+chunkData.toString()+"))");
 			Convex convex=Config.getConvex();
 			CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.transact(Invoke.create(convex.getAddress(), 0, form));
 			cf.thenAcceptAsync(r-> {
 				if (r.isError()) throw new Error("Bad result: "+r);
-				System.out.println("Uploaded chunk at "+locString(bx,by,bz));
+				System.out.println("Uploaded chunk at "+locString(bx,by,bz) + " : "+chunkString);
 				chunks.put(chunkPos, chunkData);
 			}).exceptionallyAsync(e->{		
 				System.err.println(form); 
@@ -215,12 +244,27 @@ public class Engine {
 	}
 	
 	public void setBlock(int x, int y, int z, ACell block) {
-		setBlockLocal(x,y,z,block);
-		if (block==null) block=Symbols.NIL;
-		ACell trans=Reader.read("(call "+Config.world+" (place-block "+locString(x,y,z)+" "+block+"))");
+		ACell trans;
+		if (block==null) {
+			trans=Reader.read("(call "+Config.world+" (break-block "+locString(x,y,z)+"))");
+		} else {
+			trans=Reader.read("(call "+Config.world+" (place-block "+locString(x,y,z)+" "+block+"))");
+		}
 		try {
 			Convex convex=Config.getConvex();
-			convex.transact(Invoke.create(Config.addr, 0, trans));
+			convex.transact(Invoke.create(Config.addr, 0, trans)).whenComplete((r,ex)->{
+				if (r==null) {
+					System.err.println(ex);
+					return;
+				}
+				if (r.isError()) {
+					System.err.println("Error setting block in chunk: "+chunkAddress(x,y,z)+" : "+r);
+				} else {
+					System.out.println("Block "+block+" placed at "+Engine.locString(x,y,z));
+					setBlockLocal(x,y,z,block);
+				};
+				refreshInventory();
+			});
 		} catch (IOException e) {
 			System.out.println(e);
 		}

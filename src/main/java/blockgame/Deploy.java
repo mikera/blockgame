@@ -21,8 +21,9 @@ public class Deploy {
 	 */
 	public static Address doDeploy(Convex convex) {
 		try {
-			world=deployCode(convex,"convex/world.cvx");
 			inventory=deployCode(convex,"convex/inventory.cvx");
+			world=deployCode(convex,"convex/world.cvx");
+			doSync(convex,"(eval-as "+world+" '(def inventory "+inventory+"))");
 		} catch (Throwable t) {
 			Utils.sneakyThrow(t);
 		}
@@ -44,5 +45,8 @@ public class Deploy {
 		return addr;
 	}
 	
-
+	private static Result doSync(Convex convex,String code) throws TimeoutException, IOException {
+		Invoke trans=Invoke.create(convex.getAddress(), 0, code);
+		return convex.transactSync(trans);
+	}
 }
