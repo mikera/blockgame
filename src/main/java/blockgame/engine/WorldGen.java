@@ -1,17 +1,60 @@
 package blockgame.engine;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
 import convex.core.data.ACell;
-import convex.core.data.prim.CVMLong;
 
 public class WorldGen {
 	
-	private Engine engine;
+	private static final double BASE_TERRAIN_SIZE = 20.0;
+	private static final double BASE_TERRAIN_SCALE = 500.0;
+	private static final double BASE_TERRAIN_OFFSET = 2.0;
+
+	
+	private static final double HILLOCKS_SIZE = 2.0;
+	private static final double HILLOCKS_SCALE = 40.0;
+	
+	private static final double PLATE_SIZE = 10.0;
+	private static final double PLATE_SCALE = 300.0;
+	private static final double PLATE_THICKNESS = 1.25; // average plate thickness
+
+	
+	private static final double PLATEAU_SIZE = 7.0;
+	private static final double PLATEAU_SCALE = 80.0;
+	private static final double PLATEAU_HEIGHT_SCALE = 60.0;
+
+
+	private final Engine engine;
+	private final long worldSeed;
+	
 	private WorldGen(Engine e) {
 		this.engine=e;
+		worldSeed=new SecureRandom().nextLong();
+	}
+	
+	public long seed() {
+		return worldSeed;
+	}
+	
+	/**
+	 * 1D seeds
+	 * @param a Random seed variation
+	 * @return Random seed long
+	 */
+	public long seed(long a) {
+		return Rand.xorshift64(worldSeed*a);
+	}
+	
+	/**
+	 * 2D seeds	 
+	 * @param a Random seed variation
+	 * @return Random seed long
+	 */
+	public long seed(long a, long b) {
+		return Rand.xorshift64(b*Rand.xorshift64(worldSeed*a));
 	}
 
 	public static WorldGen create(Engine engine) {
@@ -202,13 +245,17 @@ public class WorldGen {
 
 
 	ACell top=null;
+	
+	/**
+	 * Top surface (fill up to this level minus one)
+	 */
 	int ht;
 	
 	public int generateTile(int x, int y) {
 		top=Lib.GRASS;
 		
 		double height=calcHeight(x,y); 
-		int ht=(int)height;
+		ht=(int)height;
 		
 		fillRock(x, y, ht-1);
 		if (ht>0) {
@@ -240,26 +287,32 @@ public class WorldGen {
 
 	private static ACell[] rockLayers=new ACell[] {Lib.STONE,Lib.STONE,Lib.STONE, Lib.STONE, Lib.STONE, Lib.STONE, Lib.CHALK, Lib.CHALK, Lib.GRANITE};
 	private void fillRock(int x, int y, int h) {
+		double plate=noise(x,y,PLATE_SCALE,seed(16))*PLATE_SIZE;
 		for (int z=-16; z<=h; z++) {
-			int type=Rand.rint(rockLayers.length,z);
+			
+			double pz=plate+(z/PLATE_THICKNESS)+noise(z,0,1.0,seed(26))*0.2; // layer height
+			int type=Rand.rint(rockLayers.length,(int)pz);
 			
 			engine.setBlockLocal(x,y,z,rockLayers[type]);
 		}
 	}
 	
-	public double noise(double x, double y, double scale,long seed) {
+	public static double noise(double x, double y, double scale,long seed) {
+		seed &=0xffffffl; // avoid overflows
 		x+=62.1*seed;
 		y-=74.3*seed;
 		return Simplex.noise(x/scale, y/scale);
 	}
 	
-	public double snoise(double x, double y, double scale,long seed) {
-		x-=62.1*seed;
+	public static  double snoise(double x, double y, double scale,long seed) {
+		seed &=0xffffffl; // avoid overflows
+		x-=52.1*seed;
 		y-=174.3*seed;
 		return Simplex.snoise(x/scale, y/scale);
 	}
 	
-	public double plasma(double x, double y, double scale,long seed) {
+	public static double plasma(double x, double y, double scale,long seed) {
+		seed &=0xffffffl; // avoid overflows
 		double FALLOFF=3;
 		double a=0;
 		double amp=1.0;
@@ -274,22 +327,39 @@ public class WorldGen {
 		return a*(1.0-1/FALLOFF);
 	}
 	
+	/**
+	 * Base height of land mass. Negative is water.
+	 */
+	double baseHeight;
+	
+	/**
+	 * Surface height. 0 is water.
+	 */
+	double surfaceHeight;
+	
+	/**
+	 * Calculate surface height variables for the current tile
+	 * @param x x location of tile
+	 * @param y y location of tile
+	 * @return surface height
+	 */
 	public double calcHeight(double x, double y) {
-		double delta=0;
-		double noise=plasma(x,y,40,2)*2;
+		baseHeight=plasma(x,y,BASE_TERRAIN_SCALE,seed(5))*BASE_TERRAIN_SIZE+BASE_TERRAIN_OFFSET;
+
+		double hillocks=plasma(x,y,HILLOCKS_SCALE,seed(2))*HILLOCKS_SIZE;
 		
-		double zones=plasma(x,y,200,50)*10+1;
-		
-		double plateaus=Math.max(0,Math.min(1, plasma(x,y,60,107)*150));
-		double plateauHeight=Math.max(0,plasma(x,y,80,20466)*7+1);
+		double plateauDelta=0;
+		double plateaus=Math.max(0,Math.min(1, plasma(x,y,PLATEAU_SCALE,seed(107))*150));
+		double plateauHeight=Math.max(0,plasma(x,y,PLATEAU_HEIGHT_SCALE,seed(200))*PLATEAU_SIZE+1);
 		if (Math.floor(plateaus)!=plateaus) {
 			top=null;
 		}
 
-		if (zones>0) {
-			delta+=plateaus*plateauHeight;
+		if (baseHeight>0) {
+			plateauDelta+=plateaus*plateauHeight;
 		}
 		
-		return delta+noise+zones;
+		surfaceHeight=plateauDelta+hillocks+baseHeight;
+		return surfaceHeight;
 	}
 }

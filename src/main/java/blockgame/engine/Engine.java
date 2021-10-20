@@ -20,7 +20,6 @@ import convex.core.data.Address;
 import convex.core.data.Vectors;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
-import convex.core.lang.Symbols;
 import convex.core.transactions.Invoke;
 import convex.core.util.Utils;
 import mikera.util.Maths;
@@ -89,7 +88,7 @@ public class Engine {
 				} else {
 					AMap<ACell,ACell> newInv=r.getValue();
 					boolean changed=!newInv.equals(invMap);
-					System.out.println("Inventory update: "+changed);
+					// System.out.println("Inventory update: "+changed);
 					if (changed) {
 						invMap=r.getValue();
 					}
