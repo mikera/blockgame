@@ -6,6 +6,8 @@ A Block Game, inspired by Boulder Dash, Minecraft, Roguelikes and similiar.
 
 Quite possibly the first 3D virtual world run entirely on a public decentralised network. The game engine is implemented in Convex Lisp, a Clojure-like language for on-chain smart contracts.
 
+<a href="https://www.patreon.com/bePatron?u=4731307" data-patreon-widget-type="become-patron-button">Become a Patron!</a><script async src="https://c6.patreon.com/becomePatronButton.bundle.js"></script>
+
 ## Design
 
 The game features a huge persistent virtual 3D space where players can build bases, explore new areas, build an army of minions, take on fearsome monsters and trade with other players.
