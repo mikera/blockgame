@@ -27,6 +27,8 @@ public class WorldGen {
 	private static final double PLATEAU_HEIGHT_SCALE = 60.0;
 
 
+	private final int BOTTOM = -32;
+	
 	private final Engine engine;
 	private final long worldSeed;
 	
@@ -92,7 +94,7 @@ public class WorldGen {
 		
 		decorateArea(bx,by);
 		
-		for (int k=-16; k<=maxHeight; k+=16) {
+		for (int k=BOTTOM; k<=maxHeight; k+=16) {
 			engine.uploadChunk(bx, by, k);
 		}
 	}
@@ -288,30 +290,57 @@ public class WorldGen {
 	private static ACell[] rockLayers=new ACell[] {Lib.STONE,Lib.STONE,Lib.STONE, Lib.STONE, Lib.STONE, Lib.STONE, Lib.CHALK, Lib.CHALK, Lib.GRANITE};
 	private void fillRock(int x, int y, int h) {
 		double plate=noise(x,y,PLATE_SCALE,seed(16))*PLATE_SIZE;
-		for (int z=-16; z<=h; z++) {
+		for (int z=BOTTOM; z<=h; z++) {
 			
 			double pz=plate+(z/PLATE_THICKNESS)+noise(z,0,1.0,seed(26))*0.2; // layer height
 			int type=Rand.rint(rockLayers.length,(int)pz);
 			
-			engine.setBlockLocal(x,y,z,rockLayers[type]);
+			boolean cave=isCave(x,y,z);
+			if (cave) {
+				// leave blank
+			} else {
+				engine.setBlockLocal(x,y,z,rockLayers[type]);
+			}
 		}
 	}
 	
+	private boolean isCave(int x, int y, int z) {
+		double n1=snoise(x,y,z,30,seed(19));
+		double n2=snoise(x,y,z,30,seed(22));
+		return ((n1*n1)+(n2*n2))<0.03;
+		
+	}
+	
 	public static double noise(double x, double y, double scale,long seed) {
+		return noise(x,y,0.0,scale,seed);
+	}
+
+	
+	public static double noise(double x, double y, double z, double scale,long seed) {
 		seed &=0xffffffl; // avoid overflows
 		x+=62.1*seed;
 		y-=74.3*seed;
-		return Simplex.noise(x/scale, y/scale);
+		z-=12.4*seed;
+		return Simplex.noise(x/scale, y/scale, z/scale);
 	}
 	
 	public static  double snoise(double x, double y, double scale,long seed) {
+		return snoise(x,y,0.0,scale,seed);
+	}
+	
+	public static  double snoise(double x, double y, double z, double scale,long seed) {
 		seed &=0xffffffl; // avoid overflows
 		x-=52.1*seed;
 		y-=174.3*seed;
-		return Simplex.snoise(x/scale, y/scale);
+		z-=12.4*seed;
+		return Simplex.snoise(x/scale, y/scale, z/scale);
 	}
 	
 	public static double plasma(double x, double y, double scale,long seed) {
+		return plasma(x,y,0,scale,seed);
+	}
+
+	public static double plasma(double x, double y, double z,double scale,long seed) {
 		seed &=0xffffffl; // avoid overflows
 		double FALLOFF=3;
 		double a=0;
@@ -319,7 +348,8 @@ public class WorldGen {
 		for (int i=0; i<20; i++) {
 			x+=50.1*seed;
 			y+=107.3*seed;
-			a+=amp*Simplex.snoise(x/scale, y/scale);
+			z+=-107.3*seed;
+			a+=amp*Simplex.snoise(x/scale, y/scale,z/scale);
 			amp/=FALLOFF;
 			scale/=2;
 			if (scale<2) break;
