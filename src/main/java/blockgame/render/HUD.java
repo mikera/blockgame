@@ -33,6 +33,7 @@ import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20;
 
+import blockgame.Config;
 import blockgame.engine.Engine;
 import blockgame.engine.Lib;
 import convex.core.data.ACell;
@@ -180,6 +181,7 @@ public class HUD {
 		ht.append("CONVEX Craft\n");
 		ht.append("Chunks Loaded: "+engine.chunks.size()+"\n");
 		ht.append("FPS:           "+FPSformat.format(Renderer.fps)+"\n");
+		ht.append("Memory Size:   "+Config.SERVER.getPeer().getConsensusState().getMemorySize()+"\n");
 		
 		Text.addText(-width/2, -height/2, ht.toString());
 		Text.draw();

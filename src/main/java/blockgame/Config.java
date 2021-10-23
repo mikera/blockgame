@@ -46,7 +46,7 @@ public class Config {
 	 */
 	private static Engine engine;
 
-	static Server SERVER;
+	public static Server SERVER;
 	static Convex PEER_CONVEX;
 	static Address PEER_ADDRESS;
 	static EtchStore STORE;
