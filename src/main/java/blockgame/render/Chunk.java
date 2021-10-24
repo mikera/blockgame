@@ -34,7 +34,6 @@ import static org.lwjgl.system.MemoryUtil.memFree;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 
-import org.bouncycastle.util.Arrays;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 

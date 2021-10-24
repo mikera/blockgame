@@ -12,7 +12,6 @@ import org.joml.Vector3i;
 
 import blockgame.Config;
 import blockgame.Deploy;
-import blockgame.render.Chunk;
 import convex.api.Convex;
 import convex.core.Result;
 import convex.core.data.ACell;
