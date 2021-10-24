@@ -43,6 +43,9 @@ public class Renderer {
 	public void init() {
 		try {
 			engine=Config.getEngine();
+			engine.onChunkRefresh=ca->{
+				
+			};
 			hud=new HUD(engine);
 			Chunk.init();
 			HUD.init(engine);

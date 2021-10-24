@@ -82,6 +82,7 @@ public class Lib {
 	public static final Predicate<ACell> PRED_GROWABLE = new Predicate<ACell>() {
 		@Override
 		public boolean test(ACell t) {
+			if (t==null) return false;
 			return t.equals(GRASS);
 		}	
 	};

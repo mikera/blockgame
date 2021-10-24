@@ -26,6 +26,17 @@ public class WorldGen {
 	private static final double PLATEAU_SCALE = 80.0;
 	private static final double PLATEAU_HEIGHT_SCALE = 60.0;
 
+	private static final double CAVE_WIRE_SCALE = 80.0;
+	private static final double CAVE_WIRE_FLATNESS= 1.5;
+	private static final double CAVE_WIRE_AMOUNT= 0.1;
+	
+	private static final double CAVE_BLOB_SCALE = 50.0;
+	private static final double CAVE_BLOB_FLATNESS= 2.0;
+	
+	private static final double CAVE_BLOB_THRESHOLD= 0.4;
+	private static final double CAVE_BLOB_VARIATION_SCALE = 300.0;
+	private static final double CAVE_BLOB_THRESHOLD_VARIATION = 0.35;
+
 
 	private final int BOTTOM = -32;
 	
@@ -305,9 +316,20 @@ public class WorldGen {
 	}
 	
 	private boolean isCave(int x, int y, int z) {
-		double n1=snoise(x,y,z,30,seed(19));
-		double n2=snoise(x,y,z,30,seed(22));
-		return ((n1*n1)+(n2*n2))<0.03;
+		// Wire caves
+		double n1=snoise(x,y,z*CAVE_WIRE_FLATNESS,CAVE_WIRE_SCALE,seed(19));
+		double n2=snoise(x,y,z*CAVE_WIRE_FLATNESS,CAVE_WIRE_SCALE,seed(22));
+		if (((n1*n1)+(n2*n2))<(CAVE_WIRE_AMOUNT*CAVE_WIRE_AMOUNT)) return true;
+		
+		// Blob caves
+		double blobScaleNoise=snoise(x,y,z,CAVE_BLOB_VARIATION_SCALE,seed(1780));
+		
+		double n3=plasma(x,y,z*CAVE_BLOB_FLATNESS,CAVE_BLOB_SCALE,seed(78));
+		
+		double threshold=CAVE_BLOB_THRESHOLD+blobScaleNoise*CAVE_BLOB_THRESHOLD_VARIATION;
+		if (n3>threshold) return true;
+		
+		return false;
 		
 	}
 	
@@ -337,7 +359,7 @@ public class WorldGen {
 	}
 	
 	public static double plasma(double x, double y, double scale,long seed) {
-		return plasma(x,y,0,scale,seed);
+		return plasma(x,y,0.0,scale,seed);
 	}
 
 	public static double plasma(double x, double y, double z,double scale,long seed) {

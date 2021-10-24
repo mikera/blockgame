@@ -5,12 +5,14 @@ import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import blockgame.Config;
 import blockgame.Deploy;
+import blockgame.render.Chunk;
 import convex.api.Convex;
 import convex.core.Result;
 import convex.core.data.ACell;
@@ -280,8 +282,24 @@ public class Engine {
 		int by=y&~0xf;
 		int bz=z&~0xf;
 		chunks.put(chunkAddress(bx,by,bz), chunk);
+		
+		if ((x&0x0f)==0) refreshChunk(bx-16,by,bz);
+		if ((x&0x0f)==15) refreshChunk(bx,by,bz);
+		if ((y&0x0f)==0) refreshChunk(bx,by-16,bz);
+		if ((y&0x0f)==15) refreshChunk(bx,by+16,bz);
+		if ((z&0x0f)==0) refreshChunk(bx,by,bz-16);
+		if ((z&0x0f)==15) refreshChunk(bx,by,bz+16);
 	}
 	
+	private void refreshChunk(int bx, int by, int bz) {
+		if (onChunkRefresh!=null) {
+			long ca=chunkAddress(bx,by,bz);
+			onChunkRefresh.accept(ca);
+		}
+	}
+	
+	public Consumer<Long> onChunkRefresh=null;
+
 	public void setBlock(Vector3i target, ACell block) {
 		int x=target.x;
 		int y=target.y;

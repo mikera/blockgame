@@ -134,7 +134,8 @@ public class Chunk {
 
 	public void refresh() {
 		AVector<ACell> latest = engine.getChunk(position);
-		if (chunkData != latest) {
+		if (rebuilding||(chunkData != latest)) {
+			rebuilding=false;
 			setData(latest);
 			glDeleteBuffers(vbo);
 			vbo = createVBO();
