@@ -3,7 +3,6 @@ package blockgame.engine;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Predicate;
 
 import blockgame.engine.biome.ABiome;
 import blockgame.engine.biome.Desert;
@@ -108,159 +107,14 @@ public class WorldGen {
 			}
 		}
 		
-		decorateArea(bx,by);
+		// Decorate area with central biome
+		biome=selectBiome(bx+8,by+8);
+		biome.decorateArea(bx,by);
 		
 		for (int k=BOTTOM; k<=maxHeight; k+=16) {
 			engine.uploadChunk(bx, by, k);
 		}
 	}
-
-	private void decorateArea(int bx, int by) {
-		int type=Rand.rint(60,bx,by,676969);
-		switch (type) {
-			case 1: case 2: case 3: {
-				int num=1+Rand.rint(4,bx,by,546546)+(Rand.rint(3,bx,by,464)*Rand.rint(4,bx,by,6546));
-				generateTrees(num,bx, by);
-				break;
-			}
-				
-			case 4: case 5: case 6:{
-				generateTrees(1,bx, by);
-				break;
-			}
-			
-			case 7: case 8: {
-				generateScattered(bx, by,0.02,Lib.BOULDER);
-				break;
-			}
-			
-			case 9: {
-				generateRuin(bx, by);
-				break;
-			}
-			
-			case 10: {
-				generateBushes(bx, by);
-				break;
-			}
-			
-			case 11: {
-				generateMushrooms(bx, by);
-				break;
-			}
-			
-			case 12: {
-				generateScattered(bx, by,0.02,Lib.DEAD_BUSH,Lib.PRED_GROWABLE);
-				break;
-			}
-
-			case 13: {
-				generateScattered(bx, by,0.02,Lib.GREEN_BUSH,Lib.PRED_GROWABLE);
-				generateTrees(1,bx, by);
-				break;
-			}
-
-
-		}
-	}
-
-	private void generateTrees(int num, int bx, int by) {
-		for (int i=0; i<num; i++) {
-			int ox=1+Rand.rint(14,bx,by,678+i*56);
-			int oy=1+Rand.rint(14,bx,by,5641564+i*456);
-			int h=heights[oy*16+ox];
-			if (h>1) {
-				generateTree(bx+ox,by+oy,h);
-			}
-		}
-	}
-	
-	/**
-	 * Generate scattered blocks in chunk at surface level
-	 * @param bx
-	 * @param by
-	 * @param freq
-	 * @param type
-	 */
-	private void generateScattered(int bx, int by, double freq, ACell type) {
-		generateScattered(bx,by,freq,type,null);
-	}
-	
-	private void generateScattered(int bx, int by, double freq, ACell type, Predicate<ACell> topTest) {
-		int chances=(int)(1.0/freq);
-		for (int ox=0; ox<16; ox++) {
-			for (int oy=0; oy<16; oy++) {
-				int h=heights[oy*16+ox];
-				int x=bx+ox;
-				int y=by+oy;
-				
-				int c=Rand.rint(chances,x,y,595+chances);
-				if (c==0) {
-					if ((topTest==null)||(topTest.test(engine.getBlock(x, y, h-1)))) {
-						engine.setBlockLocal(x, y, h, type);
-					}
-				}
-			}
-		}
-	}
-	
-	ACell[] MUSHROOMS=new ACell[] {Lib.PURPLE_MUSHROOM,Lib.RED_MUSHROOM,Lib.GREY_MUSHROOM,Lib.GREY_MUSHROOM, Lib.GREY_MUSHROOM};
-	private void generateMushrooms(int bx, int by) {
-		ACell type=MUSHROOMS[Rand.rint(MUSHROOMS.length, bx,by,7897)];
-		generateScattered(bx,by,0.02,type,Lib.PRED_GROWABLE);
-	}
-	
-	private void generateBushes(int bx, int by) {
-		int sparseness=10+Rand.rint(100,bx,by,54676);
-		for (int ox=0; ox<16; ox++) {
-			for (int oy=0; oy<16; oy++) {
-				int h=heights[oy*16+ox];
-				if (h<=0) continue;
-				int x=bx+ox;
-				int y=by+oy;
-				
-				
-				int c=Rand.rint(sparseness,x,y,595); 
-				if (c==0) {
-					engine.setBlockLocal(x, y, h, Lib.LEAVES);
-				}
-			}
-		}
-	}
-	
-	private static ACell[] ruinBlocks= new ACell[]{Lib.STONE_BLOCK,Lib.STONE, Lib.STONE_SLABS};
-	private void generateRuin(int bx, int by) {
-		if (heights[8*16+8]<=0) return; // skip if no land
- 		int size=2+Rand.rint(3,bx,by,456663);
-		int xsize=size+Rand.rint(3,bx,by,67868); 
-		int ysize=size+Rand.rint(3,bx,by,453);
-		if (Rand.rint(3,bx,by,54475)==0) generateScattered(bx,by,0.02,Lib.BOULDER);
-		for (int ox=0; ox<16; ox++) {
-			for (int oy=0; oy<16; oy++) {
-				if (!((Math.abs(ox-8)==xsize)||(Math.abs(oy-8)==ysize))) continue;
-				if (!((Math.abs(ox-8)<=xsize)&&(Math.abs(oy-8)<=ysize))) continue;
-				int h=heights[oy*16+ox];
-				int x=bx+ox;
-				int y=by+oy;
-				
-				int ht=Math.max(0, (int)(plasma(x,y,8,5695)*6.0+3));
-				
-				for (int z=h; z<h+ht; z++) {
-					ACell blk=ruinBlocks[Rand.rint(ruinBlocks.length,x,y,z)];
-					engine.setBlockLocal(x, y, z, blk);
-				}
-			}
-		}
-	}
-
-	private void generateTree(int x, int y, int h) {
-		int ht=3+Rand.rint(5,x,y,h);
-		engine.fillBlocks(x-1,y-1,h+ht-1,x+1,y+1,h+ht+1,Lib.LEAVES);
-		engine.fillBlocks(x,y,h,x,y,h+ht,Lib.LOG);
-		engine.setBlockLocal(x,y,h+ht+2,Lib.LEAVES);
-		// System.out.println("Built tree with height: "+ht);
-	}
-
 
 	ACell top=null;
 	

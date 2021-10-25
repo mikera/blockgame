@@ -19,7 +19,8 @@
     :tex [0x0200 0x0200 0x0200 0x0200 0x0200 0x0200]}
 
  11 {:name "water"
-    :tex [0x0201 0x0201 0x0201 0x0201 0x0201 0x0201]}
+    :tex [0x0201 0x0201 0x0201 0x0201 0x0201 0x0201]
+    :passable true}
 
  12 {:name "brick"
     :tex [0x0203 0x0203 0x0203 0x0203 0x0203 0x0203]}
@@ -95,21 +96,25 @@
  201 {:name "red mushroom"
     :tex [0x1201]
     :trans true
+    :passable true
     :model 1}
   
   202 {:name "grey mushroom"
     :tex [0x1202]
     :trans true
+    :passable true
     :model 1}
   
   300 {:name "medium grass"
     :tex [0x1300]
     :trans true
+    :passable true
     :model 1}
 
   301 {:name "short grass"
     :tex [0x1301]
     :trans true
+    :passable true
     :model 1}
   
   302 {:name "dead bush"

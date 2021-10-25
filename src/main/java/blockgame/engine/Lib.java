@@ -13,6 +13,7 @@ import convex.core.data.Keywords;
 import convex.core.data.Maps;
 import convex.core.data.Strings;
 import convex.core.data.prim.CVMLong;
+import convex.core.lang.RT;
 import convex.core.lang.Reader;
 import convex.core.util.Utils;
 
@@ -75,6 +76,7 @@ public class Lib {
 	public static final Keyword KEY_TRANS=Keyword.create("trans");
 	public static final Keyword KEY_TEX = Keyword.create("tex");
 	public static final Keyword KEY_MODEL = Keyword.create("model");
+	public static final Keyword KEY_PASSABLE = Keyword.create("passable");
 
 	
 	public static final CVMLong BOULDER=STONE_BLOCK;
@@ -84,6 +86,14 @@ public class Lib {
 		public boolean test(ACell t) {
 			if (t==null) return false;
 			return t.equals(GRASS);
+		}	
+	};
+	
+	public static final Predicate<ACell> PRED_BLOCKING = new Predicate<ACell>() {
+		@Override
+		public boolean test(ACell t) {
+			if (t==null) return false;
+			return !RT.bool(RT.get(blockData.get(t),KEY_PASSABLE));
 		}	
 	};
 	
