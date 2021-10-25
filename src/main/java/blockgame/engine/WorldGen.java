@@ -6,6 +6,7 @@ import java.util.concurrent.TimeoutException;
 
 import blockgame.engine.biome.ABiome;
 import blockgame.engine.biome.Desert;
+import blockgame.engine.biome.Forest;
 import blockgame.engine.biome.GrassLands;
 import blockgame.engine.biome.Rocks;
 import convex.core.data.ACell;
@@ -123,7 +124,7 @@ public class WorldGen {
 	 */
 	int ht;
 	
-	private ABiome[] biomes = new ABiome[]{new GrassLands(),new Desert(),new Rocks()};
+	private ABiome[] biomes = new ABiome[]{new GrassLands(),new Desert(),new Rocks(), new Forest()};
 	private ABiome biome=biomes[0];
 	
 	public int generateTile(int x, int y) {
