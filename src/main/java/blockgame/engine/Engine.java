@@ -171,7 +171,7 @@ public class Engine {
 				// System.out.println("Loaded chunk at "+locString(bx,by,bz));
 			}).exceptionallyAsync(e->{		
 				System.err.println(queryForm); 
-				System.err.println(e); 
+				e.getCause().printStackTrace(System.err);
 				chunks.remove(chunkPos);
 				return null;
 			});

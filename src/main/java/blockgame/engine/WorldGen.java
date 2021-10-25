@@ -5,6 +5,10 @@ import java.security.SecureRandom;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
+import blockgame.engine.biome.ABiome;
+import blockgame.engine.biome.Desert;
+import blockgame.engine.biome.GrassLands;
+import blockgame.engine.biome.Rocks;
 import convex.core.data.ACell;
 
 public class WorldGen {
@@ -46,6 +50,9 @@ public class WorldGen {
 	private WorldGen(Engine e) {
 		this.engine=e;
 		worldSeed=new SecureRandom().nextLong();
+		for (ABiome b: biomes) {
+			b.setWorldGen(this);
+		}
 	}
 	
 	public long seed() {
@@ -262,8 +269,12 @@ public class WorldGen {
 	 */
 	int ht;
 	
+	private ABiome[] biomes = new ABiome[]{new GrassLands(),new Desert(),new Rocks()};
+	private ABiome biome=biomes[0];
+	
 	public int generateTile(int x, int y) {
-		top=Lib.GRASS;
+		biome=selectBiome(x,y);
+		top=biome.topTile(x,y);
 		
 		double height=calcHeight(x,y); 
 		ht=(int)height;
@@ -272,19 +283,8 @@ public class WorldGen {
 		if (ht>0) {
 			if (top!=null) {
 				engine.setBlockLocal(x, y, ht-1, top);	
-				if (top==Lib.GRASS) {
-					double gzone=Math.max(0.0,snoise(x, y, 130, 6876987)-0.1);
-					if (gzone>0) {
-						int grassiness=(int)(1000.0/(gzone*50));
-						int gtop=Rand.rint(grassiness, x, y, 568565);
-						switch (gtop) {
-						case 0: engine.setBlockLocal(x, y, ht, Lib.MEDIUM_GRASS); break;
-						case 1: engine.setBlockLocal(x, y, ht, Lib.SHORT_GRASS); break;
-						default:
-							// nothing
-						}
-					}
-				}
+				biome.addTileDecoration(x,y,ht);
+		
 				
 			}
 		} else if (ht<0) {
@@ -294,6 +294,19 @@ public class WorldGen {
 			engine.setBlockLocal(x, y, ht-1, top);	
 		}
 		return Math.max(0, ht);
+	}
+
+	private ABiome selectBiome(int x, int y) {
+		double maxScore=Double.NEGATIVE_INFINITY;
+		for (int i = 0; i<biomes.length; i++) {
+			ABiome b=biomes[i];
+			double score=b.calcScore(x,y);
+			if (score>maxScore) {
+				biome=b;
+				maxScore=score;
+			}
+		}
+		return biome;
 	}
 
 	private static ACell[] rockLayers=new ACell[] {Lib.STONE,Lib.STONE,Lib.STONE, Lib.STONE, Lib.STONE, Lib.STONE, Lib.CHALK, Lib.CHALK, Lib.GRANITE};
@@ -411,5 +424,9 @@ public class WorldGen {
 		
 		surfaceHeight=plateauDelta+hillocks+baseHeight;
 		return surfaceHeight;
+	}
+
+	public Engine getEngine() {
+		return engine;
 	}
 }
