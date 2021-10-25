@@ -213,7 +213,7 @@ public class Engine {
 		
 		Long cpos=chunkAddress(bx,by,bz);
 		AVector<ACell> chunk=chunks.get(cpos);
-		if (!chunks.containsKey(cpos)) {
+		if ((chunk==null)&&!chunks.containsKey(cpos)) {
 			loadChunk(bx,by,bz); // schedule chunk load
 			// temp fill with blank for loading status
 			chunks.putIfAbsent(cpos, null);

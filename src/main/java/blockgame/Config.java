@@ -3,7 +3,6 @@ package blockgame;
 import java.io.File;
 import java.util.HashMap;
 import blockgame.engine.Engine;
-import blockgame.engine.WorldGen;
 import convex.api.Convex;
 import convex.core.Result;
 import convex.core.State;

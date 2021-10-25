@@ -49,7 +49,11 @@ import convex.core.data.AVector;
 import convex.core.data.Keyword;
 import convex.core.data.prim.CVMLong;
 
+/**
+ * Renderable Chunk instance
+ */
 public class Chunk {
+
 	int vbo = 0;
 	int triangleCount = 0;
 	
@@ -81,7 +85,7 @@ public class Chunk {
 		if (current==null) return null;
 		Chunk c = new Chunk(cpos, engine);
 		c.setData(current);
-		c.createVBO();
+		c.rebuilding=true;
 		return c;
 	}
 
@@ -143,8 +147,8 @@ public class Chunk {
 		if (rebuilding||(chunkData != latest)) {
 			rebuilding=false;
 			setData(latest);
-			glDeleteBuffers(vbo);
-			vbo = createVBO();
+			
+			createVBO();
 		}
 	}
 	
@@ -155,7 +159,9 @@ public class Chunk {
 	public static final int FLOATS_PER_VERTEX = 3 + 3 + 2 + 3; // position + normal + texture + colour
 	public static final int VERTICES_PER_FACE = 6; // 2 triangles, 3 vertices each
 
-	private int createVBO() {
+	private synchronized void createVBO() {
+		dispose();
+		
 		// Geometry in current context
 		FloatBuffer built = buildAll();
 
@@ -177,7 +183,6 @@ public class Chunk {
 		}
 
 		// System.out.println("VBO built! "+vbo);
-		return vbo;
 	}
 
 	Buildable geom = Buildable.create(FLOATS_PER_VERTEX);
@@ -406,7 +411,7 @@ public class Chunk {
 
 	public int getVBO() {
 		if (rebuilding) {
-			vbo=createVBO();
+			createVBO();
 			rebuilding=false;
 		}
 		return vbo;
@@ -456,4 +461,16 @@ public class Chunk {
 		}
 	}
 
+	public void dispose() {
+		if (vbo!=0) {
+			synchronized(this) {
+				if (vbo!=0) {
+					int tempVBO=vbo;
+					vbo=0;
+					glDeleteBuffers(tempVBO);
+				}
+			}
+			
+		}
+	}
 }

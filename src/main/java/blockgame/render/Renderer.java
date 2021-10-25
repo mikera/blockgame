@@ -1,5 +1,5 @@
 package blockgame.render;
-
+ 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
@@ -26,6 +26,7 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20;
 
 import blockgame.Config;
+import blockgame.Util;
 import blockgame.engine.Engine;
 import blockgame.engine.Face;
 import convex.core.data.ACell;
@@ -47,6 +48,7 @@ public class Renderer {
 				
 			};
 			hud=new HUD(engine);
+			
 			Chunk.init();
 			HUD.init(engine);
 			Skybox.init();
@@ -77,10 +79,25 @@ public class Renderer {
 		}
 		return chunk;
 	}
+	
+	private void setChunk(int cx, int cy, int cz, Chunk chunk) {
+		Vector3i cpos=new Vector3i(cx,cy,cz);
+		if (chunk==null) {
+			Chunk prev=chunks.get(cpos);
+			if (prev!=null) {
+				prev.dispose();
+			}
+			chunks.remove(cpos);
+		} else {
+			chunks.put(cpos, chunk);
+		}
+	}
 
 	public void close() {
 		// TODO Auto-generated method stub
-		
+		for (Chunk c:chunks.values()) {
+			c.dispose();
+		}
 	}
 
 	Vector3f tempDir=new Vector3f(0,0,0);
@@ -199,10 +216,15 @@ public class Renderer {
 		int ply=((int)Math.floor(playerPos.y))&~0xf;
 		int plz=((int)Math.floor(playerPos.z))&~0xf;
 		
-		int DIST=128;
+		int DIST=160;
 		for (int cx=plx-DIST; cx<=plx+DIST; cx+=16) {
 			for (int cy=ply-DIST; cy<=ply+DIST; cy+=16) {
 				for (int cz=plz-DIST; cz<=plz+DIST; cz+=16) {
+					double dist=Util.dist(cx+8,cy+8,cz+8,playerPos.x,playerPos.y,playerPos.z);
+					if (dist>(DIST-16)) {
+						setChunk(cx,cy,cz,null);
+						continue;
+					}
 					Chunk chunk=getChunk(cx,cy,cz);
 					if (chunk!=null) {
 			
@@ -312,8 +334,8 @@ public class Renderer {
 			int y=hitResult.y;
 			int z=hitResult.z;
 			Vector3i target=new Vector3i(x,y,z);
-			maybeRebuildChunk(x,y,z);
 			engine.setBlock(target,null);
+			maybeRebuildChunk(x,y,z);
 			System.out.println("Block deleted at "+target+ " in chunk "+engine.chunkAddress(x,y,z));
 		}
 	}
@@ -337,11 +359,10 @@ public class Renderer {
 		y&=~0xf;
 		z&=~0xf;
 		Chunk chunk=getChunk(x,y,z);
-		chunk.rebuild();
+		if (chunk!=null) chunk.rebuild();
 	}
 
 	public void applyTool(int i) {
-		// TODO Auto-generated method stub
 		engine.setToolIndex(i);
 	}
 
