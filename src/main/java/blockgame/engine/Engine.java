@@ -18,9 +18,12 @@ import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AVector;
 import convex.core.data.Address;
+import convex.core.data.Lists;
+import convex.core.data.Symbol;
 import convex.core.data.Vectors;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
+import convex.core.lang.Symbols;
 import convex.core.transactions.Invoke;
 import convex.core.util.Utils;
 import mikera.util.Maths;
@@ -48,8 +51,10 @@ public class Engine {
 	}
 
 	public static final AVector<ACell> EMPTY_CHUNK=Vectors.repeat(null, 4096);
+	private WorldGen gen;
 	
 	private Engine() {
+		gen=WorldGen.create(this);
 	}
 	
 	public static Engine create() {
@@ -109,6 +114,8 @@ public class Engine {
 		return bx+ (by * 1048576l) + bz*1099511627776l;
 	}
 	
+	Symbol SET_CHUNK=Symbol.create("set-chunk");
+	
 	public void uploadChunk(int x, int y, int z) {
 		// Chunk base location
 		int bx=x&~0xf;
@@ -119,7 +126,9 @@ public class Engine {
 			long chunkPos= chunkAddress(bx,by,bz);
 			String chunkString=Long.toString(chunkPos);
 			AVector<ACell> chunkData=getChunk(bx,by,bz);
-			ACell form=Reader.read("(call "+Config.world+" (set-chunk "+chunkString+" "+chunkData.toString()+"))");
+			
+			ACell call=Lists.of(SET_CHUNK,CVMLong.create(chunkPos),chunkData);		
+			ACell form=Lists.of(Symbols.CALL, Config.world,call);
 			Convex convex=Config.getConvex();
 			CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.transact(Invoke.create(convex.getAddress(), 0, form));
 			cf.thenAcceptAsync(r-> {
@@ -150,13 +159,20 @@ public class Engine {
 			cf.thenAcceptAsync(r-> {
 				if (r.isError()) throw new Error("Bad result: "+r);
 				AVector<ACell> chunk=r.getValue();
-				if (chunk==null) chunk=EMPTY_CHUNK;
-				Long cpos=chunkAddress(bx,by,bz);
-				chunks.put(cpos, chunk);
+				if (chunk!=null) {
+					// we have an existing chunk
+					Long cpos=chunkAddress(bx,by,bz);
+					chunks.put(cpos, chunk);
+				} else {
+					// We don't have anything here, so try generating
+					maybeGenerateArea(bx,by);
+				}
+				
 				// System.out.println("Loaded chunk at "+locString(bx,by,bz));
 			}).exceptionallyAsync(e->{		
 				System.err.println(queryForm); 
 				System.err.println(e); 
+				chunks.remove(chunkPos);
 				return null;
 			});
 		} catch (IOException e) {
@@ -164,6 +180,19 @@ public class Engine {
 		}
 	}
 	
+	private boolean maybeGenerateArea(int bx, int by) {
+		// Check for generated chunk at ground level
+		Long czpos=chunkAddress(bx,by,0);
+		if (chunks.get(czpos)==null) {
+			// generate in this position
+			chunks.put(czpos, EMPTY_CHUNK); // temporary data to avoid double generation
+			gen.generateArea(bx,by);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	public static String locString(int bx, int by, int bz) {
 		return bx+","+by+","+bz;
 	}
@@ -184,10 +213,10 @@ public class Engine {
 		
 		Long cpos=chunkAddress(bx,by,bz);
 		AVector<ACell> chunk=chunks.get(cpos);
-		if (chunk==null) {
+		if (!chunks.containsKey(cpos)) {
 			loadChunk(bx,by,bz); // schedule chunk load
-			chunk=EMPTY_CHUNK; // placeholder empty chunk
-			chunks.put(cpos,chunk);
+			// temp fill with blank for loading status
+			chunks.putIfAbsent(cpos, null);
 		}
 		
 		return chunk;

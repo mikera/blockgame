@@ -65,12 +65,15 @@ public class Renderer {
 	 */
 	private HashMap<Vector3i,Chunk> chunks=new HashMap<>(100);
 
-	private Chunk getChunk(Vector3i cpos) {
+
+	private Chunk getChunk(int cx, int cy, int cz) {
+		Vector3i cpos=new Vector3i(cx,cy,cz);
 		Chunk chunk=chunks.get(cpos);
 		if (chunk==null) {
-			cpos=new Vector3i(cpos);
 			chunk=Chunk.create(cpos, engine);
-			chunks.put(cpos, chunk);
+			if (chunk!=null) {
+				chunks.put(cpos, chunk);
+			}
 		}
 		return chunk;
 	}
@@ -168,8 +171,6 @@ public class Renderer {
 	private final FloatBuffer matbufferMV = BufferUtils.createFloatBuffer(16);
 	private final FloatBuffer matbufferVLightDir = BufferUtils.createFloatBuffer(4);
 	
-	private Vector3i cpos=new Vector3i(0,0,0);
-	
 	private void drawChunks() {			
 		Chunk.prepareState();
 
@@ -202,23 +203,26 @@ public class Renderer {
 		for (int cx=plx-DIST; cx<=plx+DIST; cx+=16) {
 			for (int cy=ply-DIST; cy<=ply+DIST; cy+=16) {
 				for (int cz=plz-DIST; cz<=plz+DIST; cz+=16) {
-					cpos.set(cx,cy,cz);
-		
-					model.identity();
-					model.translate(cx,cy,cz);
-				
-					// ModelView Matrix
-					mv.set(view);
-					mv.mul(model);
+					Chunk chunk=getChunk(cx,cy,cz);
+					if (chunk!=null) {
 			
-					mv.get(0, matbufferMV);		
-					glUniformMatrix4fv(Chunk.c_vs_MVPosition, false,  matbufferMV);
+						model.identity();
+						model.translate(cx,cy,cz);
 					
-					getChunk(cpos).draw();
+						// ModelView Matrix
+						mv.set(view);
+						mv.mul(model);
+				
+						mv.get(0, matbufferMV);		
+						glUniformMatrix4fv(Chunk.c_vs_MVPosition, false,  matbufferMV);
+						
+						chunk.draw();
+					}
 				}
 			}
 		}
 	}
+
 
 	private void setupPerspective(Matrix4f projectionMatrix) {
 		projectionMatrix.setPerspective((float) (Math.PI/4), ((float)width)/height, 0.1f, 1000f);
@@ -332,7 +336,7 @@ public class Renderer {
 		x&=~0xf;
 		y&=~0xf;
 		z&=~0xf;
-		Chunk chunk=getChunk(new Vector3i(x,y,z));
+		Chunk chunk=getChunk(x,y,z);
 		chunk.rebuild();
 	}
 

@@ -70,9 +70,16 @@ public class Chunk {
 		this.engine = engine;
 	}
 
+	/**
+	 * Create a chunk, or null if empty at the engine position
+	 * @param cpos
+	 * @param engine
+	 * @return
+	 */
 	public static Chunk create(Vector3i cpos, Engine engine) {
-		Chunk c = new Chunk(cpos, engine);
 		AVector<ACell> current = engine.getChunk(cpos);
+		if (current==null) return null;
+		Chunk c = new Chunk(cpos, engine);
 		c.setData(current);
 		c.createVBO();
 		return c;
@@ -177,7 +184,7 @@ public class Chunk {
 
 	private FloatBuffer buildAll() {
 		geom.clear();
-		if (!chunkData.equals(Engine.EMPTY_CHUNK)) {
+		if ((chunkData!=null)&&!chunkData.equals(Engine.EMPTY_CHUNK)) {
 			for (int k = 0; k < 16; k++) {
 				for (int j = 0; j < 16; j++) {
 					for (int i = 0; i < 16; i++) {

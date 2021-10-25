@@ -76,7 +76,7 @@ public class Config {
 				PEER_CONVEX = Convex.connect(SERVER);
 				PEER_ADDRESS=Init.getGenesisAddress();
 				PEER_CONVEX.setAddress(PEER_ADDRESS, LOCAL_KEYPAIRS[0]);
-				Result r=PEER_CONVEX.transactSync(Invoke.create(PEER_ADDRESS, 0, Reader.read("(let [addr (create-account "+kp.getAccountKey()+")] (transfer addr 100000000000) addr)")));
+				Result r=PEER_CONVEX.transactSync(Invoke.create(PEER_ADDRESS, 0, Reader.read("(let [addr (create-account "+kp.getAccountKey()+")] (transfer addr 100000000000000) addr)")));
 				addr=r.getValue();
 
 				convex=Convex.connect(SERVER);
@@ -84,7 +84,6 @@ public class Config {
 				Deploy.doDeploy(convex);
 				world=Deploy.world;
 				
-				WorldGen.create(engine).generate();
 				
 				engine.createPlayer();
 				System.out.println("Player created!");

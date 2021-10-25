@@ -82,16 +82,14 @@ public class WorldGen {
 		
 		for (int i=-GENRANGE; i<=GENRANGE; i++) {
 			for (int j=-GENRANGE; j<=GENRANGE; j++) {
-				generateArea(i,j);
+				generateArea(i*16,j*16);
 			}
 		}
 	}
 	
 	public int[] heights=new int[256];
 	
-	private void generateArea(int i, int j) {
-		int bx=i*16;
-		int by=j*16;
+	public synchronized void generateArea(int bx, int by) {
 		System.out.println("Generating Chunk Area: "+bx+","+by);
 		
 		int maxHeight=0;
