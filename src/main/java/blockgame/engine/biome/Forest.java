@@ -55,7 +55,7 @@ public class Forest extends ANaturalBiome {
 			}
 
 			default: {
-				int num=1+Rand.rint(4,bx,by,546546)+(Rand.rint(3,bx,by,464)*Rand.rint(4,bx,by,6546));
+				int num=2+Rand.rint(4,bx,by,546546)+(Rand.rint(3,bx,by,464)*Rand.rint(4,bx,by,6546));
 				generateTrees(num,bx, by);
 				break;
 			}

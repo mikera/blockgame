@@ -5,7 +5,7 @@ import blockgame.engine.Rand;
 import blockgame.engine.WorldGen;
 import convex.core.data.ACell;
 
-public class Rocks extends ABiome {
+public class BlackLands extends ABiome {
 
 	@Override
 	public ACell topTile(int x, int y) {
@@ -26,7 +26,7 @@ public class Rocks extends ABiome {
 			int rockiness=(int)(300.0/(gzone*50));
 			int gtop=Rand.rint(rockiness, x, y, 4564);
 			switch (gtop) {
-			case 0: engine().setBlockLocal(x, y, ht, Lib.GRANITE); break;
+			case 0: engine().setBlockLocal(x, y, ht, Lib.BASALT); break;
 			case 1: engine().setBlockLocal(x, y, ht, Lib.BOULDER); break;
 			default:
 				// nothing

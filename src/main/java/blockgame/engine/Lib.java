@@ -51,6 +51,9 @@ public class Lib {
 	public static final CVMLong GRANITE=block("granite");
 	public static final CVMLong BASALT=block("basalt");
 	
+	public static final CVMLong FIRESTONE=block("firestone");
+	public static final CVMLong FIRESTONE_BLOCK=block("firestone block");
+	
 	public static final CVMLong PURPLE_MUSHROOM=block("purple mushroom");
 	public static final CVMLong RED_MUSHROOM=block("red mushroom");
 	public static final CVMLong GREY_MUSHROOM=block("grey mushroom");

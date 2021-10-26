@@ -12,7 +12,7 @@ public abstract class ABiome {
 	protected WorldGen gen;
 	protected Engine engine;
 	
-	public static double BIOME_SCALE=100.0;
+	public static double BIOME_SCALE=150.0;
 
 	public void setWorldGen(WorldGen worldGen) {
 		this.gen=worldGen;
