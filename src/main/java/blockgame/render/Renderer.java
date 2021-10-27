@@ -23,6 +23,7 @@ import org.joml.Vector3f;
 import org.joml.Vector3i;
 import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL20;
 
 import blockgame.Config;
@@ -364,6 +365,23 @@ public class Renderer {
 
 	public void applyTool(int i) {
 		engine.setToolIndex(i);
+	}
+
+	public void applyKeyPress(int key) {
+		switch (key) {
+			case GLFW.GLFW_KEY_SLASH: {
+				Chunk.toggleSlice((int)playerPos.z-2);
+				break;
+			}
+		 	case GLFW.GLFW_KEY_PERIOD: {
+		 		Chunk.adjustSlice(-1);
+		 		break;
+			}
+		 	case GLFW.GLFW_KEY_COMMA: {
+		 		Chunk.adjustSlice(1);
+		 		break;
+			}
+		}
 	}
 
 }

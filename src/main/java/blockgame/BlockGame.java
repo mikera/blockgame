@@ -111,6 +111,7 @@ public class BlockGame {
 			keysDown[key]=(action == GLFW_PRESS) || (action == GLFW_REPEAT);
 			if (action==GLFW_PRESS) {
 				keysPressed[key]=true;
+				renderer.applyKeyPress(key);
 			}
 		});
 		

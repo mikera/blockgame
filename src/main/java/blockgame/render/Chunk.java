@@ -144,7 +144,7 @@ public class Chunk {
 
 	public void refresh() {
 		AVector<ACell> latest = engine.getChunk(position);
-		if (rebuilding||(chunkData != latest)) {
+		if (changedSlice()||rebuilding||(chunkData != latest)) {
 			rebuilding=false;
 			setData(latest);
 			
@@ -190,7 +190,14 @@ public class Chunk {
 	private FloatBuffer buildAll() {
 		geom.clear();
 		if ((chunkData!=null)&&!chunkData.equals(Engine.EMPTY_CHUNK)) {
+			
 			for (int k = 0; k < 16; k++) {
+				// Bail out if above current sliced ranged
+				if (localSlice!=null) {
+					int z=position.z+k;
+					if (z>=localSlice) break;
+				}
+				
 				for (int j = 0; j < 16; j++) {
 					for (int i = 0; i < 16; i++) {
 						long ix = i + j * 16 + k * 256;
@@ -357,6 +364,8 @@ public class Chunk {
 	}
 
 	private int transparency(int x, int y, int z) {
+		if ((localSlice!=null)&&(localSlice<=z)) return 1; 
+		
 		ACell b=engine.getBlock(x, y, z);
 		return Lib.isTransparent(b)?1:0;
 	}
@@ -471,6 +480,45 @@ public class Chunk {
 				}
 			}
 			
+		}
+	}
+
+	static Integer slice=null;
+	public synchronized static void toggleSlice(int z) {
+		if (slice==null) {
+			slice=z;
+		} else {
+			slice=null;
+		}
+	}
+	
+	public synchronized static void adjustSlice(int dz) {
+		if (slice!=null) {
+			slice+=dz;
+		}
+	}
+	
+	private Integer localSlice=null;
+	private boolean changedSlice() {
+		Integer relSlice=slice;
+		if (relSlice!=null) {
+			int pz=position.z;
+			// not relevant if outside Block range
+			if (relSlice>(pz+16)) {
+				// normally visible
+				relSlice=null;
+			} else if (relSlice==pz+16) {
+				// all visible, but may trigger update
+				relSlice=pz+16;
+			} else if (relSlice<pz) {
+				relSlice=pz;
+			}
+		}
+		if (relSlice!=localSlice) {
+			localSlice=relSlice;
+			return true;
+		} else {
+			return false;
 		}
 	}
 }
