@@ -182,6 +182,7 @@ public class HUD {
 		ht.append("Chunks Loaded: "+engine.chunks.size()+"\n");
 		ht.append("FPS:           "+FPSformat.format(Renderer.fps)+"\n");
 		ht.append("Memory Size:   "+Config.SERVER.getPeer().getConsensusState().getMemorySize()+"\n");
+		ht.append("Balance:       "+Config.SERVER.getPeer().getConsensusState().getAccount(Config.addr).getBalance()+"\n");
 		
 		Text.addText(-width/2, -height/2, ht.toString());
 		Text.draw();
