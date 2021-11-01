@@ -2,6 +2,7 @@ package blockgame;
 
 import java.io.File;
 import java.util.HashMap;
+
 import blockgame.engine.Engine;
 import convex.api.Convex;
 import convex.core.Result;
@@ -72,14 +73,12 @@ public class Config {
 				config.put(Keywords.KEYPAIR, LOCAL_KEYPAIRS[0]);
 				SERVER=API.launchPeer(config);
 
-				PEER_CONVEX = Convex.connect(SERVER);
 				PEER_ADDRESS=Init.getGenesisAddress();
-				PEER_CONVEX.setAddress(PEER_ADDRESS, LOCAL_KEYPAIRS[0]);
+				PEER_CONVEX = Convex.connect(SERVER,Init.getGenesisAddress(),LOCAL_KEYPAIRS[0]);
 				Result r=PEER_CONVEX.transactSync(Invoke.create(PEER_ADDRESS, 0, Reader.read("(let [addr (create-account "+kp.getAccountKey()+")] (transfer addr 100000000000000) addr)")));
 				addr=r.getValue();
 
-				convex=Convex.connect(SERVER);
-				convex.setAddress(addr, kp);
+				convex=Convex.connect(SERVER,addr,kp);
 				Deploy.doDeploy(convex);
 				world=Deploy.world;
 				
@@ -90,9 +89,9 @@ public class Config {
 			} else {
 				STORE=(EtchStore) Stores.current();
 				
-				convex =Convex.connect(Utils.toInetSocketAddress("convex.world:18888"));
 				world=Address.create(4562);
 				addr=Address.create(4564);
+				convex =Convex.connect(Utils.toInetSocketAddress("convex.world:18888"),addr,kp);
 				convex.setAddress(addr);
 				convex.setKeyPair(kp);
 				

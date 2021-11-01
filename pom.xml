@@ -10,6 +10,7 @@
 		<lwjgl.version>3.2.3</lwjgl.version>
 		<lwjgl.natives>natives-windows</lwjgl.natives>
 		<joml.version>1.10.1</joml.version>
+		<convex.version>0.7.2</convex.version>
 	</properties>
 
 	<groupId>net.mikera</groupId>
@@ -32,13 +33,13 @@
 		<dependency>
 			<groupId>world.convex</groupId>
 			<artifactId>convex-core</artifactId>
-			<version>0.7.0</version>
+			<version>${convex.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>world.convex</groupId>
 			<artifactId>convex-peer</artifactId>
-			<version>0.7.0</version>
+			<version>${convex.version}</version>
 		</dependency>
 
 		<dependency>
