@@ -23,7 +23,7 @@ public class Renderer {
 	
 	public Engine engine;
 	private HUD hud;
-	private Chunks chunks=Chunks.create(this);
+	Chunks chunks=Chunks.create(this);
 
 	protected int width;
 	protected int height;
@@ -35,7 +35,7 @@ public class Renderer {
 			engine.onChunkRefresh=ca->{
 				
 			};
-			hud=new HUD(engine);
+			hud=new HUD(this);
 			
 			Chunk.init();
 			chunks.init();

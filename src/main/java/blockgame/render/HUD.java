@@ -40,6 +40,7 @@ import convex.core.data.ACell;
 
 public class HUD {
 
+	protected final Renderer renderer;
 	protected final Engine engine;
 	private static int cursorVBO;
 	private static int toolsVBO;
@@ -52,8 +53,9 @@ public class HUD {
 	static int h_vs_ColourPosition;
 
 
-	public HUD(Engine engine) {
-		this.engine=engine;
+	public HUD(Renderer renderer) {
+		this.engine=renderer.engine;
+		this.renderer=renderer;
 	}
 	
 	public static final int FLOATS_PER_VERTEX=3+2; // position + texture
@@ -179,7 +181,7 @@ public class HUD {
 	private void drawHUDText(int width, int height) {
 		StringBuilder ht=new StringBuilder();
 		ht.append("CONVEX Craft\n");
-		ht.append("Chunks Loaded: "+engine.chunks.size()+"\n");
+		ht.append("Chunks Loaded: "+renderer.chunks.getChunkCount()+"\n");
 		ht.append("FPS:           "+FPSformat.format(Renderer.fps)+"\n");
 		ht.append("Memory Size:   "+Config.SERVER.getPeer().getConsensusState().getMemorySize()+"\n");
 		ht.append("Balance:       "+Config.SERVER.getPeer().getConsensusState().getAccount(Config.addr).getBalance()+"\n");

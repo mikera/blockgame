@@ -1,5 +1,7 @@
 package blockgame;
 
+import org.joml.Vector3i;
+
 public class Util {
 	
 	
@@ -16,6 +18,32 @@ public class Util {
 
 	public static int chunkBase(float a) {
 		return ((int)Math.floor(a))&~0xf;
+	}
+	
+	public static int chunkBase(int a) {
+		return a&~0xf;
+	}
+
+	public static String chunkString(int x, int y, int z) {
+		x=chunkBase(x);
+		y=chunkBase(y);
+		z=chunkBase(z);
+		return "["+locString(x,y,z)+"]";
+	}
+
+	/**
+	 * Location as 3 longs separated with whitespace (commas)
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return
+	 */
+	public static String locString(int x, int y, int z) {
+		return x+","+y+","+z;
+	}
+
+	public static String locString(Vector3i pos) {
+		return locString(pos.x,pos.y,pos.z);
 	}
 
 }

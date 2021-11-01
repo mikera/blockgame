@@ -12,6 +12,7 @@ import org.joml.Vector3i;
 
 import blockgame.Config;
 import blockgame.Deploy;
+import blockgame.Util;
 import convex.api.Convex;
 import convex.core.Result;
 import convex.core.data.ACell;
@@ -133,7 +134,7 @@ public class Engine {
 			CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.transact(Invoke.create(convex.getAddress(), 0, form));
 			cf.thenAcceptAsync(r-> {
 				if (r.isError()) throw new Error("Bad result: "+r);
-				System.out.println("Uploaded chunk at "+locString(bx,by,bz) + " : "+chunkString);
+				System.out.println("Uploaded chunk at "+Util.locString(bx,by,bz) + " : "+chunkString);
 				chunks.put(chunkPos, chunkData);
 			}).exceptionallyAsync(e->{		
 				System.err.println(form); 
@@ -193,23 +194,15 @@ public class Engine {
 		}
 	}
 
-	public static String locString(int bx, int by, int bz) {
-		return bx+","+by+","+bz;
-	}
-	
-	public static String locString(Vector3i pos) {
-		return locString(pos.x,pos.y,pos.z);
-	}
-
 	public HashMap<Long,AVector<ACell>> chunks=new HashMap<>(91);
 	
 	/**
 	 * Get the chunk that includes the specified block location
 	 */
 	public AVector<ACell> getChunk(int x, int y, int z) {
-		int bx=x&~0xf;
-		int by=y&~0xf;
-		int bz=z&~0xf;
+		int bx=Util.chunkBase(x);
+		int by=Util.chunkBase(y);
+		int bz=Util.chunkBase(z);
 		
 		Long cpos=chunkAddress(bx,by,bz);
 		AVector<ACell> chunk=chunks.get(cpos);
@@ -227,9 +220,9 @@ public class Engine {
 	 * @return Chunk data or null if not set locally
 	 */
 	public AVector<ACell> getChunkLocal(int x, int y, int z) {
-		int bx=x&~0xf;
-		int by=y&~0xf;
-		int bz=z&~0xf;
+		int bx=Util.chunkBase(x);
+		int by=Util.chunkBase(y);
+		int bz=Util.chunkBase(z);
 		
 		Long cpos=chunkAddress(bx,by,bz);
 		AVector<ACell> chunk=chunks.get(cpos);
@@ -245,9 +238,9 @@ public class Engine {
 	 * Get a Vector3i pointing to the chunk base location
 	 */
 	public Vector3i chunkPos(int x, int y, int z) {
-		int bx=x&~0xf;
-		int by=y&~0xf;
-		int bz=z&~0xf;
+		int bx=Util.chunkBase(x);
+		int by=Util.chunkBase(y);
+		int bz=Util.chunkBase(z);
 		Vector3i cpos=new Vector3i(bx,by,bz);
 		return cpos;
 	}
@@ -275,9 +268,9 @@ public class Engine {
 	public void setBlock(int x, int y, int z, ACell block) {
 		ACell trans;
 		if (block==null) {
-			trans=Reader.read("(call "+Config.world+" (break-block "+locString(x,y,z)+"))");
+			trans=Reader.read("(call "+Config.world+" (break-block "+Util.locString(x,y,z)+"))");
 		} else {
-			trans=Reader.read("(call "+Config.world+" (place-block "+locString(x,y,z)+" "+block+"))");
+			trans=Reader.read("(call "+Config.world+" (place-block "+Util.locString(x,y,z)+" "+block+"))");
 		}
 		try {
 			Convex convex=Config.getConvex();
@@ -289,7 +282,7 @@ public class Engine {
 				if (r.isError()) {
 					System.err.println("Error setting block in chunk: "+chunkAddress(x,y,z)+" : "+r);
 				} else {
-					System.out.println("Block "+block+" placed at "+Engine.locString(x,y,z));
+					System.out.println("Block "+block+" placed at "+Util.locString(x,y,z));
 					setBlockLocal(x,y,z,block);
 				};
 				refreshInventory();

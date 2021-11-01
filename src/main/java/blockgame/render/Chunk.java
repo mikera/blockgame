@@ -208,6 +208,8 @@ public class Chunk {
 					}
 				}
 			}
+		} else {
+			// addBlock(geom, 0, 0, 15, Lib.FIRESTONE_BLOCK);
 		}
 		return geom.getFlippedBuffer();
 	}

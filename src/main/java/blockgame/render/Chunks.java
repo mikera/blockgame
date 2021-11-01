@@ -21,6 +21,9 @@ import org.lwjgl.BufferUtils;
 
 import blockgame.Util;
 
+/**
+ * Renderer sub-component for rendering chunk data
+ */
 public class Chunks {
 	
 	private Renderer r;
@@ -81,8 +84,6 @@ public class Chunks {
 		vLightDir.get(0, matbufferVLightDir);		
 		glUniform3fv(Chunk.c_fs_LightDirPosition, matbufferVLightDir);
 
-		
-		
 		// Player chunk position
 		int plx=Util.chunkBase(playerPos.x);
 		int ply=Util.chunkBase(playerPos.y);
@@ -94,7 +95,7 @@ public class Chunks {
 				for (int cz=plz-DIST; cz<=plz+DIST; cz+=16) {
 					double dist=Util.dist(cx+8,cy+8,cz+8,playerPos.x,playerPos.y,playerPos.z);
 					if (dist>=(DIST-16)) {
-						setChunk(cx,cy,cz,null);
+						dropChunk(cx,cy,cz);
 						continue;
 					}
 					Chunk chunk=getChunk(cx,cy,cz);
@@ -154,33 +155,31 @@ public class Chunks {
 	private Chunk getChunk(int cx, int cy, int cz) {
 		Vector3i cpos=new Vector3i(cx,cy,cz);
 		Chunk chunk=chunks.get(cpos);
-		if (chunk==null) {
-			chunk=Chunk.create(cpos, r.engine);
-			if (chunk!=null) {
-				chunks.put(cpos, chunk);
-			}
+		if (chunk!=null) return chunk;
+		
+		chunk=Chunk.create(cpos, r.engine);
+		if (chunk!=null) {
+			chunks.put(cpos, chunk);
+			System.out.println("Created chunk "+Util.locString(cx,cy,cz));
 		}
 		return chunk;
 	}
 	
-	private void setChunk(int cx, int cy, int cz, Chunk chunk) {
+	private void dropChunk(int cx, int cy, int cz) {
 		Vector3i cpos=new Vector3i(cx,cy,cz);
-		if (chunk==null) {
-			Chunk prev=chunks.get(cpos);
-			if (prev!=null) {
-				prev.dispose();
-			}
+		Chunk prev=chunks.get(cpos);
+		if (prev!=null) {
+			prev.dispose();
 			chunks.remove(cpos);
-		} else {
-			chunks.put(cpos, chunk);
+			System.out.println("Dropped chunk "+Util.locString(cx,cy,cz));
 		}
 	}
 	
 	public void rebuildChunk(int x, int y, int z) {
 		// round to chunk base co-ordinate
-		x&=~0xf;
-		y&=~0xf;
-		z&=~0xf;
+		x=Util.chunkBase(x);
+		y=Util.chunkBase(y);
+		z=Util.chunkBase(z);
 		Vector3i cpos=new Vector3i(x,y,z);
 		Chunk chunk=chunks.get(cpos);
 		if (chunk!=null) chunk.rebuild();
@@ -191,6 +190,11 @@ public class Chunks {
 		for (Chunk c:chunks.values()) {
 			c.dispose();
 		}
+	}
+
+
+	public int getChunkCount() {
+		return chunks.size();
 	}
 
 
