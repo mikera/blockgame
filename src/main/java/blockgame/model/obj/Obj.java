@@ -27,6 +27,7 @@ package blockgame.model.obj;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -40,11 +41,11 @@ public class Obj extends Object {
     private final List<Vector3f> vertices;
     private final List<Vector2f> textureCoords;
     private final List<Vector3f> normals;
-    private final List<Face> faces;
+    private final HashMap<String,List<Face>> faces;
     private boolean enableSmoothShading;
 
     public Obj(List<Vector3f> vertices, List<Vector2f> textureCoords,
-            List<Vector3f> normals, List<Face> faces, boolean enableSmoothShading) {
+            List<Vector3f> normals, HashMap<String,List<Face>> faces, boolean enableSmoothShading) {
         super();
 
         this.vertices = vertices;
@@ -56,7 +57,7 @@ public class Obj extends Object {
 
     public Obj() {
         this(new ArrayList<Vector3f>(), new ArrayList<Vector2f>(),
-                new ArrayList<Vector3f>(), new ArrayList<Face>(), true);
+                new ArrayList<Vector3f>(), new HashMap<>(), true);
     }
 
     public void enableStates() {
@@ -87,7 +88,7 @@ public class Obj extends Object {
         return this.normals;
     }
 
-    public List<Face> getFaces() {
+    public HashMap<String,List<Face>> getFaces() {
         return this.faces;
     }
 

@@ -34,6 +34,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.joml.Vector2f;
@@ -73,34 +76,36 @@ public class ObjLoader extends Object {
         GL11.glMaterialf(GL_FRONT, GL_SHININESS, 120);
         GL11.glBegin(GL_TRIANGLES);
         {
-            for (Obj.Face face : model.getFaces()) {
-                Vector3f[] normals = {
-                    model.getNormals().get(face.getNormals()[0] - 1),
-                    model.getNormals().get(face.getNormals()[1] - 1),
-                    model.getNormals().get(face.getNormals()[2] - 1)
-                };
-                Vector2f[] texCoords = {
-                    model.getTextureCoordinates().get(face.getTextureCoords()[0] - 1),
-                    model.getTextureCoordinates().get(face.getTextureCoords()[1] - 1),
-                    model.getTextureCoordinates().get(face.getTextureCoords()[2] - 1)
-                };
-                Vector3f[] vertices = {
-                    model.getVertices().get(face.getVertices()[0] - 1),
-                    model.getVertices().get(face.getVertices()[1] - 1),
-                    model.getVertices().get(face.getVertices()[2] - 1)
-                };
-                {
-                    GL11.glNormal3f(normals[0].x, normals[0].y, normals[0].z);
-                    GL11.glTexCoord2f(texCoords[0].x, texCoords[0].y);
-                    GL11.glVertex3f(vertices[0].x, vertices[0].y, vertices[0].z);
-                    GL11.glNormal3f(normals[1].x, normals[1].y, normals[1].z);
-                    GL11.glTexCoord2f(texCoords[1].x, texCoords[1].y);
-                    GL11.glVertex3f(vertices[1].x, vertices[1].y, vertices[1].z);
-                    GL11.glNormal3f(normals[2].x, normals[2].y, normals[2].z);
-                    GL11.glTexCoord2f(texCoords[2].x, texCoords[2].y);
-                    GL11.glVertex3f(vertices[2].x, vertices[2].y, vertices[2].z);
-                }
-            }
+        	for (Map.Entry<String,List<Obj.Face>> e:model.getFaces().entrySet()) {
+	            for (Obj.Face face : e.getValue()) {
+	                Vector3f[] normals = {
+	                    model.getNormals().get(face.getNormals()[0] - 1),
+	                    model.getNormals().get(face.getNormals()[1] - 1),
+	                    model.getNormals().get(face.getNormals()[2] - 1)
+	                };
+	                Vector2f[] texCoords = {
+	                    model.getTextureCoordinates().get(face.getTextureCoords()[0] - 1),
+	                    model.getTextureCoordinates().get(face.getTextureCoords()[1] - 1),
+	                    model.getTextureCoordinates().get(face.getTextureCoords()[2] - 1)
+	                };
+	                Vector3f[] vertices = {
+	                    model.getVertices().get(face.getVertices()[0] - 1),
+	                    model.getVertices().get(face.getVertices()[1] - 1),
+	                    model.getVertices().get(face.getVertices()[2] - 1)
+	                };
+	                {
+	                    GL11.glNormal3f(normals[0].x, normals[0].y, normals[0].z);
+	                    GL11.glTexCoord2f(texCoords[0].x, texCoords[0].y);
+	                    GL11.glVertex3f(vertices[0].x, vertices[0].y, vertices[0].z);
+	                    GL11.glNormal3f(normals[1].x, normals[1].y, normals[1].z);
+	                    GL11.glTexCoord2f(texCoords[1].x, texCoords[1].y);
+	                    GL11.glVertex3f(vertices[1].x, vertices[1].y, vertices[1].z);
+	                    GL11.glNormal3f(normals[2].x, normals[2].y, normals[2].z);
+	                    GL11.glTexCoord2f(texCoords[2].x, texCoords[2].y);
+	                    GL11.glVertex3f(vertices[2].x, vertices[2].y, vertices[2].z);
+	                }
+	            }
+        	}
         }
         GL11.glEnd();
     }
@@ -128,9 +133,11 @@ public class ObjLoader extends Object {
      */
     public Obj loadModel(Scanner sc) {
         Obj model = new Obj();
+        String o="Default";
         while (sc.hasNextLine()) {
             String ln = sc.nextLine();
             if (ln == null || ln.equals("") || ln.startsWith("#")) {
+            	// Skip empty lines
             } else {
                 String[] split = ln.split(" ");
                 switch (split[0]) {
@@ -155,7 +162,13 @@ public class ObjLoader extends Object {
                         ));
                         break;
                     case "f":
-                        model.getFaces().add(new Obj.Face(
+                    	
+                    	List<Obj.Face> faces=model.getFaces().get(o);
+                    	if (faces==null) {
+                    		faces=new ArrayList<>();
+                    		model.getFaces().put(o, faces);
+                    	}
+                        faces.add(new Obj.Face(
                                 new int[]{
                                     Integer.parseInt(split[1].split("/")[0]),
                                     Integer.parseInt(split[2].split("/")[0]),
@@ -173,8 +186,14 @@ public class ObjLoader extends Object {
                                 }
                         ));
                         break;
+                    case "o":
+                        o=split[1];
+                        break;
                     case "s":
                         model.setSmoothShadingEnabled(!ln.contains("off"));
+                        break;
+                    case "usemtl":
+                        // Ignore for now
                         break;
                     default:
                         System.err.println("[OBJ] Unknown Line: " + ln);
