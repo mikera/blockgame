@@ -7,7 +7,11 @@ public class Util {
 	}
 
 	private static double dist2(double dx, double dy, double dz) {
-		return dx*dx+dy*dy+dz*dz;
+		return (dx*dx)+(dy*dy)+(dz*dz);
+	}
+
+	public static int chunkBase(float a) {
+		return ((int)Math.floor(a))&~0xf;
 	}
 
 }

@@ -18,4 +18,6 @@ public class BlockTest {
 		assertEquals(2048,Assets.textureImage.getWidth());
 		assertEquals(2048,Assets.textureImage.getHeight());
 	}
+	
+
 }

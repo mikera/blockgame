@@ -213,16 +213,16 @@ public class Renderer {
 		glUniform3fv(Chunk.c_fs_LightDirPosition, matbufferVLightDir);
 
 		// Player chunk position
-		int plx=((int)Math.floor(playerPos.x))&~0xf;
-		int ply=((int)Math.floor(playerPos.y))&~0xf;
-		int plz=((int)Math.floor(playerPos.z))&~0xf;
+		int plx=Util.chunkBase(playerPos.x);
+		int ply=Util.chunkBase(playerPos.y);
+		int plz=Util.chunkBase(playerPos.z);
 		
 		int DIST=160;
 		for (int cx=plx-DIST; cx<=plx+DIST; cx+=16) {
 			for (int cy=ply-DIST; cy<=ply+DIST; cy+=16) {
 				for (int cz=plz-DIST; cz<=plz+DIST; cz+=16) {
-					double dist=Util.dist(cx+8,cy+8,cz+8,playerPos.x,playerPos.y,playerPos.z);
-					if (dist>(DIST-16)) {
+					double dist=Util.dist(cx,cy,cz,plx,ply,plz);
+					if (dist>=(DIST-16)) {
 						setChunk(cx,cy,cz,null);
 						continue;
 					}
@@ -245,7 +245,6 @@ public class Renderer {
 			}
 		}
 	}
-
 
 	private void setupPerspective(Matrix4f projectionMatrix) {
 		projectionMatrix.setPerspective((float) (Math.PI/4), ((float)width)/height, 0.1f, 1000f);
@@ -359,7 +358,8 @@ public class Renderer {
 		x&=~0xf;
 		y&=~0xf;
 		z&=~0xf;
-		Chunk chunk=getChunk(x,y,z);
+		Vector3i cpos=new Vector3i(x,y,z);
+		Chunk chunk=chunks.get(cpos);
 		if (chunk!=null) chunk.rebuild();
 	}
 
