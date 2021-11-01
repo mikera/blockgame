@@ -25,6 +25,7 @@ import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20;
 
+import blockgame.Util;
 import blockgame.assets.Assets;
 import blockgame.engine.Face;
 
@@ -57,7 +58,7 @@ public class Skybox {
 		
 		view.identity();
 		view.rotateZ(-heading);
-		view.rotateX(Renderer.QUARTER_TURN+pitch);
+		view.rotateX(Util.QUARTER_TURN+pitch);
 		view.invert();
 		
 		trans.setPerspective((float) (Math.PI/3), ((float)width)/height, 0.1f, 100f);

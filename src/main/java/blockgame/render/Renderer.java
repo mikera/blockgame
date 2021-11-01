@@ -1,28 +1,15 @@
 package blockgame.render;
  
-import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
 import static org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glDepthMask;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glViewport;
-import static org.lwjgl.opengl.GL20.glUniform3fv;
-import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
-import static org.lwjgl.opengl.GL20.glUseProgram;
-
-import java.nio.FloatBuffer;
-import java.util.HashMap;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
-import org.joml.Vector4f;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL20;
 
@@ -36,7 +23,7 @@ public class Renderer {
 	
 	public Engine engine;
 	private HUD hud;
-	private Billboard billboard=new Billboard();
+	private Chunks chunks=Chunks.create(this);
 
 	protected int width;
 	protected int height;
@@ -51,9 +38,9 @@ public class Renderer {
 			hud=new HUD(engine);
 			
 			Chunk.init();
+			chunks.init();
 			HUD.init(engine);
 			Skybox.init();
-			billboard.init();
 			Text.init();
 		} catch (Throwable e) {
 			throw new Error(e);
@@ -62,43 +49,9 @@ public class Renderer {
 		// Set the clear color
 		glClearColor(0.2f, 0.7f, 0.85f, 0.0f);
 	}
-	
-	/**
-	 * Chunks indexed by base chunk co-ordinate
-	 */
-	private HashMap<Vector3i,Chunk> chunks=new HashMap<>(100);
-
-
-	private Chunk getChunk(int cx, int cy, int cz) {
-		Vector3i cpos=new Vector3i(cx,cy,cz);
-		Chunk chunk=chunks.get(cpos);
-		if (chunk==null) {
-			chunk=Chunk.create(cpos, engine);
-			if (chunk!=null) {
-				chunks.put(cpos, chunk);
-			}
-		}
-		return chunk;
-	}
-	
-	private void setChunk(int cx, int cy, int cz, Chunk chunk) {
-		Vector3i cpos=new Vector3i(cx,cy,cz);
-		if (chunk==null) {
-			Chunk prev=chunks.get(cpos);
-			if (prev!=null) {
-				prev.dispose();
-			}
-			chunks.remove(cpos);
-		} else {
-			chunks.put(cpos, chunk);
-		}
-	}
 
 	public void close() {
-		// TODO Auto-generated method stub
-		for (Chunk c:chunks.values()) {
-			c.dispose();
-		}
+		chunks.close();
 	}
 
 	Vector3f tempDir=new Vector3f(0,0,0);
@@ -110,7 +63,6 @@ public class Renderer {
 
 	Vector3f up=new Vector3f(0,0,1);
 	
-	static float QUARTER_TURN=(float) (Math.PI/2);
 
 	
 	public void render(float t) {
@@ -122,8 +74,8 @@ public class Renderer {
 		
 		Skybox.draw(width,height,heading,pitch);
 
-		drawChunks();
-		drawEntities();
+		chunks.drawChunks();
+		chunks.drawEntities();
 		drawHUD();
 		
 		updateStats();
@@ -144,109 +96,7 @@ public class Renderer {
 		lastTime=time;
 	}
 
-	private void drawEntities() {
-		glUseProgram(Billboard.getProgram());
-		
-		glDisable(GL_CULL_FACE); // Billboards don't want this
-		glEnable(GL_DEPTH_TEST); // Still do depth test
-		glEnable(GL_BLEND); // We want alpha blending
-
-		
-		setupPerspective(projection);
-		
-		// Projection Matrix
-		projection.get(0, matbufferP);		
-		glUniformMatrix4fv(Chunk.c_vs_PPosition, false,  matbufferP);
-
-		view.identity();
-		view.translate(playerPos);
-		view.rotateZ(-heading);
-		view.rotateX(QUARTER_TURN+pitch);
-		view.invert();
-		
-		model.identity();
-		model.translate(0,0,5);
-
-		// ModelView Matrix
-		mv.set(view);
-		mv.mul(model);
-
-		mv.get(0, matbufferMV);		
-		glUniformMatrix4fv(Chunk.c_vs_MVPosition, false,  matbufferMV);
-		
-		billboard.draw();
-
-	}
-
-	Matrix4f mv=new Matrix4f();
-	Matrix4f view=new Matrix4f();
-	Matrix4f model=new Matrix4f();
-	Matrix4f projection=new Matrix4f();
-	Vector4f vLightDir=new Vector4f(); // light dir in MV space
-
-	
-	private final FloatBuffer matbufferP = BufferUtils.createFloatBuffer(16);
-	private final FloatBuffer matbufferMV = BufferUtils.createFloatBuffer(16);
-	private final FloatBuffer matbufferVLightDir = BufferUtils.createFloatBuffer(4);
-	
-	private void drawChunks() {			
-		Chunk.prepareState();
-
-		// General set up for projection and view matrices
-		setupPerspective(projection);
-		
-		// Projection Matrix
-		projection.get(0, matbufferP);		
-		glUniformMatrix4fv(Chunk.c_vs_PPosition, false,  matbufferP);
-		
-		view.identity();
-		view.translate(playerPos);
-		view.rotateZ(-heading);
-		view.rotateX(QUARTER_TURN+pitch);
-		view.invert();
-		
-		// Light direction
-		vLightDir.set(-2,-1,4,0);
-		vLightDir.mul(view);
-		vLightDir.normalize();
-		vLightDir.get(0, matbufferVLightDir);		
-		glUniform3fv(Chunk.c_fs_LightDirPosition, matbufferVLightDir);
-
-		// Player chunk position
-		int plx=Util.chunkBase(playerPos.x);
-		int ply=Util.chunkBase(playerPos.y);
-		int plz=Util.chunkBase(playerPos.z);
-		
-		int DIST=160;
-		for (int cx=plx-DIST; cx<=plx+DIST; cx+=16) {
-			for (int cy=ply-DIST; cy<=ply+DIST; cy+=16) {
-				for (int cz=plz-DIST; cz<=plz+DIST; cz+=16) {
-					double dist=Util.dist(cx,cy,cz,plx,ply,plz);
-					if (dist>=(DIST-16)) {
-						setChunk(cx,cy,cz,null);
-						continue;
-					}
-					Chunk chunk=getChunk(cx,cy,cz);
-					if (chunk!=null) {
-			
-						model.identity();
-						model.translate(cx,cy,cz);
-					
-						// ModelView Matrix
-						mv.set(view);
-						mv.mul(model);
-				
-						mv.get(0, matbufferMV);		
-						glUniformMatrix4fv(Chunk.c_vs_MVPosition, false,  matbufferMV);
-						
-						chunk.draw();
-					}
-				}
-			}
-		}
-	}
-
-	private void setupPerspective(Matrix4f projectionMatrix) {
+	public void setupPerspective(Matrix4f projectionMatrix) {
 		projectionMatrix.setPerspective((float) (Math.PI/4), ((float)width)/height, 0.1f, 1000f);
 	}
 	
@@ -267,8 +117,8 @@ public class Renderer {
 		heading=heading+(float)(dx*0.001);
 		pitch=pitch-(float)(dy*0.002);
 		
-		if (pitch>QUARTER_TURN) pitch =QUARTER_TURN;
-		if (pitch<-QUARTER_TURN) pitch =-QUARTER_TURN;
+		if (pitch>Util.QUARTER_TURN) pitch =Util.QUARTER_TURN;
+		if (pitch<-Util.QUARTER_TURN) pitch =-Util.QUARTER_TURN;
 		
 		// System.out.println("Heading = "+heading+"    pitch = "+pitch + "   pos = "+playerPos);
 	}
@@ -300,7 +150,7 @@ public class Renderer {
 
 	public void applyRightClick() {
 		tempDir.set(0,0,-1);
-		tempDir.rotateX((QUARTER_TURN+pitch));
+		tempDir.rotateX((Util.QUARTER_TURN+pitch));
 		tempDir.rotateZ(-heading);
 		Engine.intersect(playerPos, tempDir, (x,y,z)->engine.getBlock(x,y,z), hitResult);
 		
@@ -323,7 +173,7 @@ public class Renderer {
 
 	public void applyLeftClick() {
 		tempDir.set(0,0,-1);
-		tempDir.rotateX((QUARTER_TURN+pitch));
+		tempDir.rotateX((Util.QUARTER_TURN+pitch));
 		tempDir.rotateZ(-heading);
 		Engine.intersect(playerPos, tempDir, (x,y,z)->engine.getBlock(x,y,z), hitResult);
 		
@@ -342,26 +192,17 @@ public class Renderer {
 
 	private void maybeRebuildChunk(int x, int y, int z) {
 		int bx=x&0xf;
-		if (bx==0) rebuildChunk(x-1,y,z);
-		if (bx==15) rebuildChunk(x+1,y,z);
+		if (bx==0) chunks.rebuildChunk(x-1,y,z);
+		if (bx==15) chunks.rebuildChunk(x+1,y,z);
 		int by=y&0xf;
-		if (by==0) rebuildChunk(x,y-1,z);
-		if (by==15) rebuildChunk(x,y+1,z);
+		if (by==0) chunks.rebuildChunk(x,y-1,z);
+		if (by==15) chunks.rebuildChunk(x,y+1,z);
 		int bz=z&0xf;
-		if (bz==0) rebuildChunk(x,y,z-1);
-		if (bz==15) rebuildChunk(x,y,z+1);
-
+		if (bz==0) chunks.rebuildChunk(x,y,z-1);
+		if (bz==15) chunks.rebuildChunk(x,y,z+1);
 	}
 
-	private void rebuildChunk(int x, int y, int z) {
-		// round to chunk base co-ordinate
-		x&=~0xf;
-		y&=~0xf;
-		z&=~0xf;
-		Vector3i cpos=new Vector3i(x,y,z);
-		Chunk chunk=chunks.get(cpos);
-		if (chunk!=null) chunk.rebuild();
-	}
+
 
 	public void applyTool(int i) {
 		engine.setToolIndex(i);
