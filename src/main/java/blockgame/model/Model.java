@@ -1,11 +1,16 @@
 package blockgame.model;
 
+import static org.lwjgl.opengl.GL11.GL_FLOAT;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.glDrawArrays;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
 import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL15.glBufferData;
 import static org.lwjgl.opengl.GL15.glDeleteBuffers;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
+import static org.lwjgl.opengl.GL20C.glEnableVertexAttribArray;
+import static org.lwjgl.opengl.GL20C.glVertexAttribPointer;
 import static org.lwjgl.system.MemoryUtil.memAllocFloat;
 import static org.lwjgl.system.MemoryUtil.memFree;
 
@@ -18,11 +23,13 @@ import org.joml.Vector3f;
 
 import blockgame.model.obj.Obj;
 import blockgame.render.Buildable;
+import blockgame.render.Chunk;
+import blockgame.render.Texture;
 
 public class Model {
 
 	public static final int FLOATS_PER_VERTEX= 3 + 3 + 2 + 3; // position + normal + texture + colour
-	public static final Vector3f COLOUR=new Vector3f(0.5f,0.5f,0.5f);
+	public static final Vector3f COLOUR=new Vector3f(0.6f,0.6f,0.6f);
 	
 	private final Buildable build=Buildable.create(FLOATS_PER_VERTEX);
 	private final int objectCount; 
@@ -33,6 +40,7 @@ public class Model {
 	
 	private int vbo=0;
 	private int triangleCount=0;
+	private Texture texture;
 	
 	private Model(int objCount) {
 		objectCount=objCount;
@@ -98,6 +106,30 @@ public class Model {
 		// System.out.println("VBO built! "+vbo);
 	}
 	
+	public void draw() {
+		if (vbo != 0) {
+			// Bind buffer
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+			int stride = build.strideInBytes();
+
+			// define vertex format, should be after glBindBuffer
+			glVertexAttribPointer(Chunk.c_vs_inputPosition, 3, GL_FLOAT, false, stride, 0L); // Note: stride in bytes
+			glEnableVertexAttribArray(Chunk.c_vs_inputPosition);
+
+			glVertexAttribPointer(Chunk.c_vs_normalPosition, 3, GL_FLOAT, false, stride, 12L); // Note: stride in bytes
+			glEnableVertexAttribArray(Chunk.c_vs_normalPosition);
+
+			glVertexAttribPointer(Chunk.c_vs_texturePosition, 2, GL_FLOAT, false, stride, 24L); // Note: stride in bytes
+			glEnableVertexAttribArray(Chunk.c_vs_texturePosition);
+
+			glVertexAttribPointer(Chunk.c_vs_colourPosition, 3, GL_FLOAT, false, stride, 32L); // Note: stride in bytes
+			glEnableVertexAttribArray(Chunk.c_vs_colourPosition);
+
+			glDrawArrays(GL_TRIANGLES, 0, triangleCount * 3);
+		}
+	}
+	
 	public void dispose() {
 		if (vbo!=0) {
 			synchronized(this) {
@@ -110,6 +142,7 @@ public class Model {
 			
 		}
 	}
+	
 
 	private void addTri(Obj obj, int[] vs, int[] ts, int[] ns, int i1, int i2, int i3) {
 		addVert(obj,vs[i1],ns[i1],ts[i1]);
@@ -117,11 +150,15 @@ public class Model {
 		addVert(obj,vs[i3],ns[i3],ts[i3]);
 	}
 
+	Vector2f temp=new Vector2f();
+	
 	private void addVert(Obj obj, int vi, int ni, int ti) {
 		Vector3f v=obj.getVertex(vi);
 		Vector3f n=obj.getNormal(ni);
 		Vector2f t=obj.getTextureCoordinate(ti);
-		build.put(v).put(n).put(t).put(COLOUR);
+		temp.set(t);
+		temp.y=1.0f-temp.y;
+		build.put(v).put(n).put(temp).put(COLOUR);
 	}
 
 	public int getObjectCount() {
@@ -130,5 +167,13 @@ public class Model {
 
 	public int getVertexCount() {
 		return build.vertexCount();
+	}
+
+	public void setTexture(Texture tex) {
+		this.texture=tex;
+	}
+	 
+	public Texture getTexture() {
+		return texture;
 	}
 }

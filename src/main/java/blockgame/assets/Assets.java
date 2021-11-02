@@ -15,6 +15,8 @@ public class Assets {
 	
 	public static BufferedImage skybox;
 
+	public static BufferedImage player;
+
 	
 	static {
 		//ClassLoader classLoader = ClassLoader.getSystemClassLoader();
@@ -24,6 +26,7 @@ public class Assets {
 			Assets.textureImage = ImageIO.read(classLoader.getResource("images/textures.png"));
 			Assets.font = ImageIO.read(classLoader.getResource("images/font.png"));
 			Assets.skybox = ImageIO.read(classLoader.getResource("images/skybox.png"));
+			Assets.player = ImageIO.read(classLoader.getResource("models/player.png"));
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

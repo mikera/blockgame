@@ -20,6 +20,7 @@ import org.joml.Vector4f;
 import org.lwjgl.BufferUtils;
 
 import blockgame.Util;
+import blockgame.model.Models;
 
 /**
  * Renderer sub-component for rendering chunk data
@@ -116,6 +117,21 @@ public class Chunks {
 				}
 			}
 		}
+		
+		
+		glDisable(GL_CULL_FACE);
+
+		model.identity();
+		model.translate(0,0,10);
+		model.rotateX(Util.QUARTER_TURN);
+		mv.set(view);
+		mv.mul(model);
+		
+		mv.get(0, matbufferMV);		
+		glUniformMatrix4fv(Chunk.c_vs_MVPosition, false,  matbufferMV);
+		
+		Models.PLAYER.getTexture().bind();
+		Models.PLAYER.draw();
 	}
 	
 	public void drawEntities() {

@@ -42,6 +42,7 @@ import blockgame.engine.Engine;
 import blockgame.engine.Face;
 import blockgame.engine.Lib;
 import blockgame.engine.Rand;
+import blockgame.model.Models;
 import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AHashMap;
@@ -94,10 +95,10 @@ public class Chunk {
 	static int c_vs_MVPosition;
 	static int c_vs_PPosition;
 	
-	static int c_vs_inputPosition;
-	static int c_vs_normalPosition;
-	static int c_vs_texturePosition;
-	static int c_vs_colourPosition;
+	public static int c_vs_inputPosition;
+	public static int c_vs_normalPosition;
+	public static int c_vs_texturePosition;
+	public static int c_vs_colourPosition;
 
 	private static int createProgram() throws IOException {
 		int program = glCreateProgram();
@@ -470,6 +471,7 @@ public class Chunk {
 
 			glDrawArrays(GL_TRIANGLES, 0, getTriangleCount() * 3);
 		}
+		
 	}
 
 	public void dispose() {
@@ -481,7 +483,6 @@ public class Chunk {
 					glDeleteBuffers(tempVBO);
 				}
 			}
-			
 		}
 	}
 
