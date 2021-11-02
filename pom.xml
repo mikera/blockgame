@@ -61,27 +61,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-assimp</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-bgfx</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
 			<artifactId>lwjgl-glfw</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-nanovg</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-nuklear</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-openal</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.lwjgl</groupId>
@@ -89,70 +69,63 @@
 		</dependency>
 		<dependency>
 			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-par</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
 			<artifactId>lwjgl-stb</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-vulkan</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl</artifactId>
-			<classifier>${lwjgl.natives}</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-assimp</artifactId>
-			<classifier>${lwjgl.natives}</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-bgfx</artifactId>
-			<classifier>${lwjgl.natives}</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-glfw</artifactId>
-			<classifier>${lwjgl.natives}</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-nanovg</artifactId>
-			<classifier>${lwjgl.natives}</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-nuklear</artifactId>
-			<classifier>${lwjgl.natives}</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-openal</artifactId>
-			<classifier>${lwjgl.natives}</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-opengl</artifactId>
-			<classifier>${lwjgl.natives}</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-par</artifactId>
-			<classifier>${lwjgl.natives}</classifier>
-		</dependency>
-		<dependency>
-			<groupId>org.lwjgl</groupId>
-			<artifactId>lwjgl-stb</artifactId>
-			<classifier>${lwjgl.natives}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.joml</groupId>
 			<artifactId>joml</artifactId>
 			<version>${joml.version}</version>
 		</dependency>
+
+		<!-- Natives -->
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl</artifactId>
+			<classifier>natives-windows</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl-glfw</artifactId>
+			<classifier>natives-windows</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl-opengl</artifactId>
+			<classifier>natives-windows</classifier>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl</artifactId>
+			<classifier>natives-macos</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl-glfw</artifactId>
+			<classifier>natives-macos</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl-opengl</artifactId>
+			<classifier>natives-macos</classifier>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl</artifactId>
+			<classifier>natives-linux</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl-glfw</artifactId>
+			<classifier>natives-linux</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl-opengl</artifactId>
+			<classifier>natives-linux</classifier>
+		</dependency>
+
+
 	</dependencies>
 </project>
