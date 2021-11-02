@@ -1,5 +1,15 @@
 package blockgame.model;
 
+import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
+import static org.lwjgl.opengl.GL15.glBindBuffer;
+import static org.lwjgl.opengl.GL15.glBufferData;
+import static org.lwjgl.opengl.GL15.glDeleteBuffers;
+import static org.lwjgl.opengl.GL15.glGenBuffers;
+import static org.lwjgl.system.MemoryUtil.memAllocFloat;
+import static org.lwjgl.system.MemoryUtil.memFree;
+
+import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +30,9 @@ public class Model {
 	private final String[] names;
 	private final int[] starts;
 	private final int[] ends;
+	
+	private int vbo=0;
+	private int triangleCount=0;
 	
 	private Model(int objCount) {
 		objectCount=objCount;
@@ -54,7 +67,48 @@ public class Model {
 			oi++;
 		}
 		
+		model.createVBO();
+		
 		return model;
+	}
+	
+	private synchronized void createVBO() {
+		dispose();
+		
+		// Geometry in current context
+		FloatBuffer built = build.getFlippedBuffer();
+
+		int n = built.remaining();
+		triangleCount = n / (3 * FLOATS_PER_VERTEX);
+		if (triangleCount > 0) {
+
+			FloatBuffer vertexBuffer = memAllocFloat(n);
+			vertexBuffer.put(built);
+			vertexBuffer.flip();
+
+			vbo = glGenBuffers();
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW);
+
+			memFree(vertexBuffer);
+		} else {
+			vbo = 0;
+		}
+
+		// System.out.println("VBO built! "+vbo);
+	}
+	
+	public void dispose() {
+		if (vbo!=0) {
+			synchronized(this) {
+				if (vbo!=0) {
+					int tempVBO=vbo;
+					vbo=0;
+					glDeleteBuffers(tempVBO);
+				}
+			}
+			
+		}
 	}
 
 	private void addTri(Obj obj, int[] vs, int[] ts, int[] ns, int i1, int i2, int i3) {

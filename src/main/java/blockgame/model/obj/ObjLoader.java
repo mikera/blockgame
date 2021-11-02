@@ -180,7 +180,7 @@ public class ObjLoader extends Object {
                     case "s":
                         model.setSmoothShadingEnabled(!ln.contains("off"));
                         break;
-                    case "usemtl":
+                    case "usemtl": case "mtllib":
                         // Ignore for now
                         break;
                     default:
