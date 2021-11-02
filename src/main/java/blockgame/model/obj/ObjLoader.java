@@ -169,25 +169,13 @@ public class ObjLoader extends Object {
                     		model.getFaces().put(o, faces);
                     	}
                         faces.add(new Obj.Face(
-                                new int[]{
-                                    Integer.parseInt(split[1].split("/")[0]),
-                                    Integer.parseInt(split[2].split("/")[0]),
-                                    Integer.parseInt(split[3].split("/")[0])
-                                },
-                                new int[]{
-                                    Integer.parseInt(split[1].split("/")[1]),
-                                    Integer.parseInt(split[2].split("/")[1]),
-                                    Integer.parseInt(split[3].split("/")[1])
-                                },
-                                new int[]{
-                                    Integer.parseInt(split[1].split("/")[2]),
-                                    Integer.parseInt(split[2].split("/")[2]),
-                                    Integer.parseInt(split[3].split("/")[2])
-                                }
+                                extractIndices(split,0),
+                                extractIndices(split,1),
+                                extractIndices(split,2)
                         ));
                         break;
                     case "o":
-                        o=split[1];
+                        o=ln.substring(2);
                         break;
                     case "s":
                         model.setSmoothShadingEnabled(!ln.contains("off"));
@@ -203,6 +191,15 @@ public class ObjLoader extends Object {
         sc.close();
         return model;
     }
+
+	public int[] extractIndices(String[] split, int position) {
+		int n=split.length-1;
+		int [] ixs=new int[n];
+		for (int i=0; i<n; i++) {
+			ixs[i]=Integer.parseInt(split[i+1].split("/")[position]);
+		}
+		return ixs;
+	}
 
 	public Obj loadModel(String path) throws IOException {
 		ClassLoader classLoader = ClassLoader.getSystemClassLoader();

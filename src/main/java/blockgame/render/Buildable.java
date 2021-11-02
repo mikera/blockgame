@@ -2,6 +2,9 @@ package blockgame.render;
 
 import java.nio.FloatBuffer;
 
+import org.joml.Vector2f;
+import org.joml.Vector3f;
+
 /**
  * Lightweight stateful vertex buffer builder.
  * Up to caller to determine vertex layout
@@ -44,6 +47,18 @@ public class Buildable {
 		return this;
 	}
 	
+	public Buildable put(Vector3f v) {
+		ensureSpace(3);
+		fb.put(v.x).put(v.y).put(v.z);
+		return this;
+	}
+	
+	public Buildable put(Vector2f v) {
+		ensureSpace(2);
+		fb.put(v.x).put(v.y);
+		return this;
+	}
+	
 	public void clear() {
 		fb.clear();
 	}
@@ -76,4 +91,14 @@ public class Buildable {
 	public int strideInBytes() {
 		return 4*FLOATS_PER_VERTEX;
 	}
+
+	/**
+	 * Get vertex count based on position in buffer
+	 * @return number of vertices
+	 */
+	public int vertexCount() {
+		return fb.position()/FLOATS_PER_VERTEX;
+	}
+
+
 }

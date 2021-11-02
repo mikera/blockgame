@@ -41,17 +41,17 @@ public class Obj extends Object {
     private final List<Vector3f> vertices;
     private final List<Vector2f> textureCoords;
     private final List<Vector3f> normals;
-    private final HashMap<String,List<Face>> faces;
+    private final HashMap<String,List<Face>> objects;
     private boolean enableSmoothShading;
 
     public Obj(List<Vector3f> vertices, List<Vector2f> textureCoords,
-            List<Vector3f> normals, HashMap<String,List<Face>> faces, boolean enableSmoothShading) {
+            List<Vector3f> normals, HashMap<String,List<Face>> objects, boolean enableSmoothShading) {
         super();
 
         this.vertices = vertices;
         this.textureCoords = textureCoords;
         this.normals = normals;
-        this.faces = faces;
+        this.objects = objects;
         this.enableSmoothShading = enableSmoothShading;
     }
 
@@ -89,7 +89,7 @@ public class Obj extends Object {
     }
 
     public HashMap<String,List<Face>> getFaces() {
-        return this.faces;
+        return this.objects;
     }
 
     public boolean isSmoothShadingEnabled() {
@@ -141,4 +141,30 @@ public class Obj extends Object {
                     Arrays.toString(vertexIndices), Arrays.toString(normalIndices), Arrays.toString(textureCoordinateIndices));
         }
     }
+
+	public Vector3f getVertex(int vi) {
+		return getIndexed(vertices,vi);
+	}
+	
+	public Vector3f getNormal(int ni) {
+		return getIndexed(normals,ni);
+	}
+
+	public Vector2f getTextureCoordinate(int ti) {
+		return getIndexed(textureCoords,ti);
+	}
+
+	private <T> T getIndexed(List<T> vals, int ix) {
+		// Note obj indexing from 1, negative means from end of list
+		if (ix>0) {
+			return vals.get(ix-1);
+		} else if (ix<0) {
+			return vals.get(vals.size()+ix);
+		} else {
+			return null;
+		}
+	}
+
+
+
 }

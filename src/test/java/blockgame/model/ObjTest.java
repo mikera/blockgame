@@ -19,4 +19,15 @@ public class ObjTest {
 		
 		assertEquals(96,o.getVertices().size());
 	}
+	
+	@Test 
+	public void testPlayerModel() throws IOException {
+		ObjLoader loader=new ObjLoader();
+		
+		Obj o=loader.loadModel("models/player.obj");
+		
+		Model model=Model.fromObj(o);
+		assertEquals(12,model.getObjectCount());
+		assertEquals(36*12,model.getVertexCount());
+	}
 }
