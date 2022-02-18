@@ -29,6 +29,10 @@ Features and ideas under development:
 - Off-chain AI controllers for monsters and rogue nations
 - Time-based growth and harvesting of resources.
 
+## Running the game
+
+To run the game, just run the main class `blockgame.Blockgame` with your preferred development environment.
+
 ## Collaboration
 
 We're open to open source collaborators and contributors! Join the discussion at the [Convex Discord](https://discord.com/invite/xfYGq4CT7v). 
