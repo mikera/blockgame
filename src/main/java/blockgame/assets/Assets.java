@@ -28,7 +28,6 @@ public class Assets {
 			Assets.skybox = ImageIO.read(classLoader.getResource("images/skybox.png"));
 			Assets.player = ImageIO.read(classLoader.getResource("models/player.png"));
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 			throw Utils.sneakyThrow(e1);
 		}
