@@ -76,6 +76,7 @@ public class Config {
 				PEER_ADDRESS=Init.getGenesisAddress();
 				PEER_CONVEX = Convex.connect(SERVER,Init.getGenesisAddress(),LOCAL_KEYPAIRS[0]);
 				Result r=PEER_CONVEX.transactSync(Invoke.create(PEER_ADDRESS, 0, Reader.read("(let [addr (create-account "+kp.getAccountKey()+")] (transfer addr 100000000000000) addr)")));
+				if (r.isError()) throw new Error(r.toString());
 				addr=r.getValue();
 
 				convex=Convex.connect(SERVER,addr,kp);

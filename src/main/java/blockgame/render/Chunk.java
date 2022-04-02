@@ -42,7 +42,6 @@ import blockgame.engine.Engine;
 import blockgame.engine.Face;
 import blockgame.engine.Lib;
 import blockgame.engine.Rand;
-import blockgame.model.Models;
 import convex.core.data.ABlob;
 import convex.core.data.ACell;
 import convex.core.data.AHashMap;
