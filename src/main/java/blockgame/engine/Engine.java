@@ -71,7 +71,7 @@ public class Engine {
 		for (int i=1; i<=9; i++) {
 			ACell tool=getTool(i);
 			if (tool!=null) {
-				cmds.append("(call "+inv+" (set-stack "+player+" "+tool+" 9)) ");
+				cmds.append("(call "+inv+" (set-stack "+player+" "+tool+" 99)) ");
 			}
 		}
 		cmds.append(" (call "+inv+" (balance *address*)))");

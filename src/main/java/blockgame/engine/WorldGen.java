@@ -152,6 +152,12 @@ public class WorldGen {
 		return Math.max(0, ht);
 	}
 
+	/**
+	 * Calculate the biome for any x,y position in the world
+	 * @param x
+	 * @param y
+	 * @return
+	 */
 	private ABiome selectBiome(int x, int y) {
 		double maxScore=Double.NEGATIVE_INFINITY;
 		for (int i = 0; i<biomes.length; i++) {
