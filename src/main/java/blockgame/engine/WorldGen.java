@@ -257,7 +257,7 @@ public class WorldGen {
 	double surfaceHeight;
 	
 	/**
-	 * Calculate surface height variables for the current tile
+	 * Calculate surface height variables for the current tile. May be negative for sea
 	 * @param x x location of tile
 	 * @param y y location of tile
 	 * @return surface height
@@ -267,13 +267,20 @@ public class WorldGen {
 
 		double hillocks=plasma(x,y,HILLOCKS_SCALE,seed(2))*HILLOCKS_SIZE;
 		
-		double plateauDelta=0;
+		
+		// Plateau if 1.0, no plateau if 0.0, transition in between
 		double plateaus=Math.max(0,Math.min(1, plasma(x,y,PLATEAU_SCALE,seed(107))*150));
-		double plateauHeight=Math.max(0,plasma(x,y,PLATEAU_HEIGHT_SCALE,seed(200))*PLATEAU_SIZE+1);
+		
+		// Clear top block if in a transition
 		if (Math.floor(plateaus)!=plateaus) {
 			top=null;
 		}
+		
+		// Height if plateaus present
+		double plateauHeight=Math.max(0,plasma(x,y,PLATEAU_HEIGHT_SCALE,seed(200))*PLATEAU_SIZE+1);
 
+		// Plateau delta only applies if on land
+		double plateauDelta=0;
 		if (baseHeight>0) {
 			plateauDelta+=plateaus*plateauHeight;
 		}
