@@ -10,7 +10,7 @@
 		<lwjgl.version>3.2.3</lwjgl.version>
 		<lwjgl.natives>natives-windows</lwjgl.natives>
 		<joml.version>1.10.1</joml.version>
-		<convex.version>0.7.5</convex.version>
+		<convex.version>0.7.7</convex.version>
 	</properties>
 
 	<groupId>net.mikera</groupId>
