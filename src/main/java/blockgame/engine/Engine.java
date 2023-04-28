@@ -35,7 +35,7 @@ import mikera.util.Maths;
 public class Engine {
 	
 	static {
-		System.out.println(Config.kp.getAccountKey());
+		// System.out.println(Config.kp.getAccountKey());
 	}
 
 	public static class HitResult {
@@ -124,7 +124,7 @@ public class Engine {
 		try {
 			// String chunkString="["+bx+" "+by+" "+bz+"]"; // Old format
 			long chunkPos= chunkAddress(bx,by,bz);
-			String chunkString=Long.toString(chunkPos);
+			// String chunkString=Long.toString(chunkPos);
 			AVector<ACell> chunkData=getChunk(bx,by,bz);
 			
 			ACell call=Lists.of(SET_CHUNK,CVMLong.create(chunkPos),chunkData);		
@@ -133,7 +133,7 @@ public class Engine {
 			CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.transact(Invoke.create(convex.getAddress(), 0, form));
 			cf.thenAcceptAsync(r-> {
 				if (r.isError()) throw new Error("Bad result: "+r);
-				System.out.println("Uploaded chunk at "+Util.locString(bx,by,bz) + " : "+chunkString);
+				// System.out.println("Uploaded chunk at "+Util.locString(bx,by,bz) + " : "+chunkString);
 				chunks.put(chunkPos, chunkData);
 			}).exceptionallyAsync(e->{		
 				System.err.println(form); 
@@ -281,7 +281,7 @@ public class Engine {
 				if (r.isError()) {
 					System.err.println("Error setting block in chunk: "+chunkAddress(x,y,z)+" : "+r);
 				} else {
-					System.out.println("Block "+block+" placed at "+Util.locString(x,y,z));
+					// System.out.println("Block "+block+" placed at "+Util.locString(x,y,z));
 					setBlockLocal(x,y,z,block);
 				};
 				refreshInventory();

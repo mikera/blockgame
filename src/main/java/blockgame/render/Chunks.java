@@ -176,7 +176,7 @@ public class Chunks {
 		chunk=Chunk.create(cpos, r.engine);
 		if (chunk!=null) {
 			chunks.put(cpos, chunk);
-			System.out.println("Created chunk "+Util.locString(cx,cy,cz));
+			// System.out.println("Created chunk "+Util.locString(cx,cy,cz));
 		}
 		return chunk;
 	}
@@ -187,7 +187,7 @@ public class Chunks {
 		if (prev!=null) {
 			prev.dispose();
 			chunks.remove(cpos);
-			System.out.println("Dropped chunk "+Util.locString(cx,cy,cz));
+			// System.out.println("Dropped chunk "+Util.locString(cx,cy,cz));
 		}
 	}
 	
