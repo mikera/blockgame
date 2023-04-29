@@ -111,7 +111,7 @@ public class Lib {
 		AVector<ABlob> tex = (AVector<ABlob>) meta.get(Lib.KEY_TEX);
 		if (tex==null) return 0;
 		long c=tex.count();
-		return (int) tex.get((c>1)?1:0).toLong();
+		return (int) tex.get((c>1)?1:0).longValue();
 	}
 
 	public static boolean isTransparent(ACell block) {

@@ -253,7 +253,7 @@ public class Chunk {
 	Vector3f bnm=new Vector3f();
 	Vector3f bnm2=new Vector3f();
 	private void addBillboardPlane(int i0, int i1, int i2, int i3, int x, int y, int z, ABlob tex) {
-		long texRef=tex.toLong();
+		long texRef=tex.longValue();
 		float tdelta=Texture.TD*0.02f;
 		float tx=Texture.tx(texRef)+tdelta;
 		float ty=Texture.ty(texRef)+tdelta;
@@ -305,7 +305,7 @@ public class Chunk {
 			if (ft==0) {
 				continue;
 			}
-			addFace(geom, x, y, z, face, tex.get(face).toLong());
+			addFace(geom, x, y, z, face, tex.get(face).longValue());
 		}
 	}
 
