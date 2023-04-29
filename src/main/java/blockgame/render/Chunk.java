@@ -300,7 +300,6 @@ public class Chunk {
 		for (int face = 0; face < 6; face++) {
 			Vector3i fd = Face.DIR[face];
 
-			// Why does x need - ?? Error in lookup tables?
 			int ft = transparency(x + fd.x + position.x, y + fd.y + position.y, z + fd.z + position.z);
 			if (ft==0) {
 				continue;
