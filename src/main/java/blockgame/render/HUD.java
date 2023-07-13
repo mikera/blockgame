@@ -180,7 +180,7 @@ public class HUD {
 
 	private void drawHUDText(int width, int height) {
 		StringBuilder ht=new StringBuilder();
-		ht.append("CONVEX Craft\n");
+		ht.append("Lattice Land\n");
 		ht.append("Chunks Loaded: "+renderer.chunks.getChunkCount()+"\n");
 		ht.append("FPS:           "+FPSformat.format(Renderer.fps)+"\n");
 		ht.append("Memory Size:   "+Config.SERVER.getPeer().getConsensusState().getMemorySize()+"\n");
