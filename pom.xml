@@ -11,6 +11,8 @@
 		<lwjgl.natives>natives-windows</lwjgl.natives>
 		<joml.version>1.10.5</joml.version>
 		<convex.version>0.7.12</convex.version>
+		
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<groupId>net.mikera</groupId>
