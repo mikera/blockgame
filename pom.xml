@@ -7,7 +7,7 @@
 		<maven.compiler.target>11</maven.compiler.target>
 		<maven.compiler.source>11</maven.compiler.source>
 
-		<lwjgl.version>3.2.3</lwjgl.version>
+		<lwjgl.version>3.3.3</lwjgl.version>
 		<lwjgl.natives>natives-windows</lwjgl.natives>
 		<joml.version>1.10.5</joml.version>
 		<convex.version>0.7.12</convex.version>
