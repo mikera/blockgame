@@ -40,6 +40,17 @@ import org.lwjgl.system.MemoryStack;
 
 import blockgame.render.Renderer;
 
+/**
+ * Voxel Block Game running on Convex
+ * 
+ * WASD - Move
+ * Left SHIFT / SPACE - Up and Down
+ * E = Toggle Mouse Capture
+ * 
+ * Left Click = Break block
+ * Right click = Place block
+ * Scroll wheel or 0-9 - switch blocks
+ */
 public class BlockGame {
 
 	// The window handle
@@ -95,8 +106,9 @@ public class BlockGame {
 		GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
 		
-		int width=(int) (vidmode.width()*0.80);
-		int height=(int) (vidmode.height()*0.80);
+		int width=(int) (vidmode.width()*0.65);
+		int height=(int) (vidmode.height()*0.65);
+	
 		// Create the window
 		window = glfwCreateWindow(width, height, "Convex On-Chain Gaming Demo", NULL, NULL);
 		if (window == NULL)
@@ -160,6 +172,8 @@ public class BlockGame {
 
 			// Center the window
 			glfwSetWindowPos(window, (vidmode.width() - pWidth.get(0)) / 2, (vidmode.height() - pHeight.get(0)) / 2);
+			// Top left
+			//glfwSetWindowPos(window, 0,0);
 		
 		} // the stack frame is popped automatically
 
