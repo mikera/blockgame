@@ -4,13 +4,13 @@
 ;; TODO: convert to blob-map?
 (def chunks {})
 
-(defn ^:callable? get-chunk [cpos]
+(defn ^:callable get-chunk [cpos]
   (get chunks cpos))
 
-(defn ^:callable? set-chunk [cpos data]
+(defn ^:callable set-chunk [cpos data]
   (def chunks (assoc chunks cpos data)))
 
-(defn ^:callable? break-block [x y z]
+(defn ^:callable break-block [x y z]
   (let [curr (get-block x y z)]
     (cond (nil? curr)
       (fail "Empty block!")
@@ -18,7 +18,7 @@
         (call inventory (add-stack *caller* curr 1))
         (set-block x y z nil)))))
 
-(defn ^:callable? place-block [x y z block] 
+(defn ^:callable place-block [x y z block] 
   (let [c (or (call inventory (balance *caller* block)) 0)]
     (cond
       (> c 0) 
@@ -62,7 +62,7 @@
         chunk (get chunks cpos)]
     (cond chunk (nth chunk off))))
 
-(defn ^:callable? fill [x1 y1 z1 x2 y2 z2 block]
+(defn ^:callable fill [x1 y1 z1 x2 y2 z2 block]
   (loop [i x1]
     (when (<= i x2)
        (loop [j y1]
@@ -75,7 +75,7 @@
       (recur (inc i))))
    )
 
-(defn ^:callable? build-house []
+(defn ^:callable build-house []
 	(fill 4 4 0 10 10 0 1)
 	(fill 5 5 1 9 9 4 12) ;; walls
 	(fill 6 6 1 8 8 4 nil) ;; interior

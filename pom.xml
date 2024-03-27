@@ -10,7 +10,7 @@
 		<lwjgl.version>3.3.3</lwjgl.version>
 		<lwjgl.natives>natives-windows</lwjgl.natives>
 		<joml.version>1.10.5</joml.version>
-		<convex.version>0.7.12</convex.version>
+		<convex.version>0.7.13-SNAPSHOT</convex.version>
 		
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>

@@ -140,7 +140,7 @@ public class Engine {
 				System.err.println(e); 
 				return null;
 			});
-		} catch (IOException e) {
+		} catch (IOException | TimeoutException e) {
 			throw Utils.sneakyThrow(e);
 		}
 	}
@@ -286,7 +286,7 @@ public class Engine {
 				};
 				refreshInventory();
 			});
-		} catch (IOException e) {
+		} catch (IOException | TimeoutException e) {
 			System.out.println(e);
 		}
 	}

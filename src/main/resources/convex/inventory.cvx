@@ -16,7 +16,7 @@
   ^{:doc {:description "Gets the inventory balance of an owner."
           :signature   [{:params [owner]}
                         {:params [owner item]}]}
-    :callable? true}
+    :callable true}
 
   ([owner]
     (get-holding owner))
@@ -26,14 +26,14 @@
   
 (defn set-stack
 
-  ^{:callable? true}
+  ^{:callable true}
 
   [owner item count]
   (-set-stack owner item count)
   )  
   
 (defn -set-stack
-  ^{:private?  true}
+  ^{:private  true}
   [owner item count]
 
   (let [count (long count)
@@ -46,8 +46,8 @@
     (set-holding owner balance)))
 
 (defn add-stack
-  ^{:callable? true
-    :private?  true}
+  ^{:callable true
+    :private  true}
 
   [owner item count]
   (let [count (long count)
