@@ -62,7 +62,9 @@ public class Config {
 		local =b;
 		try {
 			if (local) {
-				STORE=EtchStore.create(new File("blockgame-db.etch"));
+				File etchFile=new File("blockgame-db.etch");
+				etchFile.deleteOnExit();
+				STORE=EtchStore.create(etchFile);
 				
 				State genesisState=Init.createState(Lists.of(LOCAL_KEYPAIRS[0].getAccountKey()));
 				

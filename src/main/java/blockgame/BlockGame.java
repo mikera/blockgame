@@ -106,8 +106,8 @@ public class BlockGame {
 		GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
 		
-		int width=(int) (vidmode.width()*0.65);
-		int height=(int) (vidmode.height()*0.65);
+		int width=(int) (vidmode.width()*0.45);
+		int height=(int) (vidmode.height()*0.45);
 	
 		// Create the window
 		window = glfwCreateWindow(width, height, "Convex On-Chain Gaming Demo", NULL, NULL);
@@ -163,17 +163,20 @@ public class BlockGame {
 
 		// Get the thread stack and push a new frame
 		try (MemoryStack stack = stackPush()) {
-			IntBuffer pWidth = stack.mallocInt(1); // int*
-			IntBuffer pHeight = stack.mallocInt(1); // int*
+			
+			int w=width;
+			int h=height;
+			glfwSetWindowSize(window,w,h);
 
 			// Get the window size passed to glfwCreateWindow
+			IntBuffer pWidth = stack.mallocInt(1); // int*
+			IntBuffer pHeight = stack.mallocInt(1); // int*
 			glfwGetWindowSize(window, pWidth, pHeight);
 
-
 			// Center the window
-			glfwSetWindowPos(window, (vidmode.width() - pWidth.get(0)) / 2, (vidmode.height() - pHeight.get(0)) / 2);
+			//glfwSetWindowPos(window, (vidmode.width() - pWidth.get(0)) / 2, (vidmode.height() - pHeight.get(0)) / 2);
 			// Top left
-			//glfwSetWindowPos(window, 0,0);
+			glfwSetWindowPos(window, 50,50);
 		
 		} // the stack frame is popped automatically
 
