@@ -1,7 +1,7 @@
 
 (def inventory nil)
 
-;; TODO: convert to blob-map?
+;; TODO: convert to index?
 (def chunks {})
 
 (defn ^:callable get-chunk [cpos]
