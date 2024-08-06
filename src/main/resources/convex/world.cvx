@@ -1,6 +1,8 @@
 
 (def inventory nil)
 
+(import convex.asset :as asset)
+
 ;; TODO: convert to index?
 (def chunks {})
 

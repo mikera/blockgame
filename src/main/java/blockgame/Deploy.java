@@ -23,7 +23,8 @@ public class Deploy {
 		try {
 			inventory=deployCode(convex,"convex/inventory.cvx");
 			world=deployCode(convex,"convex/world.cvx");
-			doSync(convex,"(eval-as "+world+" '(def inventory "+inventory+"))");
+			Result r=doSync(convex,"(eval-as "+world+" '(def inventory "+inventory+"))");
+			if (r.isError()) throw new Error("Failed to set inventory: "+r);
 		} catch (Throwable t) {
 			Utils.sneakyThrow(t);
 		}
@@ -35,7 +36,7 @@ public class Deploy {
 		Address god=convex.getAddress();
 		System.out.println("Deploying code with controller address: " +god);
 		
-		Result r=convex.transactSync(Invoke.create(god, 0, "(deploy `(do (def *controller* "+god+") (set-controller *controller*) "+ code +"\n))"));
+		Result r=convex.transactSync(Invoke.create(god, 0, "(deploy `(do (set-controller "+god+") "+ code +"\n))"));
 		if (r.isError()) {
 			throw new Error(r.toString());
 		}

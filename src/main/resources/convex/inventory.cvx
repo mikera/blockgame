@@ -5,7 +5,9 @@
 
 (import convex.asset :as asset-lib)
 
-(def engine *controller*)
+(declare balance)
+
+(def engine *caller*)
 
 (defn check-access
   []
