@@ -24,7 +24,7 @@ public class Lib {
 
 	static {
 		try {
-			blockData=Reader.read(Utils.readResourceAsString("lib/block-data.cvx"));
+			blockData=Reader.read(Utils.readResourceAsString("/lib/block-data.cvx"));
 			namelookup=blockData.reduceEntries((m,me)->{
 				AHashMap<Keyword,ACell> data=me.getValue();
 				m=m.assoc(data.get(Keywords.NAME),me.getKey());

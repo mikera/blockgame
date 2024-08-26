@@ -17,9 +17,9 @@ import convex.core.lang.Reader;
 import convex.core.store.Stores;
 import convex.core.transactions.Invoke;
 import convex.core.util.Utils;
+import convex.etch.EtchStore;
 import convex.peer.API;
 import convex.peer.Server;
-import etch.EtchStore;
 
 public class Config {
 	/**

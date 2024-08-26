@@ -2,11 +2,10 @@ package blockgame;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.Test;
 
 import convex.api.Convex;
+import convex.core.exceptions.ResultException;
 
 public class ConvexTest {
 
@@ -15,7 +14,7 @@ public class ConvexTest {
 	}
 
 	@Test
-	public void testUserBalance() throws IOException {
+	public void testUserBalance() throws ResultException {
 		Convex convex = Config.getConvex();
 		Long bal = convex.getBalance(Config.PEER_ADDRESS);
 		assertTrue(bal > 0);

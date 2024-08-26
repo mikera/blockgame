@@ -26,7 +26,6 @@ import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
 import convex.core.lang.Symbols;
 import convex.core.transactions.Invoke;
-import convex.core.util.Utils;
 import mikera.util.Maths;
 
 /**
@@ -62,7 +61,7 @@ public class Engine {
 		return new Engine();
 	}
 	
-	public void createPlayer() throws TimeoutException, IOException {
+	public void createPlayer() throws TimeoutException, InterruptedException {
 		Convex convex=getConvex();
 		Address inv=Deploy.inventory;
 		Address player=convex.getAddress();
@@ -87,23 +86,21 @@ public class Engine {
 		String cmd=(" (call "+inv+" (balance *address*))");
 		ACell queryCmd=Reader.read(cmd);
 		CompletableFuture<Result> result=null;
-		try {
-			result = (CompletableFuture<Result>) convex.query(queryCmd);
-			result.thenAcceptAsync(r->{
-				if (r.isError()) {
-					System.err.println(r);
-				} else {
-					AMap<ACell,ACell> newInv=r.getValue();
-					boolean changed=!newInv.equals(invMap);
-					// System.out.println("Inventory update: "+changed);
-					if (changed) {
-						invMap=r.getValue();
-					}
+
+		result = (CompletableFuture<Result>) convex.query(queryCmd);
+		result.thenAcceptAsync(r->{
+			if (r.isError()) {
+				System.err.println(r);
+			} else {
+				AMap<ACell,ACell> newInv=r.getValue();
+				boolean changed=!newInv.equals(invMap);
+				// System.out.println("Inventory update: "+changed);
+				if (changed) {
+					invMap=r.getValue();
 				}
-			});
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			}
+		});
+
 		return result;		
 	}
 	
@@ -121,63 +118,57 @@ public class Engine {
 		int bx=x&~0xf;
 		int by=y&~0xf;
 		int bz=z&~0xf;
-		try {
-			// String chunkString="["+bx+" "+by+" "+bz+"]"; // Old format
-			long chunkPos= chunkAddress(bx,by,bz);
-			// String chunkString=Long.toString(chunkPos);
-			AVector<ACell> chunkData=getChunk(bx,by,bz);
-			
-			ACell call=Lists.of(SET_CHUNK,CVMLong.create(chunkPos),chunkData);		
-			ACell form=Lists.of(Symbols.CALL, Config.world,call);
-			Convex convex=Config.getConvex();
-			CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.transact(Invoke.create(convex.getAddress(), 0, form));
-			cf.thenAcceptAsync(r-> {
-				if (r.isError()) throw new Error("Bad result: "+r);
-				// System.out.println("Uploaded chunk at "+Util.locString(bx,by,bz) + " : "+chunkString);
-				chunks.put(chunkPos, chunkData);
-			}).exceptionallyAsync(e->{		
-				System.err.println(form); 
-				System.err.println(e); 
-				return null;
-			});
-		} catch (IOException | TimeoutException e) {
-			throw Utils.sneakyThrow(e);
-		}
+
+		// String chunkString="["+bx+" "+by+" "+bz+"]"; // Old format
+		long chunkPos= chunkAddress(bx,by,bz);
+		// String chunkString=Long.toString(chunkPos);
+		AVector<ACell> chunkData=getChunk(bx,by,bz);
+		
+		ACell call=Lists.of(SET_CHUNK,CVMLong.create(chunkPos),chunkData);		
+		ACell form=Lists.of(Symbols.CALL, Config.world,call);
+		Convex convex=Config.getConvex();
+		CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.transact(Invoke.create(convex.getAddress(), 0, form));
+		cf.thenAcceptAsync(r-> {
+			if (r.isError()) throw new Error("Bad result: "+r);
+			// System.out.println("Uploaded chunk at "+Util.locString(bx,by,bz) + " : "+chunkString);
+			chunks.put(chunkPos, chunkData);
+		}).exceptionallyAsync(e->{		
+			System.err.println(form); 
+			System.err.println(e); 
+			return null;
+		});
 	}
 	
 	public void loadChunk(int x, int y, int z) {
 		int bx=x&~0xf;
 		int by=y&~0xf;
 		int bz=z&~0xf;
-		try {
-			// String chunkString="["+bx+" "+by+" "+bz+"]"; // Old format
-			long chunkPos= chunkAddress(bx,by,bz);
-			String chunkString=Long.toString(chunkPos);
-			ACell queryForm=Reader.read("(call "+Config.world+" (get-chunk "+chunkString+"))");
-			Convex convex=Config.getConvex();
-			CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.query(queryForm);
-			cf.thenAcceptAsync(r-> {
-				if (r.isError()) throw new Error("Bad result: "+r);
-				AVector<ACell> chunk=r.getValue();
-				if (chunk!=null) {
-					// we have an existing chunk
-					Long cpos=chunkAddress(bx,by,bz);
-					chunks.put(cpos, chunk);
-				} else {
-					// We don't have anything here, so try generating
-					maybeGenerateArea(bx,by);
-				}
-				
-				// System.out.println("Loaded chunk at "+locString(bx,by,bz));
-			}).exceptionallyAsync(e->{		
-				System.err.println(queryForm); 
-				e.getCause().printStackTrace(System.err);
-				chunks.remove(chunkPos);
-				return null;
-			});
-		} catch (IOException e) {
-			throw Utils.sneakyThrow(e);
-		}
+
+		// String chunkString="["+bx+" "+by+" "+bz+"]"; // Old format
+		long chunkPos= chunkAddress(bx,by,bz);
+		String chunkString=Long.toString(chunkPos);
+		ACell queryForm=Reader.read("(call "+Config.world+" (get-chunk "+chunkString+"))");
+		Convex convex=Config.getConvex();
+		CompletableFuture<Result> cf=(CompletableFuture<Result>) convex.query(queryForm);
+		cf.thenAcceptAsync(r-> {
+			if (r.isError()) throw new Error("Bad result: "+r);
+			AVector<ACell> chunk=r.getValue();
+			if (chunk!=null) {
+				// we have an existing chunk
+				Long cpos=chunkAddress(bx,by,bz);
+				chunks.put(cpos, chunk);
+			} else {
+				// We don't have anything here, so try generating
+				maybeGenerateArea(bx,by);
+			}
+			
+			// System.out.println("Loaded chunk at "+locString(bx,by,bz));
+		}).exceptionallyAsync(e->{		
+			System.err.println(queryForm); 
+			e.getCause().printStackTrace(System.err);
+			chunks.remove(chunkPos);
+			return null;
+		});
 	}
 	
 	private boolean maybeGenerateArea(int bx, int by) {
@@ -271,24 +262,21 @@ public class Engine {
 		} else {
 			trans=Reader.read("(call "+Config.world+" (place-block "+Util.locString(x,y,z)+" "+block+"))");
 		}
-		try {
-			Convex convex=Config.getConvex();
-			convex.transact(Invoke.create(Config.addr, 0, trans)).whenComplete((r,ex)->{
-				if (r==null) {
-					System.err.println(ex);
-					return;
-				}
-				if (r.isError()) {
-					System.err.println("Error setting block in chunk: "+chunkAddress(x,y,z)+" : "+r);
-				} else {
-					// System.out.println("Block "+block+" placed at "+Util.locString(x,y,z));
-					setBlockLocal(x,y,z,block);
-				};
-				refreshInventory();
-			});
-		} catch (IOException | TimeoutException e) {
-			System.out.println(e);
-		}
+		
+		Convex convex=Config.getConvex();
+		convex.transact(Invoke.create(Config.addr, 0, trans)).whenComplete((r,ex)->{
+			if (r==null) {
+				System.err.println(ex);
+				return;
+			}
+			if (r.isError()) {
+				System.err.println("Error setting block in chunk: "+chunkAddress(x,y,z)+" : "+r);
+			} else {
+				// System.out.println("Block "+block+" placed at "+Util.locString(x,y,z));
+				setBlockLocal(x,y,z,block);
+			};
+			refreshInventory();
+		});
 	}
 	
 	public void setBlockLocal(int x, int y, int z, ACell block) {
