@@ -103,7 +103,7 @@ public class Config {
 				convex.setKeyPair(kp);
 
 			}
-		} catch (Throwable t) {
+		} catch (Exception t) {
 			t.printStackTrace();
 			Utils.sneakyThrow(t);
 		}
