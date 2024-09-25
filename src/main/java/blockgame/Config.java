@@ -81,7 +81,7 @@ public class Config {
 				System.out.println(PEER_CONVEX.getBalance(PEER_ADDRESS));
 				Result r = PEER_CONVEX
 						.transactSync(Invoke.create(PEER_ADDRESS, 0, Reader.read("(let [addr (create-account "
-								+ kp.getAccountKey() + ")] (transfer addr 100000000000000) addr)")));
+								+ kp.getAccountKey() + ")] (transfer addr 10000000000000) addr)")));
 				if (r.isError())
 					throw new Error(r.toString());
 				addr = r.getValue();
