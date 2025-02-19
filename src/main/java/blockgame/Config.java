@@ -6,16 +6,17 @@ import java.util.HashMap;
 import blockgame.engine.Engine;
 import convex.api.Convex;
 import convex.core.Result;
-import convex.core.State;
+import convex.core.cvm.State;
 import convex.core.crypto.AKeyPair;
-import convex.core.data.Address;
+import convex.core.cvm.Address;
 import convex.core.data.Keyword;
-import convex.core.data.Keywords;
+import convex.core.cvm.Keywords;
 import convex.core.data.Lists;
 import convex.core.init.Init;
 import convex.core.lang.Reader;
 import convex.core.store.Stores;
-import convex.core.transactions.Invoke;
+import convex.core.cvm.transactions.Invoke;
+import convex.net.IPUtils;
 import convex.core.util.Utils;
 import convex.etch.EtchStore;
 import convex.peer.API;
@@ -98,7 +99,7 @@ public class Config {
 
 				world = Address.create(4562);
 				addr = Address.create(4564);
-				convex = Convex.connect(Utils.toInetSocketAddress("convex.world:18888"), addr, kp);
+				convex = Convex.connect(IPUtils.toInetSocketAddress("convex.world:18888"), addr, kp);
 				convex.setAddress(addr);
 				convex.setKeyPair(kp);
 

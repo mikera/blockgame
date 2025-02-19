@@ -18,14 +18,14 @@ import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
 import convex.core.data.AVector;
-import convex.core.data.Address;
+import convex.core.cvm.Address;
 import convex.core.data.Lists;
 import convex.core.data.Symbol;
 import convex.core.data.Vectors;
 import convex.core.data.prim.CVMLong;
 import convex.core.lang.Reader;
-import convex.core.lang.Symbols;
-import convex.core.transactions.Invoke;
+import convex.core.cvm.Symbols;
+import convex.core.cvm.transactions.Invoke;
 import mikera.util.Maths;
 
 /**

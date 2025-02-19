@@ -5,8 +5,8 @@ import java.util.concurrent.TimeoutException;
 
 import convex.api.Convex;
 import convex.core.Result;
-import convex.core.data.Address;
-import convex.core.transactions.Invoke;
+import convex.core.cvm.Address;
+import convex.core.cvm.transactions.Invoke;
 import convex.core.util.Utils;
 
 public class Deploy {
