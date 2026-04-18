@@ -66,10 +66,14 @@ public class BlockGame {
 	public void run() {
 		System.out.println("Hello LWJGL " + Version.getVersion() + "!");
 
-		init();
-		loop();
+		Runtime.getRuntime().addShutdownHook(new Thread(Config::close, "blockgame-shutdown"));
 
-		close();
+		try {
+			init();
+			loop();
+		} finally {
+			close();
+		}
 	}
 
 	private void close() {
@@ -81,6 +85,9 @@ public class BlockGame {
 		// Terminate GLFW and free the error callback
 		glfwTerminate();
 		glfwSetErrorCallback(null).free();
+
+		// Shut down the Convex peer / store so the Etch file lock is released
+		Config.close();
 	}
 	
 	double mouseX;
@@ -285,8 +292,12 @@ public class BlockGame {
 
 
 	public static void main(String[] args) {
-		new BlockGame().run();
-		// System.out.println("Main thread ending normally");
+		try {
+			new BlockGame().run();
+		} finally {
+			// Force JVM exit in case any non-daemon threads (Netty, etc.) are still alive
+			System.exit(0);
+		}
 	}
 
 }

@@ -95,7 +95,7 @@ public class Config {
 				System.out.println("Player created!");
 
 			} else {
-				STORE = (EtchStore) Stores.current();
+				STORE = (EtchStore) Stores.getGlobalStore();
 
 				world = Address.create(4562);
 				addr = Address.create(4564);
@@ -115,6 +115,22 @@ public class Config {
 
 	public static Convex getConvex() {
 		return convex;
+	}
+
+	public static synchronized void close() {
+		try {
+			if (convex != null) { convex.close(); convex = null; }
+		} catch (Exception e) { e.printStackTrace(); }
+		try {
+			if (PEER_CONVEX != null) { PEER_CONVEX.close(); PEER_CONVEX = null; }
+		} catch (Exception e) { e.printStackTrace(); }
+		try {
+			if (SERVER != null) { SERVER.close(); SERVER = null; }
+		} catch (Exception e) { e.printStackTrace(); }
+		try {
+			if (STORE != null) { STORE.close(); STORE = null; }
+		} catch (Exception e) { e.printStackTrace(); }
+		engine = null;
 	}
 
 	public static Engine getEngine() {
