@@ -104,6 +104,13 @@ public class Config {
 
 			}
 		} catch (Exception t) {
+			String msg = t.getMessage();
+			if (msg != null && msg.contains("File lock")) {
+				System.err.println("Blockgame database is locked. A previous instance is still running, "
+						+ "or the JVM did not shut down cleanly. Exit any stale java(w).exe and retry.");
+			} else {
+				System.err.println("Blockgame init failed: " + t);
+			}
 			t.printStackTrace();
 			Utils.sneakyThrow(t);
 		}

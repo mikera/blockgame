@@ -31,7 +31,7 @@ Features and ideas under development:
 
 ## Running the game
 
-To run the game, just run the main class `blockgame.Blockgame` with your preferred development environment.
+To run the game, just run the main class `blockgame.BlockGame` with your preferred development environment.
 
 ## Collaboration
 

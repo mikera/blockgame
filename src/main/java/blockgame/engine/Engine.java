@@ -1,8 +1,8 @@
 package blockgame.engine;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -51,6 +51,9 @@ public class Engine {
 	}
 
 	public static final AVector<ACell> EMPTY_CHUNK=Vectors.repeat(null, 4096);
+	/** Placeholder stored in the chunks map while a chunk load / generation is in flight.
+	 * Distinct from EMPTY_CHUNK (actually empty) and never exposed to callers. */
+	private static final AVector<ACell> LOADING_CHUNK=Vectors.empty();
 	private WorldGen gen;
 	
 	private Engine() {
@@ -174,7 +177,8 @@ public class Engine {
 	private boolean maybeGenerateArea(int bx, int by) {
 		// Check for generated chunk at ground level
 		Long czpos=chunkAddress(bx,by,0);
-		if (chunks.get(czpos)==null) {
+		AVector<ACell> existing=chunks.get(czpos);
+		if (existing==null || existing==LOADING_CHUNK) {
 			// generate in this position
 			chunks.put(czpos, EMPTY_CHUNK); // temporary data to avoid double generation
 			gen.generateArea(bx,by);
@@ -184,7 +188,7 @@ public class Engine {
 		}
 	}
 
-	public HashMap<Long,AVector<ACell>> chunks=new HashMap<>(91);
+	public ConcurrentHashMap<Long,AVector<ACell>> chunks=new ConcurrentHashMap<>(91);
 	
 	/**
 	 * Get the chunk that includes the specified block location
@@ -193,16 +197,15 @@ public class Engine {
 		int bx=Util.chunkBase(x);
 		int by=Util.chunkBase(y);
 		int bz=Util.chunkBase(z);
-		
+
 		Long cpos=chunkAddress(bx,by,bz);
-		AVector<ACell> chunk=chunks.get(cpos);
-		if ((chunk==null)&&!chunks.containsKey(cpos)) {
+		// Atomically claim the slot with LOADING_CHUNK if nothing's there yet
+		AVector<ACell> prev=chunks.putIfAbsent(cpos, LOADING_CHUNK);
+		if (prev==null) {
 			loadChunk(bx,by,bz); // schedule chunk load
-			// temp fill with blank for loading status
-			chunks.putIfAbsent(cpos, null);
+			return null;
 		}
-		
-		return chunk;
+		return (prev==LOADING_CHUNK)?null:prev;
 	}
 	
 	/**
@@ -213,11 +216,11 @@ public class Engine {
 		int bx=Util.chunkBase(x);
 		int by=Util.chunkBase(y);
 		int bz=Util.chunkBase(z);
-		
+
 		Long cpos=chunkAddress(bx,by,bz);
 		AVector<ACell> chunk=chunks.get(cpos);
-		
-		return chunk;
+
+		return (chunk==LOADING_CHUNK)?null:chunk;
 	}
 	
 	public AVector<ACell> getChunk(Vector3i target) {
