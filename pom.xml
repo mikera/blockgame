@@ -9,7 +9,7 @@
 		<lwjgl.version>3.3.3</lwjgl.version>
 		<joml.version>1.10.5</joml.version>
 		<junit.version>6.0.1</junit.version>
-		<convex.version>0.8.4-SNAPSHOT</convex.version>
+		<convex.version>0.8.4</convex.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>

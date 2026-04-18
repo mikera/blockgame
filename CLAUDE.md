@@ -21,16 +21,13 @@ Run via the main class `blockgame.BlockGame`.
 
 ## Convex Dependency
 
-Depends on `world.convex:convex-core` and `world.convex:convex-peer` as
-SNAPSHOTs from the local Maven cache. Before building blockgame, build the
-sibling `convex/` repo:
+Depends on `world.convex:convex-core` and `world.convex:convex-peer`
+(currently `0.8.4` released). If building against a local Convex checkout,
+install it first:
 
 ```bash
 cd ../convex && mvn clean install -DskipTests
 ```
-
-`convex.version` in `pom.xml` must match the version published by the
-sibling repo (currently `0.8.4-SNAPSHOT`).
 
 ## Module Layout
 
