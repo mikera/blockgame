@@ -31,8 +31,6 @@ public class Lib {
 				return m;
 			}, Maps.empty());
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
 			throw Utils.sneakyThrow(e1);
 		}
 		

@@ -3,4 +3,7 @@
 /.settings/
 /.classpath
 *.log
+hs_err_pid*
+replay_pid*
 /blockgame-db.etch
+/blockgame-db.etch.*

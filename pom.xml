@@ -4,16 +4,39 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-		<maven.compiler.target>21</maven.compiler.target>
-		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.release>21</maven.compiler.release>
 
 		<lwjgl.version>3.3.3</lwjgl.version>
-		<lwjgl.natives>natives-windows</lwjgl.natives>
 		<joml.version>1.10.5</joml.version>
+		<junit.version>6.0.1</junit.version>
 		<convex.version>0.8.4-SNAPSHOT</convex.version>
-		
+
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+
+	<profiles>
+		<profile>
+			<id>lwjgl-natives-windows</id>
+			<activation>
+				<os><family>windows</family></os>
+			</activation>
+			<properties><lwjgl.natives>natives-windows</lwjgl.natives></properties>
+		</profile>
+		<profile>
+			<id>lwjgl-natives-macos</id>
+			<activation>
+				<os><family>mac</family></os>
+			</activation>
+			<properties><lwjgl.natives>natives-macos</lwjgl.natives></properties>
+		</profile>
+		<profile>
+			<id>lwjgl-natives-linux</id>
+			<activation>
+				<os><family>unix</family><name>linux</name></os>
+			</activation>
+			<properties><lwjgl.natives>natives-linux</lwjgl.natives></properties>
+		</profile>
+	</profiles>
 
 	<groupId>net.mikera</groupId>
 	<artifactId>blockgame</artifactId>
@@ -88,8 +111,14 @@
 
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.9.3</version>
+			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 
