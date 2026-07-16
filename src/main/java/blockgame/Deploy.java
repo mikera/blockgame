@@ -23,8 +23,9 @@ public class Deploy {
 		try {
 			inventory=deployCode(convex,"/convex/inventory.cvx");
 			world=deployCode(convex,"/convex/world.cvx");
-			Result r=doSync(convex,"(eval-as "+world+" '(def inventory "+inventory+"))");
-			if (r.isError()) throw new Error("Failed to set inventory: "+r);
+			Result r=doSync(convex,"(do (eval-as "+world+" '(def inventory "+inventory+")) "
+					+ "(eval-as "+inventory+" '(def engine "+world+")))");
+			if (r.isError()) throw new Error("Failed to wire world and inventory: "+r);
 		} catch (Throwable t) {
 			Utils.sneakyThrow(t);
 		}

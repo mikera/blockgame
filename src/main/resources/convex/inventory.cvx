@@ -1,59 +1,173 @@
-;; Inventory implementation
-;; 
-;; 1. Holdings for each user account are a map {item id -> item quantity}
-;; 2. Control is via the registered game engine, expects (def engine <engine-address>) as setup
+;; Blockgame inventory: a CAD29 fungible asset actor for game items.
+;;
+;; Each item id (a small integer, see lib/block-data.cvx) is a scoped
+;; sub-asset: the asset path for grass is [<inventory> 1], so all standard
+;; convex.asset operations work, e.g.
+;;
+;;   (asset/transfer bob [[inventory 1] 5])    ;; give bob 5 grass
+;;   (asset/balance [inventory 1] alice)
+;;
+;; State:
+;; - Holdings per account: {item-id -> [balance offers]} where balance is a
+;;   non-negative integer and offers is nil or {receiver -> amount}
+;; - supply: {item-id -> total minted}, always the sum of all balances
+;; - engine: the world actor, the only account allowed to mint or burn.
+;;   Expects (def engine <world-address>) as post-deploy setup.
 
-(import convex.asset :as asset-lib)
+(def engine nil)
 
-(declare balance)
+(def supply {})
 
-(def engine *caller*)
+;;;;;;;;;; Private helpers
 
-(defn check-access
+(defn -check-engine
+  ^{:private true}
   []
-  (or (= *caller* engine) (fail :TRUST "Access denied")))
+  (or (= *caller* engine) (fail :TRUST "Access denied: game engine only")))
+
+(defn -qc
+  ^{:doc {:description "Checks an item quantity, treating nil as zero."}
+    :private true}
+  [q]
+  (cond (int? q) q
+        (nil? q) 0
+        (fail :ARGUMENT "Invalid item quantity")))
+
+(defn -get-balance
+  ^{:private true}
+  [owner id]
+  (let [rec (get (get-holding owner) id)]
+    (if rec (nth rec 0) 0)))
+
+(defn -get-offers
+  ^{:private true}
+  [owner id]
+  (let [rec (get (get-holding owner) id)]
+    (if rec (nth rec 1) nil)))
+
+(defn -set-record
+  ^{:doc {:description "Sets an owner's [balance offers] record for an item, removing empty records."}
+    :private true}
+  [owner id bal offers]
+  (let [h (or (get-holding owner) {})
+        offers (if (empty? offers) nil offers)
+        h (if (and (= bal 0) (nil? offers))
+            (dissoc h id)
+            (assoc h id [bal offers]))]
+    (set-holding owner h)))
+
+;;;;;;;;;; CAD19 asset SPI, scoped by item id
 
 (defn balance
-
-  ^{:doc {:description "Gets the inventory balance of an owner."
+  ^{:callable true
+    :doc {:description "Gets item balances. Scoped by item id returns an integer balance; unscoped returns the owner's full {item -> count} map."
           :signature   [{:params [owner]}
-                        {:params [owner item]}]}
-    :callable true}
-
+                        {:params [owner item]}]}}
   ([owner]
-    (get-holding owner))
-  
+    (if (nil? *scope*)
+      (reduce (fn [m [id rec]] (assoc m id (nth rec 0)))
+              {}
+              (or (get-holding owner) {}))
+      (-get-balance owner *scope*)))
   ([owner item]
-    (get (get-holding owner) item)))
-  
-(defn set-stack
+    (-get-balance owner item)))
 
+(defn direct-transfer
   ^{:callable true}
+  [receiver amount data]
+  (let [receiver (address receiver)
+        amount (-qc amount)
+        id *scope*
+        bal (-get-balance *caller* id)]
+    (cond (< amount 0) (fail :ARGUMENT "Negative transfer"))
+    (cond (> amount bal) (fail :FUNDS "Insufficient item balance"))
+    (when (= *caller* receiver)
+      (log "TR" *caller* receiver id amount data)
+      (return amount))
+    (-set-record *caller* id (- bal amount) (-get-offers *caller* id))
+    (-set-record receiver id (+ (-get-balance receiver id) amount) (-get-offers receiver id))
+    (log "TR" *caller* receiver id amount data)
+    amount))
 
-  [owner item count]
-  (-set-stack owner item count)
-  )  
-  
-(defn -set-stack
-  ^{:private  true}
-  [owner item count]
+(defn offer
+  ^{:callable true}
+  [receiver quantity]
+  (let [receiver (address receiver)
+        quantity (-qc quantity)
+        id *scope*
+        os (-get-offers *caller* id)
+        os (if (<= quantity 0)
+             (dissoc os receiver)
+             (assoc (or os {}) receiver quantity))]
+    (-set-record *caller* id (-get-balance *caller* id) os)
+    quantity))
 
-  (let [count (long count)
-        _ (or (<= 0 count 1000000000) (fail "Invalid target balance"))
-        balance (get-holding owner)
-        balance (if (> count 0)
-                  (assoc balance item count)
-                  (dissoc balance item))
-        ]
-    (set-holding owner balance)))
+(defn get-offer
+  ^{:callable true}
+  [sender receiver]
+  (or (get (-get-offers sender *scope*) receiver) 0))
+
+(defn accept
+  ^{:callable true}
+  [sender quantity]
+  (let [id *scope*
+        quantity (-qc quantity)
+        _ (cond (zero? quantity) (return 0)
+                (< quantity 0) (fail :ARGUMENT "Negative accept amount"))
+        receiver *caller*
+        os (or (-get-offers sender id) (fail :STATE "No offers from sender"))
+        off (or (get os receiver) (fail :STATE "No offer to receiver"))
+        _ (cond (< off quantity) (fail :STATE "Insufficient offer"))
+        bal (-get-balance sender id)
+        nbal (- bal quantity)
+        _ (cond (< nbal 0) (fail :FUNDS "Insufficient balance to accept"))
+        noff (- off quantity)
+        nos (if (<= noff 0) (dissoc os receiver) (assoc os receiver noff))]
+    (-set-record sender id nbal nos)
+    (-set-record receiver id (+ (-get-balance receiver id) quantity) (-get-offers receiver id))
+    quantity))
+
+(defn quantity-add
+  ^{:callable true}
+  [a b]
+  (+ (-qc a) (-qc b)))
+
+(defn quantity-sub
+  ^{:callable true}
+  [a b]
+  (let [a (-qc a)
+        b (-qc b)]
+    (if (>= a b) (- a b) 0)))
+
+(defn quantity-subset?
+  ^{:callable true}
+  [a b]
+  (<= (-qc a) (-qc b)))
+
+;;;;;;;;;; CAD29 fungible token extras
+
+(defn decimals
+  ^{:callable true}
+  []
+  0)
+
+(defn total-supply
+  ^{:callable true}
+  []
+  (or (get supply *scope*) 0))
+
+;;;;;;;;;; Game engine interface
 
 (defn add-stack
   ^{:callable true
-    :private  true}
-
-  [owner item count]
-  (let [count (long count)
-        current (or (balance owner item) 0)
-        new-count (+ current count)]
-    (-set-stack owner item new-count)))
-
+    :doc {:description "Adjusts an owner's item balance by delta, minting or burning supply to match. Game engine only."}}
+  [owner item delta]
+  (-check-engine)
+  (let [delta (long delta)
+        bal (-get-balance owner item)
+        nbal (+ bal delta)
+        _ (or (<= 0 nbal 1000000000) (fail :ARGUMENT "Invalid target balance"))
+        nsup (+ (or (get supply item) 0) delta)]
+    (-set-record owner item nbal (-get-offers owner item))
+    (def supply (if (> nsup 0) (assoc supply item nsup) (dissoc supply item)))
+    nbal))

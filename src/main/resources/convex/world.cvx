@@ -1,10 +1,24 @@
 
 (def inventory nil)
 
-(import convex.asset :as asset)
-
 ;; TODO: convert to index?
 (def chunks {})
+
+;; Starter kit granted once per account.
+;; Must cover the client hotbar items in Engine.toolBar.
+(def starter-kit {1 99, 2 99, 63 99, 62 99, 60 99, 20 99, 4 99, 201 99, 300 99})
+
+(def claimed #{})
+
+(defn ^:callable claim-starter-kit []
+  (when (contains-key? claimed *caller*)
+    (fail :STATE "Starter kit already claimed"))
+  (def claimed (conj claimed *caller*))
+  (reduce (fn [acc [item qty]]
+            (call inventory (add-stack *caller* item qty)))
+          nil
+          starter-kit)
+  (call inventory (balance *caller*)))
 
 (defn ^:callable get-chunk [cpos]
   (get chunks cpos))
@@ -20,12 +34,12 @@
         (call inventory (add-stack *caller* curr 1))
         (set-block x y z nil)))))
 
-(defn ^:callable place-block [x y z block] 
+(defn ^:callable place-block [x y z block]
   (let [c (or (call inventory (balance *caller* block)) 0)]
     (cond
-      (> c 0) 
+      (> c 0)
         (do
-          (call inventory (set-stack *caller* block (dec c)))
+          (call inventory (add-stack *caller* block -1))
           (set-block x y z block))
       (fail (str "No holding of block: " block)))))
 

@@ -66,18 +66,9 @@ public class Engine {
 	
 	public void createPlayer() throws TimeoutException, InterruptedException {
 		Convex convex=getConvex();
-		Address inv=Deploy.inventory;
 		Address player=convex.getAddress();
-		StringBuilder cmds=new StringBuilder();
-		cmds.append("(do ");
-		for (int i=1; i<=9; i++) {
-			ACell tool=getTool(i);
-			if (tool!=null) {
-				cmds.append("(call "+inv+" (set-stack "+player+" "+tool+" 99)) ");
-			}
-		}
-		cmds.append(" (call "+inv+" (balance *address*)))");
-		Invoke trans=Invoke.create(player, 0, Reader.read(cmds.toString()));
+		// Claim the on-chain starter kit (once per account); returns the inventory map
+		Invoke trans=Invoke.create(player, 0, Reader.read("(call "+Deploy.world+" (claim-starter-kit))"));
 		Result r=convex.transactSync(trans);
 		if (r.isError()) throw new Error(r.toString());
 		invMap=r.getValue();
