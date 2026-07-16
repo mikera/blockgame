@@ -59,8 +59,27 @@ public class Config {
 	}
 
 	/**
+	 * Opens the Etch store configured by the blockgame.store system property
+	 * (or BLOCKGAME_STORE environment variable): "temp" for a throwaway
+	 * temporary store, otherwise an Etch file path. Default: blockgame-db.etch
+	 * in the working directory.
+	 */
+	private static EtchStore openStore() throws java.io.IOException {
+		String spec = System.getProperty("blockgame.store");
+		if (spec == null) spec = System.getenv("BLOCKGAME_STORE");
+		if (spec == null || spec.isBlank()) spec = "blockgame-db.etch";
+		spec = spec.trim();
+		EtchStore store = "temp".equalsIgnoreCase(spec)
+				? EtchStore.createTemp("blockgame")
+				: EtchStore.create(new File(spec));
+		System.out.println("Using Etch store: " + store);
+		return store;
+	}
+
+	/**
 	 * Initialise with a specific Etch store. Tests pass a temporary store so they
-	 * never touch the live world database; null means the default blockgame-db.etch.
+	 * never touch the live world database; null means the configured default
+	 * (see openStore()).
 	 */
 	public static synchronized void init(boolean b, EtchStore store) {
 		if (engine != null)
@@ -70,7 +89,7 @@ public class Config {
 		local = b;
 		try {
 			if (local) {
-				STORE = (store != null) ? store : EtchStore.create(new File("blockgame-db.etch"));
+				STORE = (store != null) ? store : openStore();
 
 				State genesisState = Init.createState(Lists.of(LOCAL_KEYPAIRS[0].getAccountKey()));
 

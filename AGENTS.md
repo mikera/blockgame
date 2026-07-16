@@ -47,6 +47,11 @@ cd ../convex && mvn clean install -DskipTests
   Deploys Convex Lisp actors on startup.
 - **Remote**: connects to `convex.world:18888` with hard-coded addresses.
 
+The local Etch store is configurable via the `blockgame.store` system
+property or `BLOCKGAME_STORE` environment variable: `temp` gives a
+throwaway temporary store (handy for dev), any other value is used as
+the Etch file path. Tests always use a temporary store (`TestSetup`).
+
 ## Shutdown
 
 The Convex peer uses non-daemon Netty threads and holds an exclusive lock
