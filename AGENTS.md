@@ -22,7 +22,7 @@ Run via the main class `blockgame.BlockGame`.
 ## Convex Dependency
 
 Depends on `world.convex:convex-core` and `world.convex:convex-peer`
-(currently `0.8.4` released). If building against a local Convex checkout,
+(currently `0.8.8` released). If building against a local Convex checkout,
 install it first:
 
 ```bash

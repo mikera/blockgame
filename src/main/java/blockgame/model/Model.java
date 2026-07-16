@@ -17,6 +17,7 @@ import static org.lwjgl.system.MemoryUtil.memFree;
 import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.joml.Vector2f;
 import org.joml.Vector3f;
@@ -39,8 +40,9 @@ public class Model {
 	private final int[] ends;
 	
 	private int vbo=0;
+	private boolean vboBuilt=false;
 	private int triangleCount=0;
-	private Texture texture;
+	private Supplier<Texture> texture;
 	
 	private Model(int objCount) {
 		objectCount=objCount;
@@ -74,13 +76,13 @@ public class Model {
 			model.ends[oi]=model.build.vertexCount();
 			oi++;
 		}
-		
-		model.createVBO();
-		
+
+		// VBO is created lazily on first draw, so models can be loaded without a GL context
 		return model;
 	}
 	
 	private synchronized void createVBO() {
+		vboBuilt=true;
 		dispose();
 		
 		// Geometry in current context
@@ -107,6 +109,7 @@ public class Model {
 	}
 	
 	public void draw() {
+		if (!vboBuilt) createVBO();
 		if (vbo != 0) {
 			// Bind buffer
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -169,11 +172,11 @@ public class Model {
 		return build.vertexCount();
 	}
 
-	public void setTexture(Texture tex) {
+	public void setTexture(Supplier<Texture> tex) {
 		this.texture=tex;
 	}
-	 
+
 	public Texture getTexture() {
-		return texture;
+		return (texture==null)?null:texture.get();
 	}
 }

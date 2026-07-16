@@ -6,10 +6,10 @@
 	<properties>
 		<maven.compiler.release>21</maven.compiler.release>
 
-		<lwjgl.version>3.3.3</lwjgl.version>
-		<joml.version>1.10.5</joml.version>
-		<junit.version>6.0.1</junit.version>
-		<convex.version>0.8.4</convex.version>
+		<lwjgl.version>3.4.2</lwjgl.version>
+		<joml.version>1.10.9</joml.version>
+		<junit.version>6.1.2</junit.version>
+		<convex.version>0.8.8</convex.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -58,7 +58,7 @@
 		<plugins>
 		<plugin>
 			<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.3.0</version>
+				<version>3.8.0</version>
 				<configuration>
 					<outputDirectory>${project.directory}</outputDirectory>
 					<archive>
