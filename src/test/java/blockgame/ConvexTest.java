@@ -10,7 +10,7 @@ import convex.core.exceptions.ResultException;
 public class ConvexTest {
 
 	static {
-		Config.init(true);
+		TestSetup.ensureInit();
 	}
 
 	@Test

@@ -8,6 +8,10 @@ import blockgame.assets.Assets;
 
 public class BlockTest {
 
+	static {
+		TestSetup.ensureInit();
+	}
+
 	@Test public void test1() {
 		new BlockGame().init();
 	}

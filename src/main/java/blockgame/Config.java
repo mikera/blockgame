@@ -55,6 +55,14 @@ public class Config {
 	public static boolean local = true;
 
 	public static synchronized void init(boolean b) {
+		init(b, null);
+	}
+
+	/**
+	 * Initialise with a specific Etch store. Tests pass a temporary store so they
+	 * never touch the live world database; null means the default blockgame-db.etch.
+	 */
+	public static synchronized void init(boolean b, EtchStore store) {
 		if (engine != null)
 			return;
 		engine = Engine.create();
@@ -62,8 +70,7 @@ public class Config {
 		local = b;
 		try {
 			if (local) {
-				File etchFile = new File("blockgame-db.etch");
-				STORE = EtchStore.create(etchFile);
+				STORE = (store != null) ? store : EtchStore.create(new File("blockgame-db.etch"));
 
 				State genesisState = Init.createState(Lists.of(LOCAL_KEYPAIRS[0].getAccountKey()));
 
@@ -103,11 +110,14 @@ public class Config {
 				convex.setKeyPair(kp);
 
 			}
-		} catch (Exception t) {
+		} catch (Throwable t) {
 			String msg = t.getMessage();
 			if (msg != null && msg.contains("File lock")) {
 				System.err.println("Blockgame database is locked. A previous instance is still running, "
 						+ "or the JVM did not shut down cleanly. Exit any stale java(w).exe and retry.");
+			} else if (msg != null && msg.contains("Failed to read data in etch store")) {
+				System.err.println("Blockgame database could not be read - it was probably created by an "
+						+ "incompatible Convex version. Delete blockgame-db.etch to regenerate the world.");
 			} else {
 				System.err.println("Blockgame init failed: " + t);
 			}

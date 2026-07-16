@@ -164,7 +164,7 @@ public class BlockGame {
 		
 		// For screen resize etc.
 	    glfwSetFramebufferSizeCallback(window, (window,w, h) -> {
-	    	// renderer.setSize(w,h);
+	    	renderer.setSize(w,h);
 	    });
 	       
 
