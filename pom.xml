@@ -90,6 +90,15 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.6.0</version>
+				<configuration>
+					<!-- Tests run headless: no GLFW window, no AWT toolkit, no cursor capture.
+					     BlockGame.init() refuses to start when java.awt.headless is set. -->
+					<argLine>-Djava.awt.headless=true --enable-native-access=ALL-UNNAMED</argLine>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

@@ -94,6 +94,10 @@ public class BlockGame {
 	double mouseY;
 
 	void init() {
+		if (Boolean.getBoolean("java.awt.headless")) {
+			throw new IllegalStateException(
+				"BlockGame needs a display: refusing to initialise GLFW with java.awt.headless=true. Tests must never reach this.");
+		}
 		Config.init(Config.local);
 		
 		// Setup an error callback. The default implementation

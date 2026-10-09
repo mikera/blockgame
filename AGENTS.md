@@ -50,7 +50,10 @@ cd ../convex && mvn clean install -DskipTests
 The local Etch store is configurable via the `blockgame.store` system
 property or `BLOCKGAME_STORE` environment variable: `temp` gives a
 throwaway temporary store (handy for dev), any other value is used as
-the Etch file path. Tests always use a temporary store (`TestSetup`).
+the Etch file path. Tests always use a temporary store (`TestSetup`) and run headless (surefire sets
+`java.awt.headless=true`). They must never touch GLFW or OpenGL;
+`BlockGame.init()` refuses to start when that property is set, so a test that
+reaches it fails fast instead of opening a window and grabbing the mouse.
 
 ## Shutdown
 
