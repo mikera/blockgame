@@ -1,14 +1,33 @@
+;; Blockgame world actor: chunk state, block break/place, starter kit,
+;; crafting and land claims. Item ids are defined in lib/block-data.cvx.
+;;
+;; Deploy.java wraps this code in (deploy (do (set-controller <deployer>) ...)),
+;; so *controller* is the deploying account. Minting and burning of items is
+;; delegated to the inventory actor, which only accepts calls from this actor.
 
 (def inventory nil)
 
 ;; TODO: convert to index?
 (def chunks {})
 
+;; Item ids the world actor refers to directly
+(def GOLD 13)
+
 ;; Starter kit granted once per account.
 ;; Must cover the client hotbar items in Engine.toolBar.
-(def starter-kit {1 99, 2 99, 63 99, 62 99, 60 99, 20 99, 4 99, 201 99, 300 99})
+;; Includes enough gold for one land claim.
+(def starter-kit {1 99, 2 99, 63 99, 62 99, 60 99, 20 99, 4 99, 14 20, 13 4})
 
 (def claimed #{})
+
+;;;;;;;;;; Access helpers
+
+(defn -check-controller
+  ^{:private true}
+  []
+  (or (= *caller* *controller*) (fail :TRUST "Access denied: world controller only")))
+
+;;;;;;;;;; Starter kit
 
 (defn ^:callable claim-starter-kit []
   (when (contains-key? claimed *caller*)
@@ -20,41 +39,38 @@
           starter-kit)
   (call inventory (balance *caller*)))
 
+;;;;;;;;;; Chunks
+
 (defn ^:callable get-chunk [cpos]
   (get chunks cpos))
 
+;; Terrain upload from the client. Only chunks that do not yet exist may be
+;; set, so nobody can overwrite an existing chunk (and the builds in it).
 (defn ^:callable set-chunk [cpos data]
+  (cond (get chunks cpos) (fail :STATE "Chunk already exists"))
   (def chunks (assoc chunks cpos data)))
+
+;;;;;;;;;; Blocks
 
 (defn ^:callable break-block [x y z]
   (let [curr (get-block x y z)]
-    (cond (nil? curr)
-      (fail "Empty block!")
-      (do 
-        (call inventory (add-stack *caller* curr 1))
-        (set-block x y z nil)))))
+    (cond (nil? curr) (fail "Empty block!"))
+    (check-build x y z)
+    (call inventory (add-stack *caller* curr 1))
+    (set-block x y z nil)))
 
 (defn ^:callable place-block [x y z block]
   (let [c (or (call inventory (balance *caller* block)) 0)]
-    (cond
-      (> c 0)
-        (do
-          (call inventory (add-stack *caller* block -1))
-          (set-block x y z block))
-      (fail (str "No holding of block: " block)))))
+    (cond (<= c 0) (fail (str "No holding of block: " block)))
+    (check-build x y z)
+    (call inventory (add-stack *caller* block -1))
+    (set-block x y z block)))
 
-(def blank-chunk 
+(def blank-chunk
   (loop [acc [] i 512]
     (when (> i 0)
       (recur (conj acc nil nil nil nil nil nil nil nil) (dec i)))
     acc))
-
-;; Accumulator for building blank chunk
-;;(def blank-chunk 
-;;  (loop [acc blank-chunk i 1024]
-;;    (when (> i 0)
-;;      (recur (conj acc nil) (dec i)))
-;;    acc))
 
 ;; We index chunks with a long 0x0ZZZZ0YYYY0XXXX0
 ;; Return decomposition [0x0ZZZZ0YYYY0XXXX0 index]
@@ -66,19 +82,144 @@
         index (+ ox (* oy 16) (* oz 256))]
     [chunk-addr index]))
 
-(defn set-block [x y z block] 
+(defn chunk-of [x y z]
+  (first (pos-to-chunk x y z)))
+
+(defn set-block [x y z block]
   (let [[cpos off] (pos-to-chunk x y z)
         chunk (or (get chunks cpos) blank-chunk)
         old (get chunk off)
         chunk (assoc chunk off block)]
     (def chunks (assoc chunks cpos chunk))))
 
-(defn get-block [x y z] 
+(defn get-block [x y z]
   (let [[cpos off] (pos-to-chunk x y z)
         chunk (get chunks cpos)]
     (cond chunk (nth chunk off))))
 
+;;;;;;;;;; Crafting
+;;
+;; Recipes: {id {:in {item qty ...} :out {item qty ...}}}
+;; Inputs are burned and outputs minted through the inventory actor.
+
+(def recipes
+  {:planks           {:in {20 1}       :out {14 4}}   ;; oak log -> wood planks
+   :stone-block      {:in {63 2}       :out {60 1}}
+   :stone-slabs      {:in {63 1}       :out {61 2}}
+   :stone-bricks     {:in {63 4}       :out {62 4}}
+   :chalk-block      {:in {53 2}       :out {50 1}}
+   :chalk-slabs      {:in {53 1}       :out {51 2}}
+   :chalk-bricks     {:in {53 4}       :out {52 4}}
+   :granite-block    {:in {73 2}       :out {70 1}}
+   :granite-slabs    {:in {73 1}       :out {71 2}}
+   :granite-bricks   {:in {73 4}       :out {72 4}}
+   :basalt-block     {:in {83 2}       :out {80 1}}
+   :basalt-slabs     {:in {83 1}       :out {81 2}}
+   :basalt-bricks    {:in {83 4}       :out {82 4}}
+   :firestone-block  {:in {93 2}       :out {90 1}}
+   :firestone-slabs  {:in {93 1}       :out {91 2}}
+   :firestone-bricks {:in {93 4}       :out {92 4}}
+   :bricks           {:in {2 4, 93 1}  :out {12 4}}}) ;; kiln: dirt fired with firestone
+
+(defn ^:callable get-recipes []
+  recipes)
+
+(defn ^:callable craft [id]
+  (let [r (or (get recipes id) (fail :ARGUMENT (str "Unknown recipe: " id)))
+        ins (get r :in)
+        outs (get r :out)]
+    (reduce (fn [acc [item qty]]
+              (let [bal (or (call inventory (balance *caller* item)) 0)]
+                (cond (< bal qty)
+                  (fail :FUNDS (str "Recipe " id " needs " qty " of item " item ", have " bal)))))
+            nil ins)
+    (reduce (fn [acc [item qty]] (call inventory (add-stack *caller* item (- qty)))) nil ins)
+    (reduce (fn [acc [item qty]] (call inventory (add-stack *caller* item qty))) nil outs)
+    outs))
+
+;; Craft whichever recipe produces the given item (first match)
+(defn ^:callable craft-item [item]
+  (let [id (reduce (fn [acc [rid r]]
+                     (if (contains-key? (get r :out) item) (reduced rid) acc))
+                   nil recipes)]
+    (cond (nil? id) (fail :ARGUMENT (str "No recipe produces item " item)))
+    (craft id)))
+
+;;;;;;;;;; Land claims
+;;
+;; {chunk-address {:owner addr :allow #{addr ...}}}
+;; Only the owner, or accounts the owner allows, may break or place blocks
+;; in a claimed chunk. Claiming costs gold, which is burned.
+
+(def land {})
+
+(def CLAIM-COST 4)
+
+(defn ^:callable land-info [x y z]
+  (get land (chunk-of x y z)))
+
+(defn ^:callable land-owner [x y z]
+  (get-in land [(chunk-of x y z) :owner]))
+
+(defn ^:callable can-build? [x y z]
+  (let [rec (get land (chunk-of x y z))]
+    (cond (nil? rec) true
+          (= *caller* (get rec :owner)) true
+          (contains-key? (get rec :allow #{}) *caller*) true
+          false)))
+
+(defn check-build [x y z]
+  (cond (can-build? x y z) true
+        (fail :TRUST (str "Land owned by " (land-owner x y z)))))
+
+(defn -own-land
+  ^{:private true}
+  [cpos]
+  (let [rec (or (get land cpos) (fail :STATE "Land not claimed"))]
+    (cond (= *caller* (get rec :owner)) rec
+          (fail :TRUST "Not the owner of this land"))))
+
+(defn ^:callable claim-land [x y z]
+  (let [cpos (chunk-of x y z)]
+    (cond (get land cpos) (fail :STATE "Land already claimed"))
+    (let [bal (or (call inventory (balance *caller* GOLD)) 0)]
+      (cond (< bal CLAIM-COST)
+        (fail :FUNDS (str "Claiming land costs " CLAIM-COST " gold, have " bal))))
+    (call inventory (add-stack *caller* GOLD (- CLAIM-COST)))
+    (def land (assoc land cpos {:owner *caller* :allow #{}}))
+    cpos))
+
+(defn ^:callable release-land [x y z]
+  (let [cpos (chunk-of x y z)]
+    (-own-land cpos)
+    (def land (dissoc land cpos))
+    cpos))
+
+(defn ^:callable transfer-land [x y z new-owner]
+  (let [cpos (chunk-of x y z)
+        new-owner (address new-owner)]
+    (-own-land cpos)
+    (def land (assoc land cpos {:owner new-owner :allow #{}}))
+    cpos))
+
+(defn ^:callable allow-builder [x y z builder]
+  (let [cpos (chunk-of x y z)
+        rec (-own-land cpos)
+        builder (address builder)]
+    (def land (assoc land cpos (assoc rec :allow (conj (get rec :allow #{}) builder))))
+    builder))
+
+(defn ^:callable disallow-builder [x y z builder]
+  (let [cpos (chunk-of x y z)
+        rec (-own-land cpos)
+        builder (address builder)]
+    (def land (assoc land cpos (assoc rec :allow (disj (get rec :allow #{}) builder))))
+    builder))
+
+;;;;;;;;;; World controller tools
+
 (defn ^:callable fill [x1 y1 z1 x2 y2 z2 block]
+  (-check-controller)
   (loop [i x1]
     (when (<= i x2)
        (loop [j y1]
@@ -92,6 +233,7 @@
    )
 
 (defn ^:callable build-house []
+  (-check-controller)
 	(fill 4 4 0 10 10 0 1)
 	(fill 5 5 1 9 9 4 12) ;; walls
 	(fill 6 6 1 8 8 4 nil) ;; interior
