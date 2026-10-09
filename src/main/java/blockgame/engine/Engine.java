@@ -17,6 +17,8 @@ import convex.api.Convex;
 import convex.core.Result;
 import convex.core.data.ACell;
 import convex.core.data.AMap;
+import convex.core.data.ASet;
+import convex.core.data.Keyword;
 import convex.core.data.AVector;
 import convex.core.cvm.Address;
 import convex.core.data.Lists;
@@ -417,7 +419,7 @@ public class Engine {
 		return toolBar[i];
 	}
 	
-	private ACell[] toolBar= new ACell[]{null,Lib.GRASS,Lib.DIRT,Lib.STONE,Lib.STONE_BRICKS, Lib.BOULDER,Lib.LOG, Lib.LEAVES,Lib.RED_MUSHROOM,Lib.MEDIUM_GRASS};
+	private ACell[] toolBar= new ACell[]{null,Lib.GRASS,Lib.DIRT,Lib.STONE,Lib.STONE_BRICKS, Lib.BOULDER,Lib.LOG, Lib.LEAVES,Lib.WOOD,Lib.GOLD};
 
 	/**
 	 * Gets the currently selected placeable block value, or null if cannot place
@@ -475,4 +477,93 @@ public class Engine {
 
 
 
+
+	//////////////////// Crafting and land: on-chain actions triggered from the client
+
+	/**
+	 * Transacts a call against the world actor off the render thread, logging the
+	 * outcome and refreshing the inventory afterwards.
+	 */
+	private void transactWorld(String call, String what, Runnable onSuccess) {
+		ACell form=Reader.read("(call "+Config.world+" ("+call+"))");
+		Convex convex=Config.getConvex();
+		convex.transact(Invoke.create(Config.addr, 0, form)).whenComplete((r,ex)->{
+			if (r==null) {
+				System.err.println(what+" failed: "+ex);
+			} else if (r.isError()) {
+				System.err.println(what+" refused: "+r.getErrorCode()+" "+r.getValue());
+			} else {
+				System.out.println(what+": "+r.getValue());
+				if (onSuccess!=null) onSuccess.run();
+			}
+			refreshInventory();
+		});
+	}
+
+	/**
+	 * Crafts the currently selected hotbar item, if any recipe produces it.
+	 * See recipes in world.cvx.
+	 */
+	public void craftSelected() {
+		ACell item=getPlaceableBlock();
+		if (item==null) return;
+		transactWorld("craft-item "+item, "Craft "+Lib.name(item), null);
+	}
+
+	/**
+	 * Claims the chunk containing the given block position for the player.
+	 * Costs gold; see claim-land in world.cvx.
+	 */
+	public void claimLand(int x, int y, int z) {
+		transactWorld("claim-land "+x+" "+y+" "+z, "Claim land at "+Util.locString(x,y,z), ()->landChunk=Long.MIN_VALUE);
+	}
+
+	private static final long LAND_REFRESH_MS=5000;
+	private volatile long landChunk=Long.MIN_VALUE;
+	private volatile long landQueriedAt=0;
+	private volatile String landStatus="";
+
+	/**
+	 * Gets a short description of who owns the land at the given position, for the HUD.
+	 * Never blocks: fires an async query when the chunk changes or the cached status is
+	 * stale, and returns the last known status meanwhile.
+	 */
+	public String getLandStatus(int x, int y, int z) {
+		long cpos=chunkAddress(Util.chunkBase(x),Util.chunkBase(y),Util.chunkBase(z));
+		long now=System.currentTimeMillis();
+		if ((cpos!=landChunk)||(now-landQueriedAt>LAND_REFRESH_MS)) {
+			landChunk=cpos;
+			landQueriedAt=now;
+			queryLand(x,y,z,cpos);
+		}
+		return landStatus;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void queryLand(int x, int y, int z, long cpos) {
+		ACell form=Reader.read("(call "+Config.world+" (land-info "+x+" "+y+" "+z+"))");
+		Convex convex=Config.getConvex();
+		((CompletableFuture<Result>)convex.query(form)).thenAcceptAsync(r->{
+			if (cpos!=landChunk) return; // player has moved on
+			if (r.isError()) {
+				landStatus="?";
+				return;
+			}
+			ACell v=r.getValue();
+			if (v==null) {
+				landStatus="unclaimed (K to claim)";
+				return;
+			}
+			AMap<ACell,ACell> info=(AMap<ACell,ACell>) v;
+			ACell owner=info.get(Keyword.create("owner"));
+			ASet<ACell> allow=(ASet<ACell>) info.get(Keyword.create("allow"));
+			if (Config.addr.equals(owner)) {
+				landStatus="yours";
+			} else if ((allow!=null)&&allow.contains(Config.addr)) {
+				landStatus="owned by "+owner+" (you may build)";
+			} else {
+				landStatus="owned by "+owner;
+			}
+		});
+	}
 }

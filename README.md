@@ -37,6 +37,16 @@ To run the game, just run the main class `blockgame.BlockGame` with your preferr
 
 We're open to open source collaborators and contributors! Join the discussion at the [Convex Discord](https://discord.com/invite/xfYGq4CT7v). 
 
+## Playing
+
+- Move with W, A, S, D and Space. The mouse looks around; left click breaks a block, right click places the selected one.
+- Keys 1 to 9, or the scroll wheel, pick a hotbar slot. Slash toggles a horizontal slice view, with comma and period moving the slice.
+- Blocks you break go into your on-chain inventory and blocks you place are spent from it.
+- C crafts the selected hotbar item from raw materials: stone bricks from stone, planks from oak logs, and so on. Recipes live in world.cvx.
+- Gold ore is seeded below sea level and gets richer the deeper you dig, so explore the caves.
+- K claims the chunk you are standing in for 4 gold. Only you, and builders you allow, can then break or place blocks there. The HUD shows who owns the land you are on.
+- Owners can release or transfer land and allow or disallow builders by calling the world actor directly (release-land, transfer-land, allow-builder, disallow-builder).
+
 ## License
 
 Convex parts and library components are under the Convex Public License

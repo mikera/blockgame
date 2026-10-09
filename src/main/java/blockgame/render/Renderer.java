@@ -222,6 +222,14 @@ public class Renderer {
 		 		Chunk.adjustSlice(1);
 		 		break;
 			}
+			case GLFW.GLFW_KEY_C: {
+				engine.craftSelected();
+				break;
+			}
+			case GLFW.GLFW_KEY_K: {
+				engine.claimLand((int)Math.floor(playerPos.x),(int)Math.floor(playerPos.y),(int)Math.floor(playerPos.z));
+				break;
+			}
 		}
 	}
 

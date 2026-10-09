@@ -185,6 +185,8 @@ public class HUD {
 		ht.append("FPS:           "+FPSformat.format(Renderer.fps)+"\n");
 		ht.append("Memory Size:   "+Config.SERVER.getPeer().getConsensusState().getMemorySize()+"\n");
 		ht.append("Balance:       "+Config.SERVER.getPeer().getConsensusState().getAccount(Config.addr).getBalance()+"\n");
+		ht.append("Land:          "+engine.getLandStatus((int)Math.floor(renderer.playerPos.x),(int)Math.floor(renderer.playerPos.y),(int)Math.floor(renderer.playerPos.z))+"\n");
+		ht.append("Keys:          C craft selected, K claim land\n");
 		
 		Text.addText(-width/2, -height/2, ht.toString());
 		Text.draw();

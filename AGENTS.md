@@ -38,7 +38,7 @@ cd ../convex && mvn clean install -DskipTests
 | `blockgame.render` | OpenGL rendering — chunks, billboards, shaders |
 | `blockgame.model` | OBJ model loading |
 | `blockgame.assets` | Asset / texture loading |
-| `src/main/resources/convex/` | On-chain Convex Lisp code: `world.cvx` (chunk state, block break/place, starter kit) and `inventory.cvx` (a CAD29 fungible asset actor — items are scoped sub-assets `[inventory item-id]`, transferable via `convex.asset`; only the world actor may mint/burn) |
+| `src/main/resources/convex/` | On-chain Convex Lisp code: `world.cvx` (chunk state, block break/place, starter kit, crafting recipes, land claims with owner-only building) and `inventory.cvx` (a CAD29 fungible asset actor — items are scoped sub-assets `[inventory item-id]`, transferable via `convex.asset`; only the world actor may mint/burn) |
 
 ## Runtime Modes
 
