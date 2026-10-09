@@ -42,6 +42,9 @@ public class Lib {
 	public static final CVMLong DIRT=block("dirt");
 	public static final CVMLong SAND=block("sand");
 	public static final CVMLong WATER=block("water");
+	public static final CVMLong GOLD=block("gold");
+	public static final CVMLong WOOD=block("wood");
+	public static final CVMLong BRICK=block("brick");
 
 	
 	public static final CVMLong CHALK=block("chalk");
@@ -100,6 +103,16 @@ public class Lib {
 	
 	private static CVMLong block(String string) {
 		return Lib.namelookup.get(Strings.create(string));
+	}
+
+	/**
+	 * Gets the display name of a block type, or null if unknown
+	 */
+	public static String name(ACell type) {
+		AHashMap<Keyword, ACell> meta = blockData.get(type);
+		if (meta==null) return null;
+		ACell n=meta.get(Keywords.NAME);
+		return (n==null)?null:n.toString();
 	}
 
 	@SuppressWarnings("unchecked")

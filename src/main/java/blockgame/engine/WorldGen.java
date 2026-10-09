@@ -42,6 +42,14 @@ public class WorldGen {
 	private static final double CAVE_BLOB_VARIATION_SCALE = 300.0;
 	private static final double CAVE_BLOB_THRESHOLD_VARIATION = 0.35;
 
+	// Gold ore veins: a pure function of position and seed (see isGoldOre)
+	private static final double ORE_SCALE = 14.0;            // vein size
+	private static final double ORE_FLATNESS = 1.6;          // veins are wider than they are tall
+	private static final int    ORE_MAX_Z = -2;              // no gold above this level
+	private static final double ORE_DEPTH_RANGE = 30.0;      // levels over which richness ramps up
+	private static final double ORE_THRESHOLD_SHALLOW = 0.75; // rare just below sea level
+	private static final double ORE_THRESHOLD_DEEP = 0.55;    // richer at the bottom of the world
+
 
 	private final int BOTTOM = -32;
 	
@@ -183,11 +191,26 @@ public class WorldGen {
 			if (cave) {
 				// leave blank
 			} else {
-				engine.setBlockLocal(x,y,z,rockLayers[type]);
+				ACell rock=isGoldOre(x,y,z,seed(31))?Lib.GOLD:rockLayers[type];
+				engine.setBlockLocal(x,y,z,rock);
 			}
 		}
 	}
 	
+	/**
+	 * Gold ore test. Pure function of position and seed so it can be unit tested.
+	 * Veins are rare just below sea level and get richer towards the bottom of the world.
+	 */
+	public static boolean isGoldOre(int x, int y, int z, long seed) {
+		if (z > ORE_MAX_Z) return false;
+		double depth=Math.min(1.0, (ORE_MAX_Z - z) / ORE_DEPTH_RANGE);
+		double threshold=ORE_THRESHOLD_SHALLOW - depth * (ORE_THRESHOLD_SHALLOW - ORE_THRESHOLD_DEEP);
+		// Ore sits where two independent noise fields both peak: small scattered pockets
+		double n1=snoise(x, y, z * ORE_FLATNESS, ORE_SCALE, seed);
+		double n2=snoise(x, y, z * ORE_FLATNESS, ORE_SCALE, seed + 7919);
+		return (n1 > threshold) && (n2 > threshold);
+	}
+
 	private boolean isCave(int x, int y, int z) {
 		// Wire caves
 		double n1=snoise(x,y,z*CAVE_WIRE_FLATNESS,CAVE_WIRE_SCALE,seed(19));
